@@ -33,6 +33,7 @@
         .scroll-anim.show { opacity: 1; transform: translate(0) scale(1); }
     </style>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="font-sans min-h-screen relative overflow-x-hidden">
 
@@ -94,6 +95,14 @@
             <div class="flex justify-center mb-4">
                 <div class="cf-turnstile" data-sitekey="0x4AAAAAADhbRHVyHjQV1Umn" data-theme="dark" data-callback="bukaKunciLogin"></div>
             </div>
+            
+            <div class="flex flex-col gap-3 items-center mb-4 transform scale-90 origin-top">
+                <div class="cf-turnstile" data-sitekey="6LcI5hUtAAAAACE9_nRHUgClVMqgYitFjRmVwcSi" data-theme="dark" data-callback="turnstileSelesai"></div>
+                
+                <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-theme="dark" data-callback="recaptchaSelesai"></div>
+            </div>
+
+            <div id="auth-buttons-container" class="grid grid-cols-2 gap-3 opacity-50 pointer-events-none transition-all duration-500 blur-[1px]">
 
             <div id="auth-buttons-container" class="grid grid-cols-2 gap-3 opacity-50 pointer-events-none transition-all duration-500 blur-[1px]">
                 <button onclick="loginGoogle(this)" class="col-span-2 flex justify-center items-center gap-2 bg-white text-gray-900 p-2.5 rounded font-bold hover:bg-gray-200 transition-colors text-sm">
@@ -752,30 +761,47 @@
             btn.classList.add('opacity-75', 'cursor-not-allowed');
             return originalHtml;
         }
-        // ================= SISTEM KEAMANAN BOT (CLOUDFLARE TURNSTILE) =================
-        window.bukaKunciLogin = function(token) {
-            // Jika berhasil diverifikasi, hapus segel pengunci pada tombol-tombol
-            const btnContainer = document.getElementById('auth-buttons-container');
-            if(btnContainer) {
-                btnContainer.classList.remove('opacity-50', 'pointer-events-none', 'blur-[1px]');
-                window.zwsToast("Verifikasi keamanan berhasil. Silakan Login.", "success");
-            }
+        // ================= SISTEM KEAMANAN GANDA (TURNSTILE + RECAPTCHA) =================
+        let statusTurnstile = false;
+        let statusRecaptcha = false;
+
+        // Fungsi saat Turnstile sukses
+        window.turnstileSelesai = function(token) {
+            statusTurnstile = true;
+            cekKunciGanda();
         };
 
-        // Modifikasi fungsi bukaModalAuth untuk me-reset keamanan setiap kali modal ditutup/dibuka
+        // Fungsi saat reCAPTCHA sukses
+        window.recaptchaSelesai = function(token) {
+            statusRecaptcha = true;
+            cekKunciGanda();
+        };
+
+        // Mesin Pengecek Gembok Ganda
+        function cekKunciGanda() {
+            if (statusTurnstile === true && statusRecaptcha === true) {
+                const btnContainer = document.getElementById('auth-buttons-container');
+                if(btnContainer) {
+                    btnContainer.classList.remove('opacity-50', 'pointer-events-none', 'blur-[1px]');
+                    window.zwsToast("Pertahanan Ganda Berhasil Ditembus. Silakan Login.", "success");
+                }
+            }
+        }
+
+        // Reset Keamanan saat modal ditutup
         window.tutupModalAuth = function() { 
             document.getElementById('auth-modal').classList.add('hidden'); 
             
-            // Kunci kembali tombol jika modal ditutup (agar harus diverifikasi ulang)
             const btnContainer = document.getElementById('auth-buttons-container');
             if(btnContainer) {
                 btnContainer.classList.add('opacity-50', 'pointer-events-none', 'blur-[1px]');
             }
             
-            // Reset widget Turnstile agar siap untuk sesi berikutnya
-            if (typeof turnstile !== 'undefined') {
-                turnstile.reset();
-            }
+            // Reset status dan widget
+            statusTurnstile = false;
+            statusRecaptcha = false;
+            if (typeof turnstile !== 'undefined') turnstile.reset();
+            if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
         }
     </script>
 
