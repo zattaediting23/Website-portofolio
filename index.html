@@ -394,7 +394,7 @@
 
     <script>
       const API_URL =
-        "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec";
+        "https://script.google.com/macros/s/AKfycbxATcI1_FFFr65T0TfShi62czWOlpu_3D34rCLJ6Cf6SQxK3PkClxnraoYGGzeQ8m37Ig/exec";
       const ADMIN_EMAIL = "zhafranediting23@gmail.com";
       let modeForm = "login";
       let editIndex = -1;
@@ -567,36 +567,36 @@
       window.onload = () => {
         initIconDropdown();
 
-        // Waktu mulai loading
-        const startTime = Date.now();
+        // DEBUG: Cek URL API
+        console.log("Mencoba terhubung ke:", API_URL);
 
         fetch(API_URL)
-          .then((res) => res.json())
+          .then((res) => {
+            if (!res.ok)
+              throw new Error(
+                "Server tidak merespons (Status: " + res.status + ")",
+              );
+            return res.json();
+          })
           .then((data) => {
+            console.log("Data berhasil diterima dari Cloud:", data);
             dbData = data;
             renderSeluruhUI();
-
-            // Hitung berapa lama sisa waktu agar loader tampil minimal 1 detik (1000ms)
-            const timeTaken = Date.now() - startTime;
-            const remainingTime = Math.max(0, 1000 - timeTaken);
-
-            setTimeout(() => {
-              document
-                .getElementById("loading-screen")
-                .classList.add("opacity-0");
-              setTimeout(
-                () =>
-                  document
-                    .getElementById("loading-screen")
-                    .classList.add("hidden"),
-                500,
-              );
-            }, remainingTime);
+            document
+              .getElementById("loading-screen")
+              .classList.add("opacity-0");
+            setTimeout(
+              () =>
+                document
+                  .getElementById("loading-screen")
+                  .classList.add("hidden"),
+              500,
+            );
           })
           .catch((err) => {
-            console.error("Gagal terhubung ke API:", err);
+            console.error("DEBUG ERROR:", err);
             document.getElementById("loading-screen").classList.add("hidden");
-            zwsToast("Koneksi ke server satelit terputus.", "error");
+            zwsToast("Koneksi gagal: " + err.message, "error");
           });
       };
 
