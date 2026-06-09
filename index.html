@@ -102,7 +102,7 @@
                 </div>
                 
                 <div class="transform scale-90 -mt-2">
-                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-theme="dark" data-callback="recaptchaSelesai"></div>
+                    <div class="g-recaptcha" data-sitekey="6LcI5hUtAAAAACE9_nRHUgClVMqgYitFjRmVwcSi" data-theme="dark" data-callback="recaptchaSelesai"></div>
                 </div>
             </div>
 
@@ -476,7 +476,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        // Tambahkan onAuthStateChanged dan signOut di sini
+        import { getAuth, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDXiY33kAumrMp4kMM_6J-LsWuGCtPM6hY",
@@ -487,18 +488,64 @@
             appId: "1:21592339559:web:95b00074154e6f2f3050c2",
             measurementId: "G-SVM7V0L2C5"
         };
-        const app = initializeApp(firebaseConfig); const auth = getAuth(app);
+        const app = initializeApp(firebaseConfig); 
+        const auth = getAuth(app);
 
+        // ===== 1. RADAR OTOMATIS FIREBASE (PENJAGA STATUS LOGIN) =====
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Jika Firebase mendeteksi ada user yang login, amankan datanya
+                const userData = { 
+                    name: user.displayName || "Crew Member", 
+                    email: user.email || "Tanpa Email", 
+                    picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
+                };
+                localStorage.setItem('zws_user', JSON.stringify(userData)); 
+                
+                // Ubah UI Navbar menjadi Profil
+                window.tampilkanUser(userData, false);
+                
+                // Jika data Cloud sudah ada, render ulang project & timeline agar admin melihat tombol Edit
+                if (typeof dbData !== 'undefined' && dbData.projects) {
+                    renderProjects(userData); 
+                    renderJourney(userData);
+                }
+            } else {
+                // Jika user benar-benar Log Out
+                localStorage.removeItem('zws_user');
+                document.getElementById('nav-logged-out').classList.remove('hidden');
+                document.getElementById('nav-logged-in').classList.add('hidden');
+                const adminPanel = document.getElementById('admin-panel');
+                if(adminPanel) adminPanel.classList.add('hidden');
+            }
+        });
+
+        // ===== 2. PENANGKAP HASIL REDIRECT (UNTUK NOTIFIKASI & PINDAH HALAMAN) =====
         getRedirectResult(auth).then((result) => {
             if (result) {
-                const user = result.user;
-                const userData = { name: user.displayName || "Crew Member", email: user.email || "Tanpa Email", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
-                localStorage.setItem('zws_user', JSON.stringify(userData)); window.tampilkanUser(userData, true);
-                renderProjects(userData); renderJourney(userData); 
-                window.zwsToast(`Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
+                // Tutup modal dan beri ucapan selamat datang jika baru saja selesai proses redirect login
+                window.tutupModalAuth();
+                window.zwsToast(`Otentikasi Berhasil. Selamat datang, ${result.user.displayName || 'Kapten'}!`, "success");
+                window.showPage('profil'); // Otomatis lompat ke halaman profil
             }
-        }).catch((error) => { window.zwsToast("Gagal login via Redirect: " + error.message, "error"); });
+        }).catch((error) => { 
+            window.zwsToast("Gagal login via Redirect: " + error.message, "error"); 
+        });
 
+        // ===== 3. PERBAIKAN FUNGSI LOGOUT GLOBAL =====
+        window.logout = function() {
+            zwsConfirm("Apakah Anda yakin ingin memutus koneksi dan Log Out dari station?", function() {
+                // Paksa mesin Firebase untuk memutus koneksi
+                signOut(auth).then(() => {
+                    localStorage.removeItem('zws_user');
+                    location.reload(); // Refresh halaman agar bersih
+                }).catch((error) => {
+                    zwsToast("Gagal Log Out: " + error.message, "error");
+                });
+            });
+        }
+
+        // ===== 4. FUNGSI EKSEKUSI LOGIN =====
         window.loginGoogle = function(btn) { lockUI("MENGALIHKAN KE GOOGLE..."); setBtnLoading(btn); const provider = new GoogleAuthProvider(); provider.addScope('profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
         window.loginGitHub = function(btn) { lockUI("MENGALIHKAN KE GITHUB..."); setBtnLoading(btn); const provider = new GithubAuthProvider(); provider.addScope('read:user'); provider.addScope('user:email'); signInWithRedirect(auth, provider); };
         window.loginFacebook = function(btn) { lockUI("MENGALIHKAN KE FACEBOOK..."); setBtnLoading(btn); const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
