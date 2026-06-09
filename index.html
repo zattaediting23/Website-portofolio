@@ -613,10 +613,15 @@
         }
 
         // BUKA KUNCI LAYAR
-        function unlockUI() {
+        function unlockUI(instant = false) {
             const loader = document.getElementById('loading-screen');
-            loader.classList.add('opacity-0');
-            setTimeout(() => loader.classList.add('hidden'), 500);
+            if (instant) {
+                loader.classList.add('hidden'); // Hilang instan
+                loader.classList.remove('opacity-0');
+            } else {
+                loader.classList.add('opacity-0'); // Transisi smooth 500ms
+                setTimeout(() => loader.classList.add('hidden'), 500);
+            }
         }
 
         function handleLoginSuccess(result) {
@@ -634,11 +639,12 @@
         }
 
         function handleLoginError(error) {
-            // DETEKSI KHUSUS JIKA TAB/POPUP DITUTUP MANUAL
             if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                window.zwsToast("Otentikasi dibatalkan oleh pengguna.", "warning");
+                unlockUI(true); // <--- Kunci: BUKA LAYAR SECEPAT KILAT
+                window.zwsToast("Otentikasi dibatalkan.", "warning");
                 return;
             }
+            unlockUI(true); // Error lain juga harus membuka layar instan
             window.zwsToast("Gagal login: " + error.message, "error");
         }
 
