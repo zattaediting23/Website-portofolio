@@ -46,9 +46,9 @@
         </div>
     </div>
 
-    <div id="loading-screen" class="hidden fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex flex-col justify-center items-center transition-opacity duration-500">
+    <div id="loading-screen" class="fixed inset-0 z-[150] bg-spaceBlack flex flex-col justify-center items-center transition-opacity duration-500">
         <div class="loader mb-4 w-12 h-12"></div>
-        <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse" id="loading-text">MENYINKRONKAN DATA...</p>
+        <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse" id="loading-text">MENYINKRONKAN DATA DARI GOOGLE CLOUD...</p>
     </div>
 
     <nav class="fixed w-full z-50 glass px-6 py-4 flex justify-between items-center">
@@ -357,20 +357,32 @@
             return url;
         }
 
+        // Ganti blok window.onload lama dengan ini:
         window.onload = () => {
             initIconDropdown(); 
+            
+            // Waktu mulai loading
+            const startTime = Date.now();
+            
             fetch(API_URL)
                 .then(res => res.json())
                 .then(data => {
                     dbData = data;
                     renderSeluruhUI();
-                    document.getElementById('loading-screen').classList.add('opacity-0');
-                    setTimeout(() => document.getElementById('loading-screen').classList.add('hidden'), 500);
+                    
+                    // Hitung berapa lama sisa waktu agar loader tampil minimal 1 detik (1000ms)
+                    const timeTaken = Date.now() - startTime;
+                    const remainingTime = Math.max(0, 1000 - timeTaken);
+                    
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').classList.add('opacity-0');
+                        setTimeout(() => document.getElementById('loading-screen').classList.add('hidden'), 500);
+                    }, remainingTime);
                 })
                 .catch(err => {
                     console.error("Gagal terhubung ke API:", err);
                     document.getElementById('loading-screen').classList.add('hidden');
-                    zwsToast("Koneksi ke server satelit terputus. Pastikan link Google Apps Script sudah benar.", "error");
+                    zwsToast("Koneksi ke server satelit terputus.", "error");
                 });
         };
 
