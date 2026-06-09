@@ -31,7 +31,6 @@
         .loader { border: 4px solid rgba(255,255,255,0.1); border-left-color: #22d3ee; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Custom Scrollbar for Dropdown */
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 4px; }
@@ -107,7 +106,7 @@
                 </div>
                 <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4">Loading...</h1>
                 <p class="text-starCyan font-mono tracking-widest mb-10">Admin Staff & Web Developer</p>
-                <a id="btn-download-cv" href="#" target="_blank" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+                <a id="btn-download-cv" href="#" download class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)]">
                     <i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV
                 </a>
             </section>
@@ -150,11 +149,12 @@
                             </div>
 
                             <div>
-                                <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK GOOGLE DRIVE CV (PDF)</label>
+                                <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK GOOGLE DRIVE / MEDIAFIRE CV</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="admin-cv-link" placeholder="Paste link disini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
                                 </div>
+                                <p class="text-[10px] text-gray-500 mt-1 italic">Trik: Untuk Mediafire, klik kanan tombol download warna biru lalu pilih "Copy link address" agar bisa di-download otomatis.</p>
                             </div>
                             
                             <hr class="border-gray-800">
@@ -204,9 +204,8 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         // =============================================================
-        // KAPTEN, PASTIKAN URL INI ADALAH URL "/exec" DARI GOOGLE APPS SCRIPT
-        // =============================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
+        // =============================================================
 
         const ADMIN_EMAIL = "zhafranediting23@gmail.com";
         let modeForm = 'login'; 
@@ -214,7 +213,6 @@
         
         let dbData = { profile: {}, cv: "#", projects: [] };
 
-        // ================= DAFTAR IKON DROPDOWN (MUDAH DIMENGERTI) =================
         const iconList = [
             { name: "Mainkan (Play)", class: "fa-solid fa-play" },
             { name: "Unduh (Download)", class: "fa-solid fa-download" },
@@ -231,7 +229,6 @@
             { name: "Info (Detail)", class: "fa-solid fa-circle-info" }
         ];
 
-        // Setup Dropdown saat halaman dimuat
         function initIconDropdown() {
             const listContainer = document.getElementById('icon-dropdown-list');
             listContainer.innerHTML = iconList.map(icon => `
@@ -263,7 +260,6 @@
             document.getElementById('icon-dropdown-list').classList.add('hidden');
         }
 
-        // Tutup dropdown kalau klik di luar
         document.addEventListener('click', function(event) {
             const container = document.getElementById('icon-dropdown-container');
             if (container && !container.contains(event.target)) {
@@ -308,9 +304,25 @@
             setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
 
+        // ================= FUNGSI KONVERSI LINK DIRECT DOWNLOAD =================
+        function prosesLinkDownload(url) {
+            if (!url || url === '#') return '#';
+            
+            // Cek jika link dari Google Drive
+            const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (driveMatch && driveMatch[1]) {
+                // Konversi paksa ke sistem Direct Download G-Drive
+                return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+            }
+            
+            // Jika Mediafire (atau link lainnya), gunakan link aslinya secara utuh.
+            // (Catatan: Untuk Mediafire, harus memasukkan link direct aslinya seperti instruksi di panel admin)
+            return url;
+        }
+
         // ================= FETCH DATA DARI API GAS =================
         window.onload = () => {
-            initIconDropdown(); // Render isi dropdown
+            initIconDropdown(); 
             
             fetch(API_URL)
                 .then(res => res.json())
@@ -333,12 +345,10 @@
             document.getElementById('admin-profile-name').value = dbData.profile.name || "";
             document.getElementById('admin-profile-bio').value = dbData.profile.bio || "";
 
-            const cvLink = dbData.cv || '#';
-            let directLink = cvLink;
-            const driveMatch = cvLink.match(/\/d\/([a-zA-Z0-9_-]+)/);
-            if (driveMatch && driveMatch[1]) directLink = `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
-            document.getElementById('btn-download-cv').href = directLink;
-            document.getElementById('admin-cv-link').value = cvLink === '#' ? '' : cvLink;
+            // Pasang Link CV ke tombol menggunakan fungsi Konversi
+            const rawCvLink = dbData.cv || '#';
+            document.getElementById('btn-download-cv').href = prosesLinkDownload(rawCvLink);
+            document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
 
             const user = JSON.parse(localStorage.getItem('zws_user'));
             renderProjects(user);
@@ -347,7 +357,6 @@
             showPage('beranda');
         }
 
-        // ================= FUNGSI UPDATE DATA KE SERVER API =================
         function kirimKeServerGAS(pesanSukses) {
             renderSeluruhUI(); 
             document.getElementById('loading-screen').classList.remove('hidden');
@@ -387,7 +396,7 @@
             const link = document.getElementById('p-link').value;
             const desc = document.getElementById('p-desc').value;
             const btnText = document.getElementById('p-btn-text').value;
-            const btnIcon = document.getElementById('p-btn-icon-value').value; // Ambil value hidden input
+            const btnIcon = document.getElementById('p-btn-icon-value').value; 
 
             if(!title || !link) return zwsAlert("Nama Proyek dan Link Demo wajib diisi!");
 
@@ -508,12 +517,10 @@
             document.getElementById('p-desc').value = p.desc || '';
             document.getElementById('p-btn-text').value = p.btnText || '';
             
-            // Set Dropdown Icon Visuals
             const iconVal = p.btnIcon || 'fa-solid fa-play';
             document.getElementById('p-btn-icon-value').value = iconVal;
             document.getElementById('selected-icon-preview').className = `${iconVal} text-starCyan mr-3 w-5 text-center`;
             
-            // Cari nama friendly dari icon yang di-save
             const foundIcon = iconList.find(i => i.class === iconVal);
             document.getElementById('icon-search-input').value = foundIcon ? foundIcon.name : '';
             
@@ -545,7 +552,6 @@
             document.getElementById('p-desc').value = '';
             document.getElementById('p-btn-text').value = '';
             
-            // Reset Dropdown
             document.getElementById('p-btn-icon-value').value = '';
             document.getElementById('icon-search-input').value = '';
             document.getElementById('selected-icon-preview').className = 'fa-solid fa-play text-gray-500 mr-3 w-5 text-center';
@@ -574,11 +580,18 @@
                 const btnText = p.btnText || 'LIVE DEMO';
                 const btnIcon = p.btnIcon || 'fa-solid fa-play';
 
+                // Hapus target="_blank" dan tambahkan atribut 'download' khusus jika ini adalah file yang bisa diunduh
+                // Karena kita tidak tahu pasti apakah link proyek ini web biasa atau APK/PDF,
+                // Kita akan menggunakan _blank secara default KECUALI teks tombolnya mengindikasikan unduhan
+                const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk') || btnText.toLowerCase().includes('pdf');
+                const targetAttr = isDownloadable ? '' : 'target="_blank"';
+                const downloadAttr = isDownloadable ? 'download' : '';
+
                 return `
                 <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative">
                     <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
                     <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
-                    <a href="${p.link}" target="_blank" class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2 uppercase tracking-wider">
+                    <a href="${p.link}" ${targetAttr} ${downloadAttr} class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2 uppercase tracking-wider">
                         <i class="${btnIcon} mr-2"></i> ${btnText}
                     </a>
                     ${isAdmin ? `
