@@ -99,23 +99,20 @@
 
     <div id="zws-dialog" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-300">
         <div class="glass p-8 rounded-2xl w-full max-w-sm border-t-4 border-t-red-500 text-center transform scale-95 transition-transform duration-300 shadow-[0_0_40px_rgba(239,68,68,0.2)]" id="zws-dialog-box">
-            <div class="text-5xl mb-4 text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" id="zws-dialog-icon">
+            <div class="text-5xl mb-4 text-red-500" id="zws-dialog-icon">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <h3 class="text-white font-bold text-lg mb-2 tracking-widest font-mono" id="zws-dialog-title">
                 CRITICAL WARNING
             </h3>
-            <p class="text-gray-400 text-sm mb-8 leading-relaxed" id="zws-dialog-msg">
-                Pesan konfirmasi akan tampil di sini.
-            </p>
+            <p class="text-gray-400 text-sm mb-8" id="zws-dialog-msg"></p>
             <div class="flex justify-center gap-3" id="zws-dialog-buttons"></div>
         </div>
     </div>
-
-    <div id="loading-screen" class="fixed inset-0 z-[150] bg-spaceBlack flex flex-col justify-center items-center transition-opacity duration-500">
+    <div id="loading-screen" class="hidden fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex flex-col justify-center items-center transition-opacity duration-500">
         <div class="loader mb-4 w-12 h-12"></div>
         <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse" id="loading-text">
-            MENYINKRONKAN DATA DARI GOOGLE CLOUD...
+            SYNCING...
         </p>
     </div>
 
