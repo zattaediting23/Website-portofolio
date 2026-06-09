@@ -30,13 +30,18 @@
         
         .loader { border: 4px solid rgba(255,255,255,0.1); border-left-color: #22d3ee; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Custom Scrollbar for Dropdown */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 4px; }
     </style>
 </head>
 <body class="font-sans min-h-screen relative">
 
     <div id="zws-dialog" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-300">
         <div class="glass p-8 rounded-2xl w-full max-w-sm border-t-4 border-t-starCyan text-center transform scale-95 transition-transform duration-300" id="zws-dialog-box">
-            <div class="text-5xl mb-4 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]" id="zws-dialog-icon">🔔</div>
+            <div class="text-5xl mb-4 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)] text-starCyan" id="zws-dialog-icon"><i class="fa-solid fa-bell"></i></div>
             <h3 class="text-white font-bold text-lg mb-2 tracking-widest font-mono" id="zws-dialog-title">SYSTEM MESSAGE</h3>
             <p class="text-gray-400 text-sm mb-8 leading-relaxed" id="zws-dialog-msg">Pesan akan tampil di sini.</p>
             <div class="flex justify-center gap-3" id="zws-dialog-buttons"></div>
@@ -130,50 +135,61 @@
                     </div>
 
                     <div id="admin-panel" class="hidden glass p-8 rounded-2xl border-2 border-dashed border-blue-500 relative transition-all duration-500">
-                        <span class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase" id="admin-panel-badge">Admin Command Center</span>
+                        <span class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase flex items-center gap-1" id="admin-panel-badge">
+                            <i class="fa-solid fa-user-shield"></i> Admin Command Center
+                        </span>
                         
                         <div class="space-y-6">
-                            <div class="border-b border-gray-800 pb-6">
-                                <label class="text-xs text-starCyan font-bold mb-3 block">⚙️ KELOLA IDENTITAS UTAMA (NAMA & BIO)</label>
+                            <div class="border-b border-gray-800 pb-6 mt-2">
+                                <label class="text-xs text-starCyan font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-id-badge text-lg"></i> KELOLA IDENTITAS UTAMA</label>
                                 <div class="space-y-3">
                                     <input type="text" id="admin-profile-name" placeholder="Ubah Nama Utama..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <textarea id="admin-profile-bio" placeholder="Ubah Isi Transmission Bio..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-24 focus:border-starCyan outline-none"></textarea>
-                                    <button onclick="simpanProfilUtama()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold p-2.5 rounded hover:from-cyan-400 hover:to-blue-500 text-xs transition-all tracking-wider">PERBARUI DATA PROFIL UTAMA</button>
+                                    <button onclick="simpanProfilUtama()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold p-2.5 rounded hover:from-cyan-400 hover:to-blue-500 text-xs transition-all tracking-wider"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>PERBARUI DATA PROFIL</button>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-xs text-gray-400 font-bold mb-1 block">LINK GOOGLE DRIVE CV (PDF)</label>
+                                <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK GOOGLE DRIVE CV (PDF)</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="admin-cv-link" placeholder="Paste link disini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
-                                    <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors">SIMPAN LINK</button>
+                                    <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
                                 </div>
                             </div>
                             
                             <hr class="border-gray-800">
 
                             <div>
-                                <label class="text-xs text-starCyan font-bold mb-2 block" id="label-form-proyek">TAMBAH PROYEK BARU</label>
+                                <label class="text-xs text-starCyan font-bold mb-2 flex items-center gap-2" id="label-form-proyek"><i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU</label>
                                 <div class="space-y-3">
                                     <input type="text" id="p-title" placeholder="Nama Proyek (Contoh: Sistem Absense)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <input type="text" id="p-link" placeholder="Tautan URL (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <textarea id="p-desc" placeholder="Deskripsi Singkat Proyek..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-starCyan outline-none"></textarea>
                                     
-                                    <div class="flex gap-3">
-                                        <div class="w-1/2">
-                                            <label class="text-xs text-gray-500 mb-1 block">Teks Tombol Aksi</label>
+                                    <div class="flex flex-col md:flex-row gap-3">
+                                        <div class="w-full md:w-1/2">
+                                            <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-font"></i> Teks Tombol Aksi</label>
                                             <input type="text" id="p-btn-text" placeholder="Cth: GITHUB / LIVE DEMO" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                         </div>
-                                        <div class="w-1/2">
-                                            <label class="text-xs text-gray-500 mb-1 block">Ikon FontAwesome</label>
-                                            <input type="text" id="p-btn-icon" placeholder="Cth: fa-brands fa-github" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                        
+                                        <div class="w-full md:w-1/2 relative" id="icon-dropdown-container">
+                                            <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-icons"></i> Ikon Tombol</label>
+                                            <input type="hidden" id="p-btn-icon-value" value="">
+                                            
+                                            <div class="flex items-center w-full bg-black p-3 rounded border border-gray-700 focus-within:border-starCyan relative cursor-pointer" onclick="toggleDropdown()">
+                                                <i id="selected-icon-preview" class="fa-solid fa-play text-gray-500 mr-3 w-5 text-center"></i>
+                                                <input type="text" id="icon-search-input" placeholder="Cari ikon..." class="bg-transparent text-sm text-white outline-none w-full cursor-text" onkeyup="filterIcons()">
+                                                <i class="fa-solid fa-chevron-down text-gray-500 ml-2 text-xs"></i>
+                                            </div>
+                                            
+                                            <div id="icon-dropdown-list" class="hidden absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded shadow-2xl max-h-48 overflow-y-auto custom-scroll">
+                                                </div>
                                         </div>
                                     </div>
-                                    <p class="text-xs text-gray-500 mb-2 italic">*Kosongkan teks dan ikon jika ingin menggunakan default (LIVE DEMO).</p>
 
                                     <div class="flex gap-2 pt-2">
-                                        <button onclick="simpanProyek()" id="btn-simpan-proyek" class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors">TAMBAH KE LAUNCHPAD</button>
-                                        <button onclick="batalEdit()" id="btn-batal-edit" class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors">BATAL</button>
+                                        <button onclick="simpanProyek()" id="btn-simpan-proyek" class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors"><i class="fa-solid fa-rocket mr-2"></i>TAMBAH KE LAUNCHPAD</button>
+                                        <button onclick="batalEdit()" id="btn-batal-edit" class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors"><i class="fa-solid fa-xmark mr-2"></i>BATAL</button>
                                     </div>
                                 </div>
                             </div>
@@ -198,13 +214,71 @@
         
         let dbData = { profile: {}, cv: "#", projects: [] };
 
+        // ================= DAFTAR IKON DROPDOWN (MUDAH DIMENGERTI) =================
+        const iconList = [
+            { name: "Mainkan (Play)", class: "fa-solid fa-play" },
+            { name: "Unduh (Download)", class: "fa-solid fa-download" },
+            { name: "GitHub (Source Code)", class: "fa-brands fa-github" },
+            { name: "Website (Globe)", class: "fa-solid fa-globe" },
+            { name: "Buka Tautan (External)", class: "fa-solid fa-arrow-up-right-from-square" },
+            { name: "Kode (Code)", class: "fa-solid fa-code" },
+            { name: "Google Drive", class: "fa-brands fa-google-drive" },
+            { name: "YouTube (Video)", class: "fa-brands fa-youtube" },
+            { name: "Aplikasi Mobile (APK)", class: "fa-solid fa-mobile-screen" },
+            { name: "Dokumen (PDF)", class: "fa-solid fa-file-pdf" },
+            { name: "Buku (Baca)", class: "fa-solid fa-book" },
+            { name: "Toko (Cart)", class: "fa-solid fa-cart-shopping" },
+            { name: "Info (Detail)", class: "fa-solid fa-circle-info" }
+        ];
+
+        // Setup Dropdown saat halaman dimuat
+        function initIconDropdown() {
+            const listContainer = document.getElementById('icon-dropdown-list');
+            listContainer.innerHTML = iconList.map(icon => `
+                <div onclick="selectIcon('${icon.class}', '${icon.name}')" class="flex items-center p-3 hover:bg-gray-800 cursor-pointer border-b border-gray-800 last:border-0">
+                    <i class="${icon.class} text-starCyan w-6 text-center mr-3 text-lg"></i>
+                    <span class="text-sm text-gray-300 font-medium">${icon.name}</span>
+                </div>
+            `).join('');
+        }
+
+        function toggleDropdown() {
+            document.getElementById('icon-dropdown-list').classList.toggle('hidden');
+            document.getElementById('icon-search-input').focus();
+        }
+
+        function filterIcons() {
+            const searchVal = document.getElementById('icon-search-input').value.toLowerCase();
+            const items = document.getElementById('icon-dropdown-list').children;
+            for(let i = 0; i < items.length; i++) {
+                const text = items[i].innerText.toLowerCase();
+                items[i].style.display = text.includes(searchVal) ? 'flex' : 'none';
+            }
+        }
+
+        function selectIcon(iconClass, iconName) {
+            document.getElementById('p-btn-icon-value').value = iconClass;
+            document.getElementById('icon-search-input').value = iconName;
+            document.getElementById('selected-icon-preview').className = `${iconClass} text-starCyan mr-3 w-5 text-center`;
+            document.getElementById('icon-dropdown-list').classList.add('hidden');
+        }
+
+        // Tutup dropdown kalau klik di luar
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('icon-dropdown-container');
+            if (container && !container.contains(event.target)) {
+                document.getElementById('icon-dropdown-list').classList.add('hidden');
+            }
+        });
+
         // ================= SISTEM CUSTOM DIALOG =================
         function zwsAlert(msg) {
             const dialog = document.getElementById('zws-dialog');
             const box = document.getElementById('zws-dialog-box');
             document.getElementById('zws-dialog-title').innerText = "SYSTEM NOTIFICATION";
             document.getElementById('zws-dialog-title').className = "text-starCyan font-bold text-lg mb-2 tracking-widest font-mono";
-            document.getElementById('zws-dialog-icon').innerText = "🔔";
+            document.getElementById('zws-dialog-icon').innerHTML = '<i class="fa-solid fa-bell"></i>';
+            document.getElementById('zws-dialog-icon').className = "text-5xl mb-4 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)] text-starCyan";
             document.getElementById('zws-dialog-msg').innerText = msg;
             document.getElementById('zws-dialog-buttons').innerHTML = `<button onclick="closeZwsDialog()" class="bg-starCyan text-black font-bold px-8 py-2 rounded hover:bg-white transition-colors w-full">OK MENGERTI</button>`;
             dialog.classList.remove('hidden');
@@ -216,7 +290,8 @@
             const box = document.getElementById('zws-dialog-box');
             document.getElementById('zws-dialog-title').innerText = "CRITICAL WARNING";
             document.getElementById('zws-dialog-title').className = "text-red-500 font-bold text-lg mb-2 tracking-widest font-mono";
-            document.getElementById('zws-dialog-icon').innerText = "⚠️";
+            document.getElementById('zws-dialog-icon').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            document.getElementById('zws-dialog-icon').className = "text-5xl mb-4 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)] text-red-500";
             document.getElementById('zws-dialog-msg').innerText = msg;
             window.tempConfirmCallback = () => { closeZwsDialog(); if(onConfirmCallback) onConfirmCallback(); };
             document.getElementById('zws-dialog-buttons').innerHTML = `
@@ -235,6 +310,8 @@
 
         // ================= FETCH DATA DARI API GAS =================
         window.onload = () => {
+            initIconDropdown(); // Render isi dropdown
+            
             fetch(API_URL)
                 .then(res => res.json())
                 .then(data => {
@@ -272,12 +349,11 @@
 
         // ================= FUNGSI UPDATE DATA KE SERVER API =================
         function kirimKeServerGAS(pesanSukses) {
-            renderSeluruhUI(); // Optimistic UI update
+            renderSeluruhUI(); 
             document.getElementById('loading-screen').classList.remove('hidden');
             document.getElementById('loading-screen').classList.remove('opacity-0');
             document.getElementById('loading-text').innerText = "MENGIRIM DATA KE CLOUD...";
 
-            // Hapus headers Content-Type agar CORS tidak marah
             fetch(API_URL, {
                 method: 'POST',
                 body: JSON.stringify(dbData)
@@ -311,11 +387,10 @@
             const link = document.getElementById('p-link').value;
             const desc = document.getElementById('p-desc').value;
             const btnText = document.getElementById('p-btn-text').value;
-            const btnIcon = document.getElementById('p-btn-icon').value;
+            const btnIcon = document.getElementById('p-btn-icon-value').value; // Ambil value hidden input
 
             if(!title || !link) return zwsAlert("Nama Proyek dan Link Demo wajib diisi!");
 
-            // Susun data proyek, biarkan kosong jika tidak diisi agar default jalan di render
             const projectData = { title, link, desc, btnText, btnIcon };
 
             if(editIndex > -1) {
@@ -432,12 +507,20 @@
             document.getElementById('p-link').value = p.link || '';
             document.getElementById('p-desc').value = p.desc || '';
             document.getElementById('p-btn-text').value = p.btnText || '';
-            document.getElementById('p-btn-icon').value = p.btnIcon || '';
+            
+            // Set Dropdown Icon Visuals
+            const iconVal = p.btnIcon || 'fa-solid fa-play';
+            document.getElementById('p-btn-icon-value').value = iconVal;
+            document.getElementById('selected-icon-preview').className = `${iconVal} text-starCyan mr-3 w-5 text-center`;
+            
+            // Cari nama friendly dari icon yang di-save
+            const foundIcon = iconList.find(i => i.class === iconVal);
+            document.getElementById('icon-search-input').value = foundIcon ? foundIcon.name : '';
             
             editIndex = index;
-            document.getElementById('label-form-proyek').innerText = "UPDATE PROYEK";
-            document.getElementById('label-form-proyek').className = "text-xs text-yellow-500 font-bold mb-2 block";
-            document.getElementById('btn-simpan-proyek').innerText = "SIMPAN PERUBAHAN KE CLOUD";
+            document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-pen-to-square text-lg"></i> UPDATE PROYEK';
+            document.getElementById('label-form-proyek').className = "text-xs text-yellow-500 font-bold mb-2 flex items-center gap-2";
+            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN KE CLOUD';
             document.getElementById('btn-simpan-proyek').className = "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors";
             document.getElementById('btn-batal-edit').classList.remove('hidden');
 
@@ -461,11 +544,15 @@
             document.getElementById('p-link').value = '';
             document.getElementById('p-desc').value = '';
             document.getElementById('p-btn-text').value = '';
-            document.getElementById('p-btn-icon').value = '';
             
-            document.getElementById('label-form-proyek').innerText = "TAMBAH PROYEK BARU";
-            document.getElementById('label-form-proyek').className = "text-xs text-starCyan font-bold mb-2 block";
-            document.getElementById('btn-simpan-proyek').innerText = "TAMBAH KE LAUNCHPAD";
+            // Reset Dropdown
+            document.getElementById('p-btn-icon-value').value = '';
+            document.getElementById('icon-search-input').value = '';
+            document.getElementById('selected-icon-preview').className = 'fa-solid fa-play text-gray-500 mr-3 w-5 text-center';
+            
+            document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU';
+            document.getElementById('label-form-proyek').className = "text-xs text-starCyan font-bold mb-2 flex items-center gap-2";
+            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-rocket mr-2"></i>TAMBAH KE LAUNCHPAD';
             document.getElementById('btn-simpan-proyek').className = "flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors";
             document.getElementById('btn-batal-edit').classList.add('hidden');
         }
@@ -484,7 +571,6 @@
             }
 
             grid.innerHTML = dbData.projects.map((p, index) => {
-                // Menentukan Teks dan Ikon Tombol (Jika tidak diisi, gunakan default)
                 const btnText = p.btnText || 'LIVE DEMO';
                 const btnIcon = p.btnIcon || 'fa-solid fa-play';
 
@@ -493,12 +579,12 @@
                     <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
                     <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
                     <a href="${p.link}" target="_blank" class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2 uppercase tracking-wider">
-                        <i class="${btnIcon} mr-1"></i> ${btnText}
+                        <i class="${btnIcon} mr-2"></i> ${btnText}
                     </a>
                     ${isAdmin ? `
                     <div class="flex gap-2 border-t border-gray-700 pt-3 mt-2">
-                        <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-1.5 rounded hover:bg-yellow-500 hover:text-black transition-colors">EDIT</button>
-                        <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-1.5 rounded hover:bg-red-500 hover:text-white transition-colors">HAPUS</button>
+                        <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-1.5 rounded hover:bg-yellow-500 hover:text-black transition-colors"><i class="fa-solid fa-pen-to-square mr-1"></i> EDIT</button>
+                        <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-1.5 rounded hover:bg-red-500 hover:text-white transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button>
                     </div>` : ''}
                 </div>`;
             }).join('');
