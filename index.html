@@ -315,6 +315,8 @@
         }
 
         // Web Scraper untuk menembus MediaFire
+        // ================= KEAJAIBAN: EKSTRAKTOR LINK DIRECT DOWNLOAD =================
+        // Web Scraper untuk menembus MediaFire (Menggunakan Proxy Baru)
         async function downloadMediaFire(event, url) {
             event.preventDefault(); // Jangan pindah tab!
             
@@ -327,24 +329,30 @@
             btn.style.pointerEvents = 'none';
 
             try {
-                // Menyelinap ke Mediafire lewat proxy (Bypass CORS)
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                // Kita ganti agen proxy ke corsproxy.io yang mengembalikan raw HTML langsung
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
                 const response = await fetch(proxyUrl);
-                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`Server Error: ${response.status}`);
+                }
+
+                const htmlText = await response.text();
                 
                 // Menganalisis HTML mentah MediaFire untuk mencari tombol aslinya
                 const parser = new DOMParser();
-                const doc = parser.parseFromString(data.contents, "text/html");
+                const doc = parser.parseFromString(htmlText, "text/html");
                 const downloadBtn = doc.querySelector('#downloadButton');
 
                 if (downloadBtn && downloadBtn.getAttribute('href')) {
                     // Berhasil menemukan file! Perintahkan browser untuk langsung mengunduh
                     window.location.href = downloadBtn.getAttribute('href');
                 } else {
-                    zwsAlert("Gagal mengekstrak link MediaFire. Kemungkinan file dikunci, butuh captcha, atau link kadaluarsa.");
+                    zwsAlert("Gagal mengekstrak link MediaFire. Kemungkinan sistem keamanan mereka memblokir akses bot.");
                 }
             } catch (error) {
-                zwsAlert("Koneksi ke server ekstraktor gagal. Coba lagi nanti.");
+                console.error("Scraping Error:", error);
+                zwsAlert("Koneksi ke agen ekstraktor gagal atau diblokir. Coba lagi nanti.");
             } finally {
                 // Kembalikan desain tombol setelah proses selesai
                 setTimeout(() => {
