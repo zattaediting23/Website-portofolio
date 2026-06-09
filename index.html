@@ -1,9 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZWS | Galactic Station</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -12,803 +11,535 @@
             theme: {
                 extend: {
                     colors: {
-                        spaceBlack: "#020204",
-                        nebulaPurple: "#4c1d95",
-                        starCyan: "#22d3ee",
-                        voidGray: "#1f2937",
+                        spaceBlack: '#020204', nebulaPurple: '#4c1d95', starCyan: '#22d3ee', voidGray: '#1f2937'
                     },
-                    fontFamily: {
-                        sans: ["Inter", "sans-serif"],
-                        mono: ["Space Mono", "monospace"],
-                    },
-                },
-            },
-        };
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Space Mono', 'monospace'] }
+                }
+            }
+        }
     </script>
     <style>
-        body {
-            background-color: #020204;
-            color: #e2e8f0;
-            background-image: radial-gradient(white, rgba(255, 255, 255, 0.2) 2px, transparent 3px), radial-gradient(white, rgba(255, 255, 255, 0.15) 1px, transparent 2px);
-            background-size: 550px 550px, 350px 350px;
-            background-position: 0 0, 40px 60px;
-        }
-        
-        .glass {
-            background: rgba(17, 24, 39, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .page {
-            display: none;
-        }
-        
-        .page-active {
-            display: block;
-        }
-        
-        .loader {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #22d3ee;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-        
-        .scroll-anim {
-            opacity: 0;
-            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .scroll-up {
-            transform: translateY(30px);
-        }
-        
-        .scroll-anim.show {
-            opacity: 1;
-            transform: translate(0) scale(1);
-        }
+        body { background-color: #020204; color: #e2e8f0; background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px); background-size: 550px 550px, 350px 350px; background-position: 0 0, 40px 60px; }
+        .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .page { display: none; }
+        .page-active { display: block; }
+        .loader { border: 4px solid rgba(255,255,255,0.1); border-left-color: #22d3ee; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .scroll-anim { opacity: 0; transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .scroll-up { transform: translateY(30px); }
+        .scroll-left { transform: translateX(-30px); }
+        .scroll-right { transform: translateX(30px); }
+        .scroll-scale { transform: scale(0.95); }
+        .scroll-anim.show { opacity: 1; transform: translate(0) scale(1); }
     </style>
 </head>
-
 <body class="font-sans min-h-screen relative overflow-x-hidden">
+
     <div id="toast-container" class="fixed top-6 right-6 z-[300] flex flex-col gap-3 pointer-events-none"></div>
 
     <div id="zws-dialog" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-300">
         <div class="glass p-8 rounded-2xl w-full max-w-sm border-t-4 border-t-red-500 text-center transform scale-95 transition-transform duration-300 shadow-[0_0_40px_rgba(239,68,68,0.2)]" id="zws-dialog-box">
-            <div class="text-5xl mb-4 text-red-500" id="zws-dialog-icon">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <h3 class="text-white font-bold text-lg mb-2 tracking-widest font-mono" id="zws-dialog-title">
-                CRITICAL WARNING
-            </h3>
-            <p class="text-gray-400 text-sm mb-8" id="zws-dialog-msg"></p>
+            <div class="text-5xl mb-4 text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" id="zws-dialog-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="text-white font-bold text-lg mb-2 tracking-widest font-mono" id="zws-dialog-title">CRITICAL WARNING</h3>
+            <p class="text-gray-400 text-sm mb-8 leading-relaxed" id="zws-dialog-msg"></p>
             <div class="flex justify-center gap-3" id="zws-dialog-buttons"></div>
         </div>
     </div>
-    <div id="loading-screen" class="fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex flex-col justify-center items-center transition-opacity duration-500">
+
+    <div id="loading-screen" class="hidden fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex flex-col justify-center items-center transition-opacity duration-500">
         <div class="loader mb-4 w-12 h-12"></div>
-        <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse" id="loading-text">
-            MENYINKRONKAN DATA DARI GOOGLE CLOUD...
-        </p>
+        <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse" id="loading-text">MENYINKRONKAN DATA...</p>
     </div>
 
     <nav class="fixed w-full z-50 glass px-6 py-4 flex justify-between items-center">
         <a href="#" onclick="showPage('beranda')" class="text-2xl font-black text-white tracking-widest flex items-center gap-2 hover:text-starCyan transition-colors">
             <i class="fa-solid fa-satellite-dish text-starCyan"></i> ZWS.
         </a>
+        
         <div id="nav-logged-out" class="flex gap-3">
-            <button onclick="bukaModalAuth('login')" class="text-xs font-bold text-gray-300 hover:text-white px-3 py-2">
-          LOG IN
-        </button>
-            <button onclick="bukaModalAuth('signup')" class="text-xs font-bold bg-starCyan/20 text-starCyan border border-starCyan px-4 py-2 rounded hover:bg-starCyan hover:text-black transition-colors">
-          SIGN UP
-        </button>
+            <button onclick="bukaModalAuth('login')" class="text-xs font-bold text-gray-300 hover:text-white px-3 py-2">LOG IN</button>
+            <button onclick="bukaModalAuth('signup')" class="text-xs font-bold bg-starCyan/20 text-starCyan border border-starCyan px-4 py-2 rounded hover:bg-starCyan hover:text-black transition-colors">SIGN UP</button>
         </div>
+
         <div id="nav-logged-in" class="hidden flex items-center gap-4">
             <button onclick="showPage('profil')" class="text-xs font-bold text-white hover:text-starCyan flex items-center gap-2">
-          <img
-            id="nav-foto"
-            src=""
-            class="w-8 h-8 rounded-full border border-starCyan object-cover"
-          />
-          <span class="hidden md:block">PROFIL</span>
-        </button>
-            <button onclick="logout()" class="text-xs font-bold text-red-500 border border-red-500 px-4 py-2 rounded hover:bg-red-500 hover:text-white transition-colors">
-          LOG OUT
-        </button>
+                <img id="nav-foto" src="" class="w-8 h-8 rounded-full border border-starCyan object-cover">
+                <span class="hidden md:block">PROFIL</span>
+            </button>
+            <button onclick="logout()" class="text-xs font-bold text-red-500 border border-red-500 px-4 py-2 rounded hover:bg-red-500 hover:text-white transition-colors">LOG OUT</button>
         </div>
     </nav>
 
     <div id="auth-modal" class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4">
         <div class="glass p-8 rounded-2xl w-full max-w-sm relative">
-            <button onclick="tutupModalAuth()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-
+            <button onclick="tutupModalAuth()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            
             <div class="flex border-b border-gray-700 mb-6">
-                <button id="tab-login" onclick="switchTabAuth('login')" class="flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan">
-            LOG IN
-          </button>
-                <button id="tab-signup" onclick="switchTabAuth('signup')" class="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300">
-            SIGN UP
-          </button>
+                <button id="tab-login" onclick="switchTabAuth('login')" class="flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan">LOG IN</button>
+                <button id="tab-signup" onclick="switchTabAuth('signup')" class="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300">SIGN UP</button>
             </div>
 
             <form id="auth-form" class="space-y-4">
-                <input type="text" id="input-name" placeholder="Nama Lengkap" class="hidden w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none" />
-                <input type="email" id="input-email" required placeholder="Email" class="w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none" />
-                <input type="password" id="input-password" required placeholder="Password" class="w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none" />
-                <button type="submit" id="btn-submit" class="w-full bg-nebulaPurple hover:bg-purple-700 p-3 rounded font-bold text-white text-sm transition-colors shadow-[0_0_15px_rgba(76,29,149,0.5)]">
-            MASUK
-          </button>
+                <input type="text" id="input-name" placeholder="Nama Lengkap" class="hidden w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none">
+                <input type="email" id="input-email" required placeholder="Email" class="w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none">
+                <input type="password" id="input-password" required placeholder="Password" class="w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none">
+                <button type="submit" id="btn-submit" class="w-full bg-nebulaPurple hover:bg-purple-700 p-3 rounded font-bold text-white text-sm transition-colors shadow-[0_0_15px_rgba(76,29,149,0.5)]">MASUK</button>
             </form>
 
             <div class="my-5 flex items-center gap-4 text-gray-600 text-[10px] font-bold tracking-widest uppercase">
-                <div class="h-px bg-gray-800 flex-1"></div>
-                ATAU LANJUTKAN DENGAN
-                <div class="h-px bg-gray-800 flex-1"></div>
+                <div class="h-px bg-gray-800 flex-1"></div> ATAU LANJUTKAN DENGAN <div class="h-px bg-gray-800 flex-1"></div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="loginGoogle(this)" class="col-span-2 flex justify-center items-center gap-2 bg-white text-gray-900 p-2.5 rounded font-bold hover:bg-gray-200 transition-colors text-sm">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
-              alt="Google"
-              class="w-4 h-4"
-            />
-            Google
-          </button>
-
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="w-4 h-4"> Google
+                </button>
                 <button disabled class="flex justify-center items-center gap-2 bg-gray-900 border border-gray-700 text-gray-500 p-2.5 rounded font-bold cursor-not-allowed text-sm opacity-50">
-            <i class="fa-solid fa-screwdriver-wrench mr-2"></i> Coming Soon
-          </button>
-
+                    <i class="fa-solid fa-screwdriver-wrench mr-2"></i> Coming Soon
+                </button>
                 <button onclick="loginGitHub(this)" class="flex justify-center items-center gap-2 bg-[#24292e] text-white p-2.5 rounded font-bold hover:bg-[#1b1f23] transition-colors text-sm shadow-[0_0_10px_rgba(36,41,46,0.5)]">
-            <i class="fa-brands fa-github text-white text-lg"></i> GitHub
-          </button>
-
+                    <i class="fa-brands fa-github text-white text-lg"></i> GitHub
+                </button>
                 <button onclick="loginFacebook(this)" class="flex justify-center items-center gap-2 bg-[#1877f2] text-white p-2.5 rounded font-bold hover:bg-[#166fe5] transition-colors text-sm shadow-[0_0_10px_rgba(24,119,242,0.4)]">
-            <i class="fa-brands fa-facebook text-white text-lg"></i> Facebook
-          </button>
-
+                    <i class="fa-brands fa-facebook text-white text-lg"></i> Facebook
+                </button>
                 <button disabled class="flex justify-center items-center gap-2 bg-gray-900 border border-gray-700 text-gray-500 p-2.5 rounded font-bold cursor-not-allowed text-sm opacity-50">
-            <i class="fa-solid fa-screwdriver-wrench mr-2"></i> Coming Soon
-          </button>
+                    <i class="fa-solid fa-screwdriver-wrench mr-2"></i> Coming Soon
+                </button>
             </div>
         </div>
     </div>
 
     <main class="pt-32 pb-20 px-6 max-w-5xl mx-auto">
+        
         <div id="page-beranda" class="page page-active space-y-20">
             <section class="text-center">
                 <div class="inline-block relative mb-8 scroll-anim scroll-scale">
                     <i class="fa-solid fa-user-astronaut text-7xl text-starCyan opacity-90 animate-bounce"></i>
                 </div>
-                <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms">
-                    Loading...
-                </h1>
-                <p class="text-starCyan font-mono tracking-widest mb-10 scroll-anim scroll-up" style="transition-delay: 200ms">
-                    Admin Staff & Web Developer
-                </p>
-                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms">
+                <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms;">Loading...</h1>
+                <p class="text-starCyan font-mono tracking-widest mb-10 scroll-anim scroll-up" style="transition-delay: 200ms;">Admin Staff & Web Developer</p>
+                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;">
                     <i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV
                 </a>
             </section>
 
             <section class="border-t border-gray-800 pt-10">
-                <h2 class="text-2xl font-bold text-white mb-8 scroll-anim scroll-right">
-                    <i class="fa-solid fa-rocket text-starCyan mr-2"></i> Launchpad Projects
-                </h2>
+                <h2 class="text-2xl font-bold text-white mb-8 scroll-anim scroll-right"><i class="fa-solid fa-rocket text-starCyan mr-2"></i> Launchpad Projects</h2>
                 <div id="project-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
         </div>
 
         <div id="page-profil" class="page space-y-10">
-            <h2 class="text-3xl font-extrabold text-white scroll-anim scroll-left">
-                <i class="fa-solid fa-id-card-clip text-nebulaPurple mr-2"></i> Flight Log
-            </h2>
-
+            <h2 class="text-3xl font-extrabold text-white scroll-anim scroll-left"><i class="fa-solid fa-id-card-clip text-nebulaPurple mr-2"></i> Flight Log</h2>
+            
             <div class="grid md:grid-cols-3 gap-8">
-                <div class="glass p-8 rounded-2xl md:col-span-1 text-center border-t-4 border-t-starCyan scroll-anim scroll-up" style="transition-delay: 100ms">
-                    <img id="profil-img" src="" class="w-24 h-24 rounded-full border-4 border-gray-800 mx-auto mb-4 object-cover" />
+                <div class="glass p-8 rounded-2xl md:col-span-1 text-center border-t-4 border-t-starCyan scroll-anim scroll-up" style="transition-delay: 100ms;">
+                    <img id="profil-img" src="" class="w-24 h-24 rounded-full border-4 border-gray-800 mx-auto mb-4 object-cover">
                     <h3 id="profil-name" class="text-xl font-bold text-white">Guest</h3>
                     <p id="profil-email" class="text-gray-400 text-xs font-mono break-all"></p>
                 </div>
 
                 <div class="md:col-span-2 space-y-8">
-                    <div class="glass p-8 rounded-2xl scroll-anim scroll-right" style="transition-delay: 200ms">
-                        <h3 class="text-white font-bold mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-file-invoice text-starCyan"></i> Transmission Bio
-                        </h3>
+                    <div class="glass p-8 rounded-2xl scroll-anim scroll-right" style="transition-delay: 200ms;">
+                        <h3 class="text-white font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice text-starCyan"></i> Transmission Bio</h3>
                         <p id="profil-bio" class="text-gray-400 text-sm leading-relaxed"></p>
                     </div>
 
-                    <div id="admin-panel" class="hidden glass p-8 rounded-2xl border-2 border-dashed border-blue-500 relative transition-all duration-500 scroll-anim scroll-up" style="transition-delay: 300ms">
+                    <div id="admin-panel" class="hidden glass p-8 rounded-2xl border-2 border-dashed border-blue-500 relative transition-all duration-500 scroll-anim scroll-up" style="transition-delay: 300ms;">
                         <span class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase flex items-center gap-1" id="admin-panel-badge">
-                <i class="fa-solid fa-user-shield"></i> Admin Command Center
-              </span>
-
+                            <i class="fa-solid fa-user-shield"></i> Admin Command Center
+                        </span>
+                        
                         <div class="space-y-6">
                             <div class="border-b border-gray-800 pb-6 mt-2">
-                                <label class="text-xs text-starCyan font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-id-badge text-lg"></i> KELOLA
-                    IDENTITAS UTAMA</label
-                  >
-                  <div class="space-y-3">
-                    <input
-                      type="text"
-                      id="admin-profile-name"
-                      placeholder="Ubah Nama Utama..."
-                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none"
-                    />
-                    <textarea
-                      id="admin-profile-bio"
-                      placeholder="Ubah Isi Transmission Bio..."
-                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-24 focus:border-starCyan outline-none"
-                    ></textarea>
-                    <button
-                      onclick="simpanProfilUtama()"
-                      class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold p-2.5 rounded hover:from-cyan-400 hover:to-blue-500 text-xs transition-all tracking-wider"
-                    >
-                      <i class="fa-solid fa-cloud-arrow-up mr-2"></i>PERBARUI
-                      DATA PROFIL
-                    </button>
-                  </div>
-                </div>
+                                <label class="text-xs text-starCyan font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-id-badge text-lg"></i> KELOLA IDENTITAS UTAMA</label>
+                                <div class="space-y-3">
+                                    <input type="text" id="admin-profile-name" placeholder="Ubah Nama Utama..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <textarea id="admin-profile-bio" placeholder="Ubah Isi Transmission Bio..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-24 focus:border-starCyan outline-none"></textarea>
+                                    <button onclick="simpanProfilUtama()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold p-2.5 rounded hover:from-cyan-400 hover:to-blue-500 text-xs transition-all tracking-wider"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>PERBARUI DATA PROFIL</button>
+                                </div>
+                            </div>
 
-                <div>
-                  <label class="text-xs text-gray-400 font-bold mb-1 block"
-                    ><i class="fa-brands fa-google-drive mr-1"></i> LINK CV
-                    (GOOGLE DRIVE / DIRECT LINK)</label
-                  >
-                  <div class="flex gap-2">
-                    <input
-                      type="text"
-                      id="admin-cv-link"
-                      placeholder="Paste link disini..."
-                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none"
-                    />
-                    <button
-                      onclick="simpanCVKeDatabase()"
-                      class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"
-                    >
-                      <i class="fa-solid fa-floppy-disk"></i>
-                    </button>
-                  </div>
-                </div>
+                            <div>
+                                <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK CV (GOOGLE DRIVE / DIRECT LINK)</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="admin-cv-link" placeholder="Paste link disini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
+                                </div>
+                            </div>
+                            
+                            <hr class="border-gray-800">
 
-                <hr class="border-gray-800" />
+                            <div>
+                                <label class="text-xs text-starCyan font-bold mb-2 flex items-center gap-2" id="label-form-proyek"><i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU</label>
+                                <div class="space-y-3">
+                                    <input type="text" id="p-title" placeholder="Nama Proyek (Contoh: Sistem Absense)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <input type="text" id="p-link" placeholder="Tautan URL / Link Download (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <textarea id="p-desc" placeholder="Deskripsi Singkat Proyek..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-starCyan outline-none"></textarea>
+                                    
+                                    <div class="flex flex-col md:flex-row gap-3">
+                                        <div class="w-full md:w-1/2">
+                                            <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-font"></i> Teks Tombol Aksi</label>
+                                            <input type="text" id="p-btn-text" placeholder="Cth: DOWNLOAD MOD / GITHUB" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                        </div>
+                                        
+                                        <div class="w-full md:w-1/2 relative" id="icon-dropdown-container">
+                                            <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-icons"></i> Ikon Tombol</label>
+                                            <input type="hidden" id="p-btn-icon-value" value="">
+                                            
+                                            <div class="flex items-center w-full bg-black p-3 rounded border border-gray-700 focus-within:border-starCyan relative cursor-pointer" onclick="toggleDropdown()">
+                                                <i id="selected-icon-preview" class="fa-solid fa-play text-gray-500 mr-3 w-5 text-center"></i>
+                                                <input type="text" id="icon-search-input" placeholder="Cari ikon..." class="bg-transparent text-sm text-white outline-none w-full cursor-text" onkeyup="filterIcons()">
+                                                <i class="fa-solid fa-chevron-down text-gray-500 ml-2 text-xs"></i>
+                                            </div>
+                                            
+                                            <div id="icon-dropdown-list" class="hidden absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded shadow-2xl max-h-48 overflow-y-auto custom-scroll">
+                                            </div>
+                                        </div>
+                                    </div>
 
-                <div>
-                  <label
-                    class="text-xs text-starCyan font-bold mb-2 flex items-center gap-2"
-                    id="label-form-proyek"
-                    ><i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK
-                    BARU</label
-                  >
-                  <div class="space-y-3">
-                    <input
-                      type="text"
-                      id="p-title"
-                      placeholder="Nama Proyek (Contoh: Sistem Absense)"
-                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none"
-                    />
-                    <input
-                      type="text"
-                      id="p-link"
-                      placeholder="Tautan URL / Link Download (Contoh: https://...)"
-                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none"
-                    />
-                    <textarea
-                      id="p-desc"
-                      placeholder="Deskripsi Singkat Proyek..."
-                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-starCyan outline-none"
-                    ></textarea>
-
-                    <div class="flex flex-col md:flex-row gap-3">
-                      <div class="w-full md:w-1/2">
-                        <label class="text-xs text-gray-500 mb-1 block"
-                          ><i class="fa-solid fa-font"></i> Teks Tombol
-                          Aksi</label
-                        >
-                        <input
-                          type="text"
-                          id="p-btn-text"
-                          placeholder="Cth: DOWNLOAD MOD / GITHUB"
-                          class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none"
-                        />
-                      </div>
-
-                      <div
-                        class="w-full md:w-1/2 relative"
-                        id="icon-dropdown-container"
-                      >
-                        <label class="text-xs text-gray-500 mb-1 block"
-                          ><i class="fa-solid fa-icons"></i> Ikon Tombol</label
-                        >
-                        <input type="hidden" id="p-btn-icon-value" value="" />
-
-                        <div
-                          class="flex items-center w-full bg-black p-3 rounded border border-gray-700 focus-within:border-starCyan relative cursor-pointer"
-                          onclick="toggleDropdown()"
-                        >
-                          <i
-                            id="selected-icon-preview"
-                            class="fa-solid fa-play text-gray-500 mr-3 w-5 text-center"
-                          ></i>
-                          <input
-                            type="text"
-                            id="icon-search-input"
-                            placeholder="Cari ikon..."
-                            class="bg-transparent text-sm text-white outline-none w-full cursor-text"
-                            onkeyup="filterIcons()"
-                          />
-                          <i
-                            class="fa-solid fa-chevron-down text-gray-500 ml-2 text-xs"
-                          ></i>
+                                    <div class="flex gap-2 pt-2">
+                                        <button onclick="simpanProyek()" id="btn-simpan-proyek" class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors"><i class="fa-solid fa-rocket mr-2"></i>TAMBAH KE LAUNCHPAD</button>
+                                        <button onclick="batalEdit()" id="btn-batal-edit" class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors"><i class="fa-solid fa-xmark mr-2"></i>BATAL</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <div
-                          id="icon-dropdown-list"
-                          class="hidden absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded shadow-2xl max-h-48 overflow-y-auto custom-scroll"
-                        ></div>
-                      </div>
                     </div>
-
-                    <div class="flex gap-2 pt-2">
-                      <button
-                        onclick="simpanProyek()"
-                        id="btn-simpan-proyek"
-                        class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors"
-                      >
-                        <i class="fa-solid fa-rocket mr-2"></i>TAMBAH KE
-                        LAUNCHPAD
-                      </button>
-                      <button
-                        onclick="batalEdit()"
-                        id="btn-batal-edit"
-                        class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors"
-                      >
-                        <i class="fa-solid fa-xmark mr-2"></i>BATAL
-                      </button>
-                    </div>
-                  </div>
                 </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
+
     </main>
 
     <script>
-      const API_URL =
-        "https://script.google.com/macros/s/AKfycbxATcI1_FFFr65T0TfShi62czWOlpu_3D34rCLJ6Cf6SQxK3PkClxnraoYGGzeQ8m37Ig/exec";
-      const ADMIN_EMAIL = "zhafranediting23@gmail.com";
-      let modeForm = "login";
-      let editIndex = -1;
-      let dbData = { profile: {}, cv: "#", projects: [] };
+        const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
+        const ADMIN_EMAIL = "zhafranediting23@gmail.com";
+        let modeForm = 'login'; 
+        let editIndex = -1; 
+        let dbData = { profile: {}, cv: "#", projects: [] };
 
-      const scrollObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("show");
-              scrollObserver.unobserve(entry.target);
+        // Animasi Scroll
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                    scrollObserver.unobserve(entry.target); 
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        function aktifkanAnimasiScroll() {
+            document.querySelectorAll('.scroll-anim:not(.show)').forEach(el => scrollObserver.observe(el));
+        }
+
+        // Fitur Lock UI / Loading
+        function lockUI(pesan) {
+            const loader = document.getElementById('loading-screen');
+            document.getElementById('loading-text').innerText = pesan;
+            loader.classList.remove('hidden');
+            setTimeout(() => loader.classList.remove('opacity-0'), 10);
+        }
+        function unlockUI(instant = false) {
+            const loader = document.getElementById('loading-screen');
+            if(instant) {
+                loader.classList.add('hidden');
+                loader.classList.remove('opacity-0');
+            } else {
+                loader.classList.add('opacity-0');
+                setTimeout(() => loader.classList.add('hidden'), 500);
             }
-          });
-        },
-        { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
-      );
+        }
 
-      function aktifkanAnimasiScroll() {
-        document
-          .querySelectorAll(".scroll-anim:not(.show)")
-          .forEach((el) => scrollObserver.observe(el));
-      }
+        // Icon Dropdown System
+        const iconList = [
+            { name: "Mainkan (Play)", class: "fa-solid fa-play" },
+            { name: "Unduh (Download)", class: "fa-solid fa-download" },
+            { name: "GitHub (Source Code)", class: "fa-brands fa-github" },
+            { name: "Website (Globe)", class: "fa-solid fa-globe" },
+            { name: "Buka Tautan (External)", class: "fa-solid fa-arrow-up-right-from-square" },
+            { name: "Kode (Code)", class: "fa-solid fa-code" },
+            { name: "Google Drive", class: "fa-brands fa-google-drive" },
+            { name: "YouTube (Video)", class: "fa-brands fa-youtube" },
+            { name: "Aplikasi Mobile (APK)", class: "fa-solid fa-mobile-screen" },
+            { name: "Minecraft (Mod)", class: "fa-solid fa-cubes" },
+            { name: "Dokumen (PDF)", class: "fa-solid fa-file-pdf" },
+            { name: "Buku (Baca)", class: "fa-solid fa-book" },
+            { name: "Toko (Cart)", class: "fa-solid fa-cart-shopping" },
+            { name: "Info (Detail)", class: "fa-solid fa-circle-info" }
+        ];
 
-      const iconList = [
-        { name: "Mainkan (Play)", class: "fa-solid fa-play" },
-        { name: "Unduh (Download)", class: "fa-solid fa-download" },
-        { name: "GitHub (Source Code)", class: "fa-brands fa-github" },
-        { name: "Website (Globe)", class: "fa-solid fa-globe" },
-        {
-          name: "Buka Tautan (External)",
-          class: "fa-solid fa-arrow-up-right-from-square",
-        },
-        { name: "Kode (Code)", class: "fa-solid fa-code" },
-        { name: "Google Drive", class: "fa-brands fa-google-drive" },
-        { name: "YouTube (Video)", class: "fa-brands fa-youtube" },
-        { name: "Aplikasi Mobile (APK)", class: "fa-solid fa-mobile-screen" },
-        { name: "Minecraft (Mod)", class: "fa-solid fa-cubes" },
-        { name: "Dokumen (PDF)", class: "fa-solid fa-file-pdf" },
-        { name: "Buku (Baca)", class: "fa-solid fa-book" },
-        { name: "Toko (Cart)", class: "fa-solid fa-cart-shopping" },
-        { name: "Info (Detail)", class: "fa-solid fa-circle-info" },
-      ];
-
-      function initIconDropdown() {
-        const listContainer = document.getElementById("icon-dropdown-list");
-        listContainer.innerHTML = iconList
-          .map(
-            (icon) => `
+        function initIconDropdown() {
+            const listContainer = document.getElementById('icon-dropdown-list');
+            listContainer.innerHTML = iconList.map(icon => `
                 <div onclick="selectIcon('${icon.class}', '${icon.name}')" class="flex items-center p-3 hover:bg-gray-800 cursor-pointer border-b border-gray-800 last:border-0">
                     <i class="${icon.class} text-starCyan w-6 text-center mr-3 text-lg"></i>
                     <span class="text-sm text-gray-300 font-medium">${icon.name}</span>
                 </div>
-            `,
-          )
-          .join("");
-      }
-
-      function toggleDropdown() {
-        document
-          .getElementById("icon-dropdown-list")
-          .classList.toggle("hidden");
-        document.getElementById("icon-search-input").focus();
-      }
-
-      function filterIcons() {
-        const searchVal = document
-          .getElementById("icon-search-input")
-          .value.toLowerCase();
-        const items = document.getElementById("icon-dropdown-list").children;
-        for (let i = 0; i < items.length; i++) {
-          const text = items[i].innerText.toLowerCase();
-          items[i].style.display = text.includes(searchVal) ? "flex" : "none";
-        }
-      }
-
-      function selectIcon(iconClass, iconName) {
-        document.getElementById("p-btn-icon-value").value = iconClass;
-        document.getElementById("icon-search-input").value = iconName;
-        document.getElementById("selected-icon-preview").className =
-          `${iconClass} text-starCyan mr-3 w-5 text-center`;
-        document.getElementById("icon-dropdown-list").classList.add("hidden");
-      }
-
-      document.addEventListener("click", function (event) {
-        const container = document.getElementById("icon-dropdown-container");
-        if (container && !container.contains(event.target)) {
-          document.getElementById("icon-dropdown-list").classList.add("hidden");
-        }
-      });
-
-      // ================= SISTEM TOAST =================
-      window.zwsToast = function (msg, type = "info") {
-        const container = document.getElementById("toast-container");
-        const toast = document.createElement("div");
-
-        let bgClass = "bg-gray-800 border-gray-600 text-white";
-        let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
-
-        if (type === "success") {
-          bgClass =
-            "bg-emerald-900/95 border border-emerald-500 text-emerald-50";
-          icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
-        } else if (type === "error") {
-          bgClass = "bg-red-900/95 border border-red-500 text-red-50";
-          icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>';
-        } else if (type === "warning") {
-          bgClass = "bg-yellow-900/95 border border-yellow-500 text-yellow-50";
-          icon =
-            '<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>';
+            `).join('');
         }
 
-        toast.className = `flex items-center gap-3 px-5 py-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto backdrop-blur-md ${bgClass}`;
-        toast.innerHTML = `<div class="text-xl">${icon}</div> <span class="text-sm font-medium tracking-wide leading-tight">${msg}</span>`;
+        function toggleDropdown() {
+            document.getElementById('icon-dropdown-list').classList.toggle('hidden');
+            document.getElementById('icon-search-input').focus();
+        }
 
-        container.appendChild(toast);
+        function filterIcons() {
+            const searchVal = document.getElementById('icon-search-input').value.toLowerCase();
+            const items = document.getElementById('icon-dropdown-list').children;
+            for(let i = 0; i < items.length; i++) {
+                const text = items[i].innerText.toLowerCase();
+                items[i].style.display = text.includes(searchVal) ? 'flex' : 'none';
+            }
+        }
 
-        setTimeout(() => {
-          toast.classList.remove("translate-x-full", "opacity-0");
-        }, 10);
-        setTimeout(() => {
-          toast.classList.add("translate-x-full", "opacity-0");
-          setTimeout(() => toast.remove(), 300);
-        }, 3500);
-      };
+        function selectIcon(iconClass, iconName) {
+            document.getElementById('p-btn-icon-value').value = iconClass;
+            document.getElementById('icon-search-input').value = iconName;
+            document.getElementById('selected-icon-preview').className = `${iconClass} text-starCyan mr-3 w-5 text-center`;
+            document.getElementById('icon-dropdown-list').classList.add('hidden');
+        }
 
-      // ================= SISTEM CUSTOM CONFIRMATION =================
-      function zwsConfirm(msg, onConfirmCallback) {
-        const dialog = document.getElementById("zws-dialog");
-        const box = document.getElementById("zws-dialog-box");
-        document.getElementById("zws-dialog-msg").innerText = msg;
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('icon-dropdown-container');
+            if (container && !container.contains(event.target)) {
+                document.getElementById('icon-dropdown-list').classList.add('hidden');
+            }
+        });
 
-        window.tempConfirmCallback = () => {
-          closeZwsDialog();
-          if (onConfirmCallback) onConfirmCallback();
-        };
+        // Toast & Dialog
+        window.zwsToast = function(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-gray-800 border-gray-600 text-white';
+            let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
+            
+            if (type === 'success') { bgClass = 'bg-emerald-900/95 border border-emerald-500 text-emerald-50'; icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>'; } 
+            else if (type === 'error') { bgClass = 'bg-red-900/95 border border-red-500 text-red-50'; icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>'; } 
+            else if (type === 'warning') { bgClass = 'bg-yellow-900/95 border border-yellow-500 text-yellow-50'; icon = '<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>'; }
 
-        document.getElementById("zws-dialog-buttons").innerHTML = `
+            toast.className = `flex items-center gap-3 px-5 py-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto backdrop-blur-md ${bgClass}`;
+            toast.innerHTML = `<div class="text-xl">${icon}</div> <span class="text-sm font-medium tracking-wide leading-tight">${msg}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-x-full', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function zwsConfirm(msg, onConfirmCallback) {
+            const dialog = document.getElementById('zws-dialog');
+            const box = document.getElementById('zws-dialog-box');
+            document.getElementById('zws-dialog-msg').innerText = msg;
+            window.tempConfirmCallback = () => { closeZwsDialog(); if(onConfirmCallback) onConfirmCallback(); };
+            document.getElementById('zws-dialog-buttons').innerHTML = `
                 <button onclick="closeZwsDialog()" class="flex-1 bg-transparent border border-gray-600 text-gray-300 font-bold px-4 py-2.5 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">BATAL</button>
                 <button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">YA, LANJUTKAN</button>`;
-
-        dialog.classList.remove("hidden");
-        setTimeout(() => {
-          dialog.classList.remove("opacity-0");
-          box.classList.remove("scale-95");
-        }, 10);
-      }
-
-      function closeZwsDialog() {
-        const dialog = document.getElementById("zws-dialog");
-        const box = document.getElementById("zws-dialog-box");
-        dialog.classList.add("opacity-0");
-        box.classList.add("scale-95");
-        setTimeout(() => {
-          dialog.classList.add("hidden");
-        }, 300);
-      }
-
-      function prosesLinkDrive(url) {
-        if (!url || url === "#") return "#";
-        const driveMatch =
-          url.match(/\/d\/([a-zA-Z0-9_-]+)/) ||
-          url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-        if (driveMatch && driveMatch[1]) {
-          return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+            dialog.classList.remove('hidden');
+            setTimeout(() => { dialog.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
         }
-        return url;
-      }
 
-      // Ganti blok window.onload lama dengan ini:
-      window.onload = () => {
-        initIconDropdown();
-
-        // 1. Tampilkan loader secara paksa saat load pertama
-        const loader = document.getElementById("loading-screen");
-        loader.classList.remove("hidden");
-        loader.classList.remove("opacity-0");
-
-        // 2. Tandai waktu mulai
-        const startTime = Date.now();
-
-        fetch(API_URL)
-          .then((res) => res.json())
-          .then((data) => {
-            dbData = data;
-            renderSeluruhUI();
-
-            // 3. Hitung sisa waktu supaya loader tampil minimal 1 detik (1000ms)
-            const elapsed = Date.now() - startTime;
-            const remaining = Math.max(0, 1000 - elapsed);
-
-            // 4. Sembunyikan loader setelah durasi minimum terpenuhi
-            setTimeout(() => {
-              loader.classList.add("opacity-0");
-              setTimeout(() => loader.classList.add("hidden"), 500);
-            }, remaining);
-          })
-          .catch((err) => {
-            console.error("Gagal sinkronisasi:", err);
-            loader.classList.add("hidden"); // Sembunyikan jika error
-            zwsToast("Koneksi ke Google Cloud gagal.", "error");
-          });
-      };
-
-      function renderSeluruhUI() {
-        document.getElementById("hero-name").innerText =
-          dbData.profile.name || "M. Zhafran .MA";
-        document.getElementById("profil-bio").innerText =
-          dbData.profile.bio || "Bio kosong.";
-        document.getElementById("admin-profile-name").value =
-          dbData.profile.name || "";
-        document.getElementById("admin-profile-bio").value =
-          dbData.profile.bio || "";
-
-        const rawCvLink = dbData.cv || "#";
-        const btnCv = document.getElementById("btn-download-cv");
-        btnCv.href = prosesLinkDrive(rawCvLink);
-        document.getElementById("admin-cv-link").value =
-          rawCvLink === "#" ? "" : rawCvLink;
-
-        const user = JSON.parse(localStorage.getItem("zws_user"));
-        renderProjects(user);
-        if (user) tampilkanUser(user, false);
-
-        showPage("beranda");
-      }
-
-      function kirimKeServerGAS(pesanSukses) {
-        renderSeluruhUI();
-        document.getElementById("loading-screen").classList.remove("hidden");
-        document.getElementById("loading-screen").classList.remove("opacity-0");
-        document.getElementById("loading-text").innerText =
-          "MENGIRIM DATA KE CLOUD...";
-
-        fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify(dbData),
-        })
-          .then((res) => res.json())
-          .then((res) => {
-            document
-              .getElementById("loading-screen")
-              .classList.add("opacity-0");
-            setTimeout(
-              () =>
-                document
-                  .getElementById("loading-screen")
-                  .classList.add("hidden"),
-              500,
-            );
-            zwsToast(pesanSukses, "success");
-            showPage("beranda");
-          })
-          .catch((err) => {
-            document.getElementById("loading-screen").classList.add("hidden");
-            zwsToast(
-              "Gagal mengirim data. Periksa koneksi internet Anda.",
-              "error",
-            );
-          });
-      }
-
-      function simpanProfilUtama() {
-        dbData.profile.name =
-          document.getElementById("admin-profile-name").value;
-        dbData.profile.bio = document.getElementById("admin-profile-bio").value;
-        kirimKeServerGAS("Log Identitas berhasil diperbarui secara global!");
-      }
-
-      function simpanCVKeDatabase() {
-        dbData.cv = document.getElementById("admin-cv-link").value;
-        kirimKeServerGAS("Tautan CV berhasil disinkronkan ke seluruh galaksi!");
-      }
-
-      function simpanProyek() {
-        const title = document.getElementById("p-title").value;
-        const link = document.getElementById("p-link").value;
-        const desc = document.getElementById("p-desc").value;
-        const btnText = document.getElementById("p-btn-text").value;
-        const btnIcon = document.getElementById("p-btn-icon-value").value;
-
-        if (!title || !link)
-          return zwsToast("Nama Proyek dan Link Demo wajib diisi!", "warning");
-
-        const projectData = { title, link, desc, btnText, btnIcon };
-
-        if (editIndex > -1) {
-          dbData.projects[editIndex] = projectData;
-          kirimKeServerGAS("Log proyek berhasil diperbarui ke Cloud!");
-        } else {
-          dbData.projects.push(projectData);
-          kirimKeServerGAS(
-            "Proyek baru berhasil diluncurkan ke Database Cloud!",
-          );
+        function closeZwsDialog() {
+            const dialog = document.getElementById('zws-dialog');
+            const box = document.getElementById('zws-dialog-box');
+            dialog.classList.add('opacity-0'); box.classList.add('scale-95');
+            setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
-        batalEdit();
-      }
 
-      function hapusProyek(index) {
-        zwsConfirm(
-          "Menghapus log proyek ini akan menghilangkannya dari server global. Lanjutkan?",
-          function () {
-            dbData.projects.splice(index, 1);
-            kirimKeServerGAS("Proyek berhasil dilenyapkan dari sistem Cloud!");
-          },
-        );
-      }
-
-      // ================= MODAL & BASIC AUTH =================
-      function bukaModalAuth(type) {
-        document.getElementById("auth-modal").classList.remove("hidden");
-        switchTabAuth(type);
-      }
-      window.tutupModalAuth = function () {
-        document.getElementById("auth-modal").classList.add("hidden");
-      };
-
-      function switchTabAuth(type) {
-        modeForm = type;
-        const tLogin = document.getElementById("tab-login");
-        const tSignup = document.getElementById("tab-signup");
-        const iName = document.getElementById("input-name");
-        const btn = document.getElementById("btn-submit");
-
-        if (type === "login") {
-          tLogin.className =
-            "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
-          tSignup.className =
-            "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
-          iName.classList.add("hidden");
-          iName.removeAttribute("required");
-          btn.innerText = "MASUK";
-        } else {
-          tSignup.className =
-            "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
-          tLogin.className =
-            "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
-          iName.classList.remove("hidden");
-          iName.setAttribute("required", "true");
-          btn.innerText = "BUAT AKUN";
+        function prosesLinkDrive(url) {
+            if (!url || url === '#') return '#';
+            const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (driveMatch && driveMatch[1]) return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+            return url;
         }
-      }
 
-      document.getElementById("auth-form").onsubmit = function (e) {
-        e.preventDefault();
-        const email = document.getElementById("input-email").value;
-        const name =
-          document.getElementById("input-name").value || "Crew Member";
-        const userData = {
-          name: name,
-          email: email,
-          picture: `https://ui-avatars.com/api/?name=${name}&background=1f2937&color=22d3ee`,
+        // Inisialisasi Pertama
+        window.onload = () => {
+            initIconDropdown(); 
+            const loader = document.getElementById('loading-screen');
+            loader.classList.remove('hidden'); loader.classList.remove('opacity-0');
+            const startTime = Date.now();
+            
+            fetch(API_URL)
+                .then(res => {
+                    if (!res.ok) throw new Error("Server Error: " + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    dbData = data;
+                    renderSeluruhUI();
+                    const elapsed = Date.now() - startTime;
+                    const remaining = Math.max(0, 1000 - elapsed);
+                    setTimeout(() => unlockUI(), remaining);
+                })
+                .catch(err => {
+                    console.error("Gagal sinkronisasi:", err);
+                    document.getElementById('loading-text').innerText = "ERROR: " + err.message;
+                    document.getElementById('loading-text').classList.add('text-red-500');
+                    zwsToast("Gagal mengambil data dari cloud.", "error");
+                });
         };
-        localStorage.setItem("zws_user", JSON.stringify(userData));
 
-        tutupModalAuth();
-        window.tampilkanUser(userData, true);
-        renderProjects(userData);
-        zwsToast(`Selamat datang kembali, ${name}!`, "success");
-      };
+        function renderSeluruhUI() {
+            document.getElementById('hero-name').innerText = dbData.profile.name || "M. Zhafran .MA";
+            document.getElementById('profil-bio').innerText = dbData.profile.bio || "Bio kosong.";
+            document.getElementById('admin-profile-name').value = dbData.profile.name || "";
+            document.getElementById('admin-profile-bio').value = dbData.profile.bio || "";
 
-      window.tampilkanUser = function (user, isLoginBaru = false) {
-        document.getElementById("nav-logged-out").classList.add("hidden");
-        document.getElementById("nav-logged-in").classList.remove("hidden");
-        document.getElementById("nav-foto").src = user.picture;
-        document.getElementById("profil-img").src = user.picture;
-        document.getElementById("profil-name").innerText = user.name;
-        document.getElementById("profil-email").innerText = user.email;
+            const rawCvLink = dbData.cv || '#';
+            const btnCv = document.getElementById('btn-download-cv');
+            btnCv.href = prosesLinkDrive(rawCvLink); 
+            document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
 
-        // Panel Admin hanya muncul jika email cocok
-        const adminPanel = document.getElementById("admin-panel");
-        if (adminPanel) {
-          if (user.email === ADMIN_EMAIL) adminPanel.classList.remove("hidden");
-          else adminPanel.classList.add("hidden");
+            const user = JSON.parse(localStorage.getItem('zws_user'));
+            renderProjects(user);
+            if(user) tampilkanUser(user, false);
+            
+            showPage('beranda');
         }
 
-        if (isLoginBaru) showPage("profil");
-      };
+        // FUNGSI CRUD & ADMIN PANEL (Dikembalikan secara utuh)
+        function kirimKeServerGAS(pesanSukses) {
+            renderSeluruhUI(); 
+            lockUI("MENGIRIM DATA KE CLOUD...");
 
-      function logout() {
-        zwsConfirm(
-          "Apakah Anda yakin ingin memutus koneksi dan Log Out dari station?",
-          function () {
-            localStorage.removeItem("zws_user");
-            location.reload();
-          },
-        );
-      }
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify(dbData)
+            })
+            .then(res => res.json())
+            .then(res => {
+                unlockUI();
+                zwsToast(pesanSukses, "success");
+                showPage('beranda');
+            })
+            .catch(err => {
+                unlockUI(true);
+                zwsToast("Gagal mengirim data. Periksa koneksi internet Anda.", "error");
+            });
+        }
 
-      function showPage(id) {
-        document
-          .querySelectorAll(".page")
-          .forEach((p) => p.classList.remove("page-active"));
-        document.getElementById("page-" + id).classList.add("page-active");
-        window.scrollTo(0, 0);
-        setTimeout(aktifkanAnimasiScroll, 50);
-      }
+        function simpanProfilUtama() {
+            dbData.profile.name = document.getElementById('admin-profile-name').value;
+            dbData.profile.bio = document.getElementById('admin-profile-bio').value;
+            kirimKeServerGAS("Log Identitas berhasil diperbarui secara global!");
+        }
 
-      // Fungsi untuk merender project dengan kontrol admin
-      function renderProjects(user) {
-        const grid = document.getElementById("project-grid");
-        const isAdmin = user && user.email === ADMIN_EMAIL; // Cek status Admin
+        function simpanCVKeDatabase() {
+            dbData.cv = document.getElementById('admin-cv-link').value;
+            kirimKeServerGAS("Tautan CV berhasil disinkronkan ke seluruh galaksi!");
+        }
 
-        if (!dbData.projects || dbData.projects.length === 0) {
-          grid.innerHTML =
-            '<div class="md:col-span-3 text-center py-12 text-gray-500 font-mono">LAUNCHPAD KOSONG.</div>';
-        } else {
-          grid.innerHTML = dbData.projects
-            .map((p, index) => {
-              const btnText = p.btnText || "LIVE DEMO";
-              const btnIcon = p.btnIcon || "fa-solid fa-play";
+        function simpanProyek() {
+            const title = document.getElementById('p-title').value;
+            const link = document.getElementById('p-link').value;
+            const desc = document.getElementById('p-desc').value;
+            const btnText = document.getElementById('p-btn-text').value;
+            const btnIcon = document.getElementById('p-btn-icon-value').value; 
 
-              // Logic TOMBOL ADMIN
-              const adminActions = isAdmin
-                ? `
+            if(!title || !link) return zwsToast("Nama Proyek dan Link Demo wajib diisi!", "warning");
+
+            const projectData = { title, link, desc, btnText, btnIcon };
+
+            if(editIndex > -1) {
+                dbData.projects[editIndex] = projectData;
+                kirimKeServerGAS("Log proyek berhasil diperbarui ke Cloud!");
+            } else {
+                dbData.projects.push(projectData);
+                kirimKeServerGAS("Proyek baru berhasil diluncurkan ke Database Cloud!");
+            }
+            batalEdit();
+        }
+
+        function hapusProyek(index) {
+            zwsConfirm("Menghapus log proyek ini akan menghilangkannya dari server global. Lanjutkan?", function() {
+                dbData.projects.splice(index, 1);
+                kirimKeServerGAS("Proyek berhasil dilenyapkan dari sistem Cloud!");
+            });
+        }
+
+        function editProyek(index) {
+            const p = dbData.projects[index];
+            document.getElementById('p-title').value = p.title || '';
+            document.getElementById('p-link').value = p.link || '';
+            document.getElementById('p-desc').value = p.desc || '';
+            document.getElementById('p-btn-text').value = p.btnText || '';
+            
+            const iconVal = p.btnIcon || 'fa-solid fa-play';
+            document.getElementById('p-btn-icon-value').value = iconVal;
+            document.getElementById('selected-icon-preview').className = `${iconVal} text-starCyan mr-3 w-5 text-center`;
+            
+            const foundIcon = iconList.find(i => i.class === iconVal);
+            document.getElementById('icon-search-input').value = foundIcon ? foundIcon.name : '';
+            
+            editIndex = index;
+            document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-pen-to-square text-lg"></i> UPDATE PROYEK';
+            document.getElementById('label-form-proyek').className = "text-xs text-yellow-500 font-bold mb-2 flex items-center gap-2";
+            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN KE CLOUD';
+            document.getElementById('btn-simpan-proyek').className = "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors";
+            document.getElementById('btn-batal-edit').classList.remove('hidden');
+
+            showPage('profil');
+            
+            setTimeout(() => {
+                const panel = document.getElementById('admin-panel');
+                panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                panel.classList.replace('border-blue-500', 'border-yellow-500');
+                panel.classList.add('shadow-[0_0_30px_rgba(234,179,8,0.5)]');
+                setTimeout(() => {
+                    panel.classList.replace('border-yellow-500', 'border-blue-500');
+                    panel.classList.remove('shadow-[0_0_30px_rgba(234,179,8,0.5)]');
+                }, 1200);
+            }, 100);
+        }
+
+        function batalEdit() {
+            editIndex = -1;
+            document.getElementById('p-title').value = '';
+            document.getElementById('p-link').value = '';
+            document.getElementById('p-desc').value = '';
+            document.getElementById('p-btn-text').value = '';
+            document.getElementById('p-btn-icon-value').value = '';
+            document.getElementById('icon-search-input').value = '';
+            document.getElementById('selected-icon-preview').className = 'fa-solid fa-play text-gray-500 mr-3 w-5 text-center';
+            
+            document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU';
+            document.getElementById('label-form-proyek').className = "text-xs text-starCyan font-bold mb-2 flex items-center gap-2";
+            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-rocket mr-2"></i>TAMBAH KE LAUNCHPAD';
+            document.getElementById('btn-simpan-proyek').className = "flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors";
+            document.getElementById('btn-batal-edit').classList.add('hidden');
+        }
+
+        function renderProjects(user) {
+            const grid = document.getElementById('project-grid');
+            const isAdmin = user && user.email === ADMIN_EMAIL;
+
+            if(!dbData.projects || dbData.projects.length === 0) {
+                grid.innerHTML = `
+                    <div class="md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl scroll-anim scroll-up">
+                        <i class="fa-solid fa-folder-open text-4xl text-gray-700 mb-3"></i>
+                        <p class="text-gray-500 font-mono text-sm tracking-widest">LAUNCHPAD KOSONG. BELUM ADA PROYEK DARI CLOUD.</p>
+                    </div>`;
+            } else {
+                grid.innerHTML = dbData.projects.map((p, index) => {
+                    const btnText = p.btnText || 'LIVE DEMO';
+                    const btnIcon = p.btnIcon || 'fa-solid fa-play';
+                    const isDrive = p.link && p.link.includes('drive.google.com');
+                    const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk') || btnText.toLowerCase().includes('pdf');
+                    
+                    let processedLink = isDrive ? prosesLinkDrive(p.link) : p.link;
+                    let actionAttr = `href="${processedLink}"`;
+                    if (isDownloadable) actionAttr += ` download target="_blank"`; 
+                    else actionAttr += ` target="_blank"`;
+
+                    const delay = (index % 3) * 100;
+                    
+                    // Tombol Edit/Hapus akan muncul di Bawah Card Jika User Adalah Admin
+                    const adminActions = isAdmin ? `
                         <div class="flex gap-2 border-t border-gray-700 pt-3 mt-4">
                             <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-2 rounded hover:bg-yellow-500 hover:text-black transition-colors">
                                 <i class="fa-solid fa-pen-to-square mr-1"></i> EDIT
@@ -817,198 +548,173 @@
                                 <i class="fa-solid fa-trash mr-1"></i> HAPUS
                             </button>
                         </div>
-                    `
-                : "";
+                    ` : '';
 
-              return `
-                    <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up">
-                        <h3 class="font-bold text-white text-xl mb-3">${p.title}</h3>
+                    return `
+                    <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up" style="transition-delay: ${delay}ms;">
+                        <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
                         <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
-                        <a href="${p.link}" target="_blank" class="block bg-voidGray text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors uppercase">
+                        <a ${actionAttr} class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors uppercase tracking-wider">
                             <i class="${btnIcon} mr-2"></i> ${btnText}
                         </a>
-                        ${adminActions} 
+                        ${adminActions}
                     </div>`;
-            })
-            .join("");
+                }).join('');
+            }
+            aktifkanAnimasiScroll();
         }
-        aktifkanAnimasiScroll();
-      }
+
+        // ================= AUTH UI HELPER =================
+        function bukaModalAuth(type) {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            switchTabAuth(type);
+        }
+        window.tutupModalAuth = function() { document.getElementById('auth-modal').classList.add('hidden'); }
+        
+        function switchTabAuth(type) {
+            modeForm = type;
+            const tLogin = document.getElementById('tab-login');
+            const tSignup = document.getElementById('tab-signup');
+            const iName = document.getElementById('input-name');
+            const btn = document.getElementById('btn-submit');
+
+            if(type === 'login') {
+                tLogin.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
+                tSignup.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+                iName.classList.add('hidden'); iName.removeAttribute('required');
+                btn.innerText = "MASUK";
+            } else {
+                tSignup.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
+                tLogin.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+                iName.classList.remove('hidden'); iName.setAttribute('required', 'true');
+                btn.innerText = "BUAT AKUN";
+            }
+        }
+
+        document.getElementById('auth-form').onsubmit = function(e) {
+            e.preventDefault();
+            const email = document.getElementById('input-email').value;
+            const name = document.getElementById('input-name').value || "Crew Member";
+            const userData = { name: name, email: email, picture: `https://ui-avatars.com/api/?name=${name}&background=1f2937&color=22d3ee` };
+            localStorage.setItem('zws_user', JSON.stringify(userData));
+            tutupModalAuth();
+            window.tampilkanUser(userData, true);
+            renderProjects(userData);
+            zwsToast(`Selamat datang, ${name}!`, "success");
+        }
+
+        window.tampilkanUser = function(user, isLoginBaru = false) {
+            document.getElementById('nav-logged-out').classList.add('hidden');
+            document.getElementById('nav-logged-in').classList.remove('hidden');
+            document.getElementById('nav-foto').src = user.picture;
+            document.getElementById('profil-img').src = user.picture;
+            document.getElementById('profil-name').innerText = user.name;
+            document.getElementById('profil-email').innerText = user.email;
+
+            // Admin cek
+            if(user.email === ADMIN_EMAIL) document.getElementById('admin-panel').classList.remove('hidden');
+            else document.getElementById('admin-panel').classList.add('hidden');
+            
+            if(isLoginBaru) showPage('profil');
+        }
+
+        function logout() {
+            zwsConfirm("Apakah Anda yakin ingin memutus koneksi dan Log Out dari station?", function() {
+                localStorage.removeItem('zws_user');
+                location.reload(); 
+            });
+        }
+
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
+            document.getElementById('page-'+id).classList.add('page-active');
+            window.scrollTo(0,0);
+            setTimeout(aktifkanAnimasiScroll, 50);
+        }
+
+        function setBtnLoading(btn) {
+            if(!btn) return null;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i>';
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            return originalHtml;
+        }
     </script>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
-      import {
-        getAuth,
-        signInWithPopup,
-        GoogleAuthProvider,
-        GithubAuthProvider,
-        FacebookAuthProvider,
-      } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyDXiY33kAumrMp4kMM_6J-LsWuGCtPM6hY",
-        authDomain: "zws-auth.firebaseapp.com",
-        projectId: "zws-auth",
-        storageBucket: "zws-auth.firebasestorage.app",
-        messagingSenderId: "21592339559",
-        appId: "1:21592339559:web:95b00074154e6f2f3050c2",
-        measurementId: "G-SVM7V0L2C5",
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-      const auth = getAuth(app);
-
-      let isAuthInProgress = false;
-
-      // KUNCI LAYAR PENUH (Mencegah Klik Apapun di Background)
-      function lockUI(pesan) {
-        const loader = document.getElementById("loading-screen");
-        document.getElementById("loading-text").innerText = pesan;
-        loader.classList.remove("hidden");
-        setTimeout(() => loader.classList.remove("opacity-0"), 10);
-      }
-
-      // BUKA KUNCI LAYAR
-      function unlockUI(instant = false) {
-        const loader = document.getElementById("loading-screen");
-        if (instant) {
-          loader.classList.add("hidden"); // Hilang instan
-          loader.classList.remove("opacity-0");
-        } else {
-          loader.classList.add("opacity-0"); // Transisi smooth 500ms
-          setTimeout(() => loader.classList.add("hidden"), 500);
-        }
-      }
-
-      function handleLoginSuccess(result) {
-        const user = result.user;
-        const userData = {
-          name: user.displayName || "Crew Member",
-          email: user.email || "Tanpa Email",
-          picture:
-            user.photoURL ||
-            `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee`,
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXiY33kAumrMp4kMM_6J-LsWuGCtPM6hY",
+            authDomain: "zws-auth.firebaseapp.com",
+            projectId: "zws-auth",
+            storageBucket: "zws-auth.firebasestorage.app",
+            messagingSenderId: "21592339559",
+            appId: "1:21592339559:web:95b00074154e6f2f3050c2",
+            measurementId: "G-SVM7V0L2C5"
         };
 
-        localStorage.setItem("zws_user", JSON.stringify(userData));
-        window.tutupModalAuth();
-        window.tampilkanUser(userData, true);
-        window.zwsToast(
-          `Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`,
-          "success",
-        );
-      }
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-      function handleLoginError(error) {
-        if (
-          error.code === "auth/popup-closed-by-user" ||
-          error.code === "auth/cancelled-popup-request"
-        ) {
-          unlockUI(true); // <--- Kunci: BUKA LAYAR SECEPAT KILAT
-          window.zwsToast("Otentikasi dibatalkan.", "warning");
-          return;
-        }
-        unlockUI(true); // Error lain juga harus membuka layar instan
-        window.zwsToast("Gagal login: " + error.message, "error");
-      }
+        // ===== PENTING: MENANGKAP HASIL REDIRECT SAAT KEMBALI KE WEB =====
+        getRedirectResult(auth).then((result) => {
+            if (result) {
+                // User berhasil login dan dikembalikan ke halaman ini
+                const user = result.user;
+                const userData = { 
+                    name: user.displayName || "Crew Member", 
+                    email: user.email || "Tanpa Email", 
+                    picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
+                };
+                localStorage.setItem('zws_user', JSON.stringify(userData));
+                window.tampilkanUser(userData, true);
+                
+                // Panggil renderProjects agar jika dia admin, tombol edit langsung muncul
+                renderProjects(userData);
+                
+                window.zwsToast(`Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
+            }
+        }).catch((error) => {
+            window.zwsToast("Gagal login via Redirect: " + error.message, "error");
+        });
 
-      // ================= HELPER LOADING TOMBOL =================
-      function setBtnLoading(btn) {
-        if (!btn) return null;
-        const originalHtml = btn.innerHTML;
-        // Mengganti spinner dot dengan circle-notch yang smooth
-        btn.innerHTML =
-          '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i>';
-        btn.classList.add("opacity-75", "cursor-not-allowed");
-        return originalHtml;
-      }
+        // ===== FUNGSI LOGIN (TIDAK MEMAKAI POPUP LAGI) =====
+        window.loginGoogle = function(btn) {
+            lockUI("MENGALIHKAN KE SISTEM GOOGLE...");
+            setBtnLoading(btn);
+            const provider = new GoogleAuthProvider();
+            provider.addScope('profile');
+            provider.addScope('email');
+            signInWithRedirect(auth, provider); // Langsung pindah halaman
+        };
 
-      function resetBtnLoading(btn, originalHtml) {
-        if (!btn) return;
-        btn.innerHTML = originalHtml;
-        btn.classList.remove("opacity-75", "cursor-not-allowed");
-      }
+        window.loginGitHub = function(btn) {
+            lockUI("MENGALIHKAN KE SISTEM GITHUB...");
+            setBtnLoading(btn);
+            const provider = new GithubAuthProvider();
+            provider.addScope('read:user');
+            provider.addScope('user:email');
+            signInWithRedirect(auth, provider);
+        };
 
-      // ================= FUNGSI OAUTH DENGAN LOCK & RESET =================
-      window.loginGoogle = function (btn) {
-        if (isAuthInProgress) return;
-        isAuthInProgress = true;
+        window.loginFacebook = function(btn) {
+            lockUI("MENGALIHKAN KE SISTEM FACEBOOK/META...");
+            setBtnLoading(btn);
+            const provider = new FacebookAuthProvider();
+            provider.addScope('public_profile');
+            provider.addScope('email');
+            signInWithRedirect(auth, provider);
+        };
 
-        const originalHtml = setBtnLoading(btn);
-        lockUI("MENUNGGU OTENTIKASI GOOGLE..."); // Kunci Layar
+        window.loginApple = function() {
+            window.zwsToast("Akses Ditolak: Membutuhkan Apple Developer Account berbayar ($99/tahun).", "warning");
+        };
 
-        const provider = new GoogleAuthProvider();
-        provider.addScope("profile");
-        provider.addScope("email");
-
-        signInWithPopup(auth, provider)
-          .then(handleLoginSuccess)
-          .catch(handleLoginError)
-          .finally(() => {
-            isAuthInProgress = false;
-            resetBtnLoading(btn, originalHtml);
-            unlockUI(); // Buka Layar Apapun yang Terjadi
-          });
-      };
-
-      window.loginGitHub = function (btn) {
-        if (isAuthInProgress) return;
-        isAuthInProgress = true;
-
-        const originalHtml = setBtnLoading(btn);
-        lockUI("MENUNGGU OTENTIKASI GITHUB...");
-
-        const provider = new GithubAuthProvider();
-        provider.addScope("read:user");
-        provider.addScope("user:email");
-
-        signInWithPopup(auth, provider)
-          .then(handleLoginSuccess)
-          .catch(handleLoginError)
-          .finally(() => {
-            isAuthInProgress = false;
-            resetBtnLoading(btn, originalHtml);
-            unlockUI();
-          });
-      };
-
-      window.loginFacebook = function (btn) {
-        if (isAuthInProgress) return;
-        isAuthInProgress = true;
-
-        const originalHtml = setBtnLoading(btn);
-        lockUI("MENUNGGU OTENTIKASI FACEBOOK/META...");
-
-        const provider = new FacebookAuthProvider();
-        provider.addScope("public_profile");
-        provider.addScope("email");
-
-        signInWithPopup(auth, provider)
-          .then(handleLoginSuccess)
-          .catch(handleLoginError)
-          .finally(() => {
-            isAuthInProgress = false;
-            resetBtnLoading(btn, originalHtml);
-            unlockUI();
-          });
-      };
-
-      window.loginApple = function (btn) {
-        window.zwsToast(
-          "Akses Ditolak: Membutuhkan Apple Developer Account berbayar ($99/tahun).",
-          "warning",
-        );
-      };
-
-      window.loginInstagram = function (btn) {
-        window.zwsToast(
-          "Gunakan tombol 'Facebook' jika akun Instagram Anda sudah tertaut ke Meta.",
-          "info",
-        );
-      };
+        window.loginInstagram = function() {
+            window.zwsToast("Gunakan tombol 'Facebook' jika akun Instagram Anda sudah tertaut ke Meta.", "info");
+        };
     </script>
-  </body>
+</body>
 </html>
