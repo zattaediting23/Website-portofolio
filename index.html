@@ -34,9 +34,19 @@
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 4px; }
+
+        /* ================= ANIMASI SCROLL ELEGAN ================= */
+        .scroll-anim { opacity: 0; transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .scroll-up { transform: translateY(30px); }
+        .scroll-left { transform: translateX(-30px); }
+        .scroll-right { transform: translateX(30px); }
+        .scroll-scale { transform: scale(0.95); }
+        
+        /* Kelas saat elemen masuk ke layar */
+        .scroll-anim.show { opacity: 1; transform: translate(0) scale(1); }
     </style>
 </head>
-<body class="font-sans min-h-screen relative">
+<body class="font-sans min-h-screen relative overflow-x-hidden">
 
     <div id="zws-dialog" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-300">
         <div class="glass p-8 rounded-2xl w-full max-w-sm border-t-4 border-t-starCyan text-center transform scale-95 transition-transform duration-300" id="zws-dialog-box">
@@ -101,39 +111,39 @@
         
         <div id="page-beranda" class="page page-active space-y-20">
             <section class="text-center">
-                <div class="inline-block relative mb-8">
+                <div class="inline-block relative mb-8 scroll-anim scroll-scale">
                     <i class="fa-solid fa-user-astronaut text-7xl text-starCyan opacity-90 animate-bounce"></i>
                 </div>
-                <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4">Loading...</h1>
-                <p class="text-starCyan font-mono tracking-widest mb-10">Admin Staff & Web Developer</p>
-                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+                <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms;">Loading...</h1>
+                <p class="text-starCyan font-mono tracking-widest mb-10 scroll-anim scroll-up" style="transition-delay: 200ms;">Admin Staff & Web Developer</p>
+                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;">
                     <i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV
                 </a>
             </section>
 
             <section class="border-t border-gray-800 pt-10">
-                <h2 class="text-2xl font-bold text-white mb-8"><i class="fa-solid fa-rocket text-starCyan mr-2"></i> Launchpad Projects</h2>
+                <h2 class="text-2xl font-bold text-white mb-8 scroll-anim scroll-right"><i class="fa-solid fa-rocket text-starCyan mr-2"></i> Launchpad Projects</h2>
                 <div id="project-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
         </div>
 
         <div id="page-profil" class="page space-y-10">
-            <h2 class="text-3xl font-extrabold text-white"><i class="fa-solid fa-id-card-clip text-nebulaPurple mr-2"></i> Flight Log</h2>
+            <h2 class="text-3xl font-extrabold text-white scroll-anim scroll-left"><i class="fa-solid fa-id-card-clip text-nebulaPurple mr-2"></i> Flight Log</h2>
             
             <div class="grid md:grid-cols-3 gap-8">
-                <div class="glass p-8 rounded-2xl md:col-span-1 text-center border-t-4 border-t-starCyan">
+                <div class="glass p-8 rounded-2xl md:col-span-1 text-center border-t-4 border-t-starCyan scroll-anim scroll-up" style="transition-delay: 100ms;">
                     <img id="profil-img" src="" class="w-24 h-24 rounded-full border-4 border-gray-800 mx-auto mb-4 object-cover">
                     <h3 id="profil-name" class="text-xl font-bold text-white">Guest</h3>
                     <p id="profil-email" class="text-gray-400 text-xs font-mono break-all"></p>
                 </div>
 
                 <div class="md:col-span-2 space-y-8">
-                    <div class="glass p-8 rounded-2xl">
+                    <div class="glass p-8 rounded-2xl scroll-anim scroll-right" style="transition-delay: 200ms;">
                         <h3 class="text-white font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice text-starCyan"></i> Transmission Bio</h3>
                         <p id="profil-bio" class="text-gray-400 text-sm leading-relaxed"></p>
                     </div>
 
-                    <div id="admin-panel" class="hidden glass p-8 rounded-2xl border-2 border-dashed border-blue-500 relative transition-all duration-500">
+                    <div id="admin-panel" class="hidden glass p-8 rounded-2xl border-2 border-dashed border-blue-500 relative transition-all duration-500 scroll-anim scroll-up" style="transition-delay: 300ms;">
                         <span class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase flex items-center gap-1" id="admin-panel-badge">
                             <i class="fa-solid fa-user-shield"></i> Admin Command Center
                         </span>
@@ -212,6 +222,21 @@
         let editIndex = -1; 
         let dbData = { profile: {}, cv: "#", projects: [] };
 
+        // ================= ANIMASI OBSERVER (Sensor Scroll) =================
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                    scrollObserver.unobserve(entry.target); // Animasi hanya berjalan 1 kali
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        function aktifkanAnimasiScroll() {
+            document.querySelectorAll('.scroll-anim:not(.show)').forEach(el => scrollObserver.observe(el));
+        }
+
+        // ================= DAFTAR IKON =================
         const iconList = [
             { name: "Mainkan (Play)", class: "fa-solid fa-play" },
             { name: "Unduh (Download)", class: "fa-solid fa-download" },
@@ -303,8 +328,6 @@
             setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
 
-        // ================= FUNGSI KONVERSI LINK DIRECT DOWNLOAD =================
-        // Menangani Google Drive menjadi auto-download. Sisanya (termasuk MediaFire biasa) dibiarkan default.
         function prosesLinkDrive(url) {
             if (!url || url === '#') return '#';
             const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
@@ -339,15 +362,13 @@
 
             const rawCvLink = dbData.cv || '#';
             const btnCv = document.getElementById('btn-download-cv');
-            
-            // Format ulang link Google Drive agar langsung mendownload
             btnCv.href = prosesLinkDrive(rawCvLink); 
-            
             document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
 
             const user = JSON.parse(localStorage.getItem('zws_user'));
             renderProjects(user);
             if(user) tampilkanUser(user, false);
+            
             showPage('beranda');
         }
 
@@ -500,6 +521,9 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
             document.getElementById('page-'+id).classList.add('page-active');
             window.scrollTo(0,0);
+            
+            // Re-trigger animasi ketika pindah halaman
+            setTimeout(aktifkanAnimasiScroll, 50);
         }
 
         // ================= CRUD UI HELPER =================
@@ -562,46 +586,48 @@
 
             if(!dbData.projects || dbData.projects.length === 0) {
                 grid.innerHTML = `
-                    <div class="md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl">
+                    <div class="md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl scroll-anim scroll-up">
                         <i class="fa-solid fa-folder-open text-4xl text-gray-700 mb-3"></i>
                         <p class="text-gray-500 font-mono text-sm tracking-widest">LAUNCHPAD KOSONG. BELUM ADA PROYEK DARI CLOUD.</p>
                     </div>`;
-                return;
+            } else {
+                grid.innerHTML = dbData.projects.map((p, index) => {
+                    const btnText = p.btnText || 'LIVE DEMO';
+                    const btnIcon = p.btnIcon || 'fa-solid fa-play';
+
+                    const isDrive = p.link && p.link.includes('drive.google.com');
+                    const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk') || btnText.toLowerCase().includes('pdf');
+                    
+                    let processedLink = isDrive ? prosesLinkDrive(p.link) : p.link;
+                    
+                    let actionAttr = `href="${processedLink}"`;
+                    if (isDownloadable) {
+                        actionAttr += ` download target="_blank"`; 
+                    } else {
+                        actionAttr += ` target="_blank"`;
+                    }
+
+                    // Trik Stagger Delay untuk Grid Proyek
+                    const delay = (index % 3) * 100;
+
+                    return `
+                    <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up" style="transition-delay: ${delay}ms;">
+                        <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
+                        <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
+                        <a ${actionAttr} class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2 uppercase tracking-wider">
+                            <i class="${btnIcon} mr-2"></i> ${btnText}
+                        </a>
+                        ${isAdmin ? `
+                        <div class="flex gap-2 border-t border-gray-700 pt-3 mt-2">
+                            <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-1.5 rounded hover:bg-yellow-500 hover:text-black transition-colors"><i class="fa-solid fa-pen-to-square mr-1"></i> EDIT</button>
+                            <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-1.5 rounded hover:bg-red-500 hover:text-white transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button>
+                        </div>` : ''}
+                    </div>`;
+                }).join('');
             }
-
-            grid.innerHTML = dbData.projects.map((p, index) => {
-                const btnText = p.btnText || 'LIVE DEMO';
-                const btnIcon = p.btnIcon || 'fa-solid fa-play';
-
-                // Sistem cerdas menangani link (Download VS Tab Baru)
-                const isDrive = p.link && p.link.includes('drive.google.com');
-                const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk') || btnText.toLowerCase().includes('pdf');
-                
-                let processedLink = isDrive ? prosesLinkDrive(p.link) : p.link;
-                
-                // Jika itu link web biasa/youtube, buka di tab baru.
-                // Jika itu file yg terdeteksi unduhan, biarkan download (browser otomatis menutup tab kosong).
-                let actionAttr = `href="${processedLink}"`;
-                if (isDownloadable) {
-                    actionAttr += ` download target="_blank"`; // target_blank aman untuk mencegah bug download di beberapa browser HP
-                } else {
-                    actionAttr += ` target="_blank"`;
-                }
-
-                return `
-                <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative">
-                    <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
-                    <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
-                    <a ${actionAttr} class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2 uppercase tracking-wider">
-                        <i class="${btnIcon} mr-2"></i> ${btnText}
-                    </a>
-                    ${isAdmin ? `
-                    <div class="flex gap-2 border-t border-gray-700 pt-3 mt-2">
-                        <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-1.5 rounded hover:bg-yellow-500 hover:text-black transition-colors"><i class="fa-solid fa-pen-to-square mr-1"></i> EDIT</button>
-                        <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-1.5 rounded hover:bg-red-500 hover:text-white transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button>
-                    </div>` : ''}
-                </div>`;
-            }).join('');
+            
+            // Panggil observer setelah proyek selesai dirender
+            aktifkanAnimasiScroll();
         }
     </script>
 </body>
