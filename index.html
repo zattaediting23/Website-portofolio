@@ -216,7 +216,10 @@
               class="fa-solid fa-user-astronaut text-7xl text-starCyan opacity-90 animate-bounce"
             ></i>
           </div>
-          <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-4">
+          <h1
+            id="hero-name"
+            class="text-5xl md:text-7xl font-extrabold text-white mb-4"
+          >
             M. Zhafran .MA
           </h1>
           <p class="text-starCyan font-mono tracking-widest mb-10">
@@ -272,13 +275,10 @@
                 <i class="fa-solid fa-file-invoice text-starCyan"></i>
                 Transmission Bio
               </h3>
-              <p class="text-gray-400 text-sm leading-relaxed">
-                Profesional administrasi yang teliti dan terorganisir dengan
-                pengalaman dalam pengelolaan dokumen, pengarsipan, serta
-                koordinasi operasional. Berpengalaman sebagai Software Developer
-                yang mengkombinasikan ketelitian administratif dengan pemecahan
-                masalah teknis.
-              </p>
+              <p
+                id="profil-bio"
+                class="text-gray-400 text-sm leading-relaxed"
+              ></p>
             </div>
 
             <div
@@ -292,6 +292,31 @@
               >
 
               <div class="space-y-6">
+                <div class="border-b border-gray-800 pb-6">
+                  <label class="text-xs text-starCyan font-bold mb-3 block"
+                    >⚙️ KELOLA IDENTITAS UTAMA (NAMA & BIO)</label
+                  >
+                  <div class="space-y-3">
+                    <input
+                      type="text"
+                      id="admin-profile-name"
+                      placeholder="Ubah Nama Utama..."
+                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none"
+                    />
+                    <textarea
+                      id="admin-profile-bio"
+                      placeholder="Ubah Isi Transmission Bio..."
+                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-24 focus:border-starCyan outline-none"
+                    ></textarea>
+                    <button
+                      onclick="simpanProfilUtama()"
+                      class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold p-2.5 rounded hover:from-cyan-400 hover:to-blue-500 text-xs transition-all tracking-wider"
+                    >
+                      PERBARUI DATA PROFIL UTAMA
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label class="text-xs text-gray-400 font-bold mb-1 block"
                     >LINK GOOGLE DRIVE CV (PDF)</label
@@ -307,7 +332,7 @@
                       onclick="simpanCV()"
                       class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"
                     >
-                      SIMPAN
+                      SIMPAN LINK
                     </button>
                   </div>
                 </div>
@@ -370,22 +395,24 @@
       let modeForm = "login";
       let editIndex = -1;
 
-      // ================= SISTEM CUSTOM ALERT & CONFIRM =================
+      // Data Default bawaan CV
+      const defaultProfile = {
+        name: "M. Zhafran .MA",
+        bio: "Profesional administrasi yang teliti dan terorganisir dengan pengalaman dalam pengelolaan dokumen, pengarsipan, serta koordinasi operasional. Berpengalaman sebagai Software Developer yang mengkombinasikan ketelitian administratif dengan pemecahan masalah teknis (React, Tailwind, Google Apps Script, Baileys API).",
+      };
+
+      // ================= SISTEM CUSTOM DIALOG =================
       function zwsAlert(msg) {
         const dialog = document.getElementById("zws-dialog");
         const box = document.getElementById("zws-dialog-box");
-
         document.getElementById("zws-dialog-title").innerText =
           "SYSTEM NOTIFICATION";
         document.getElementById("zws-dialog-title").className =
           "text-starCyan font-bold text-lg mb-2 tracking-widest font-mono";
         document.getElementById("zws-dialog-icon").innerText = "🔔";
         document.getElementById("zws-dialog-msg").innerText = msg;
-
-        document.getElementById("zws-dialog-buttons").innerHTML = `
-                <button onclick="closeZwsDialog()" class="bg-starCyan text-black font-bold px-8 py-2 rounded hover:bg-white transition-colors w-full">OK MENGERTI</button>
-            `;
-
+        document.getElementById("zws-dialog-buttons").innerHTML =
+          `<button onclick="closeZwsDialog()" class="bg-starCyan text-black font-bold px-8 py-2 rounded hover:bg-white transition-colors w-full">OK MENGERTI</button>`;
         dialog.classList.remove("hidden");
         setTimeout(() => {
           dialog.classList.remove("opacity-0");
@@ -396,24 +423,19 @@
       function zwsConfirm(msg, onConfirmCallback) {
         const dialog = document.getElementById("zws-dialog");
         const box = document.getElementById("zws-dialog-box");
-
         document.getElementById("zws-dialog-title").innerText =
           "CRITICAL WARNING";
         document.getElementById("zws-dialog-title").className =
           "text-red-500 font-bold text-lg mb-2 tracking-widest font-mono";
         document.getElementById("zws-dialog-icon").innerText = "⚠️";
         document.getElementById("zws-dialog-msg").innerText = msg;
-
         window.tempConfirmCallback = () => {
           closeZwsDialog();
           if (onConfirmCallback) onConfirmCallback();
         };
-
         document.getElementById("zws-dialog-buttons").innerHTML = `
                 <button onclick="closeZwsDialog()" class="flex-1 bg-gray-800 border border-gray-600 text-white font-bold px-4 py-2 rounded hover:bg-gray-700 transition-colors">BATAL</button>
-                <button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2 rounded hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.5)]">YA, LANJUTKAN</button>
-            `;
-
+                <button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2 rounded hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.5)]">YA, LANJUTKAN</button>`;
         dialog.classList.remove("hidden");
         setTimeout(() => {
           dialog.classList.remove("opacity-0");
@@ -431,22 +453,54 @@
         }, 300);
       }
 
-      // ================= INISIALISASI =================
+      // ================= INISIALISASI UTAMA =================
       window.onload = () => {
+        // 1. Muat Data Profil (Nama & Bio)
+        loadProfileData();
+
+        // 2. Muat Link CV (Direct Download)
         const cvLink = localStorage.getItem("zws_cv") || "#";
         let directLink = cvLink;
         const driveMatch = cvLink.match(/\/d\/([a-zA-Z0-9_-]+)/);
         if (driveMatch && driveMatch[1])
           directLink = `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
-
         document.getElementById("btn-download-cv").href = directLink;
         document.getElementById("admin-cv-link").value =
           cvLink === "#" ? "" : cvLink;
 
+        // 3. Muat Proyek
         const user = JSON.parse(localStorage.getItem("zws_user"));
         renderProjects(user);
         if (user) tampilkanUser(user);
       };
+
+      // ================= FUNGSI CMS PROFIL UTAMA =================
+      function loadProfileData() {
+        const savedProfile =
+          JSON.parse(localStorage.getItem("zws_profile")) || defaultProfile;
+
+        // Pasang ke Element HTML
+        document.getElementById("hero-name").innerText = savedProfile.name;
+        document.getElementById("profil-bio").innerText = savedProfile.bio;
+
+        // Masukkan ke Input Form Admin Panel
+        document.getElementById("admin-profile-name").value = savedProfile.name;
+        document.getElementById("admin-profile-bio").value = savedProfile.bio;
+      }
+
+      function simpanProfilUtama() {
+        const name = document.getElementById("admin-profile-name").value;
+        const bio = document.getElementById("admin-profile-bio").value;
+
+        if (!name.trim() || !bio.trim())
+          return zwsAlert("Nama dan data Bio tidak boleh kosong!");
+
+        localStorage.setItem("zws_profile", JSON.stringify({ name, bio }));
+        loadProfileData(); // Sinkronisasi UI
+
+        zwsAlert("Log Identitas berhasil diperbarui di seluruh pusat komando!");
+        showPage("beranda");
+      }
 
       function showPage(id) {
         document
@@ -564,7 +618,7 @@
         );
       }
 
-      // ================= CRUD ADMIN =================
+      // ================= CRUD PROYEK & CV =================
       function simpanCV() {
         const url = document.getElementById("admin-cv-link").value;
         localStorage.setItem("zws_cv", url);
@@ -663,7 +717,6 @@
             );
             projects.splice(index, 1);
             localStorage.setItem("zws_projects", JSON.stringify(projects));
-
             const user = JSON.parse(localStorage.getItem("zws_user"));
             renderProjects(user);
           },
@@ -674,8 +727,6 @@
         const grid = document.getElementById("project-grid");
         let projects = JSON.parse(localStorage.getItem("zws_projects"));
 
-        // PERBAIKAN BUG ZOMBIE:
-        // Hanya buat data default JIKA data benar-benar "null" (web pertama kali diakses selamanya)
         if (!projects) {
           projects = [
             {
@@ -689,40 +740,34 @@
 
         const isAdmin = user && user.email === ADMIN_EMAIL;
 
-        // Jika array kosong (sengaja dihapus semua oleh Admin), tampilkan pesan kosong.
         if (projects.length === 0) {
           grid.innerHTML = `
                     <div class="md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl">
                         <i class="fa-solid fa-folder-open text-4xl text-gray-700 mb-3"></i>
                         <p class="text-gray-500 font-mono text-sm tracking-widest">LAUNCHPAD KOSONG. BELUM ADA PROYEK.</p>
                     </div>`;
-          return; // Berhenti di sini, jangan render kotak-kotak proyek
+          return;
         }
 
-        // Render proyek yang ada
         grid.innerHTML = projects
           .map(
             (p, index) => `
                 <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative">
                     <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
                     <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
-                    
                     <a href="${p.link}" target="_blank" class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2">
                         <i class="fa-solid fa-play mr-1"></i> LIVE DEMO
                     </a>
-
                     ${
                       isAdmin
                         ? `
                     <div class="flex gap-2 border-t border-gray-700 pt-3 mt-2">
                         <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-1.5 rounded hover:bg-yellow-500 hover:text-black transition-colors">EDIT</button>
                         <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-1.5 rounded hover:bg-red-500 hover:text-white transition-colors">HAPUS</button>
-                    </div>
-                    `
+                    </div>`
                         : ""
                     }
-                </div>
-            `,
+                </div>`,
           )
           .join("");
       }
