@@ -45,7 +45,7 @@
 
     <div id="loading-screen" class="fixed inset-0 z-[150] bg-spaceBlack flex flex-col justify-center items-center transition-opacity duration-500">
         <div class="loader mb-4 w-12 h-12"></div>
-        <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse">MENYINKRONKAN DATA DARI GOOGLE CLOUD...</p>
+        <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse" id="loading-text">MENYINKRONKAN DATA DARI GOOGLE CLOUD...</p>
     </div>
 
     <nav class="fixed w-full z-50 glass px-6 py-4 flex justify-between items-center">
@@ -156,10 +156,22 @@
                                 <label class="text-xs text-starCyan font-bold mb-2 block" id="label-form-proyek">TAMBAH PROYEK BARU</label>
                                 <div class="space-y-3">
                                     <input type="text" id="p-title" placeholder="Nama Proyek (Contoh: Sistem Absense)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
-                                    <input type="text" id="p-link" placeholder="Link Demo URL (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <input type="text" id="p-link" placeholder="Tautan URL (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <textarea id="p-desc" placeholder="Deskripsi Singkat Proyek..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-starCyan outline-none"></textarea>
                                     
-                                    <div class="flex gap-2">
+                                    <div class="flex gap-3">
+                                        <div class="w-1/2">
+                                            <label class="text-xs text-gray-500 mb-1 block">Teks Tombol Aksi</label>
+                                            <input type="text" id="p-btn-text" placeholder="Cth: GITHUB / LIVE DEMO" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                        </div>
+                                        <div class="w-1/2">
+                                            <label class="text-xs text-gray-500 mb-1 block">Ikon FontAwesome</label>
+                                            <input type="text" id="p-btn-icon" placeholder="Cth: fa-brands fa-github" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mb-2 italic">*Kosongkan teks dan ikon jika ingin menggunakan default (LIVE DEMO).</p>
+
+                                    <div class="flex gap-2 pt-2">
                                         <button onclick="simpanProyek()" id="btn-simpan-proyek" class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors">TAMBAH KE LAUNCHPAD</button>
                                         <button onclick="batalEdit()" id="btn-batal-edit" class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors">BATAL</button>
                                     </div>
@@ -176,7 +188,7 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         // =============================================================
-        // KAPTEN, GANTI URL DI BAWAH INI DENGAN URL WEB APP GOOGLE KAMU!
+        // KAPTEN, PASTIKAN URL INI ADALAH URL "/exec" DARI GOOGLE APPS SCRIPT
         // =============================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
 
@@ -221,27 +233,20 @@
             setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
 
-        // ================= FETCH DATA DARI API GAS (PENGGANTI LOCALSTORAGE) =================
+        // ================= FETCH DATA DARI API GAS =================
         window.onload = () => {
-            if(API_URL === "ISI_URL_GAS_DISINI") {
-                alert("KAPTEN! Kamu lupa memasukkan URL Google Apps Script di dalam kode HTML!");
-                return;
-            }
-
-            // Tarik data dari Google Apps Script menggunakan FETCH
             fetch(API_URL)
                 .then(res => res.json())
                 .then(data => {
                     dbData = data;
                     renderSeluruhUI();
-                    
                     document.getElementById('loading-screen').classList.add('opacity-0');
                     setTimeout(() => document.getElementById('loading-screen').classList.add('hidden'), 500);
                 })
                 .catch(err => {
                     console.error("Gagal terhubung ke API:", err);
                     document.getElementById('loading-screen').classList.add('hidden');
-                    zwsAlert("Koneksi ke server satelit terputus.");
+                    zwsAlert("Koneksi ke server satelit terputus. Pastikan kode Code.gs sudah benar.");
                 });
         };
 
@@ -270,9 +275,9 @@
             renderSeluruhUI(); // Optimistic UI update
             document.getElementById('loading-screen').classList.remove('hidden');
             document.getElementById('loading-screen').classList.remove('opacity-0');
-            document.querySelector('#loading-screen p').innerText = "MENGIRIM DATA KE CLOUD...";
+            document.getElementById('loading-text').innerText = "MENGIRIM DATA KE CLOUD...";
 
-            // Di dalam function kirimKeServerGAS
+            // Hapus headers Content-Type agar CORS tidak marah
             fetch(API_URL, {
                 method: 'POST',
                 body: JSON.stringify(dbData)
@@ -305,14 +310,19 @@
             const title = document.getElementById('p-title').value;
             const link = document.getElementById('p-link').value;
             const desc = document.getElementById('p-desc').value;
+            const btnText = document.getElementById('p-btn-text').value;
+            const btnIcon = document.getElementById('p-btn-icon').value;
 
             if(!title || !link) return zwsAlert("Nama Proyek dan Link Demo wajib diisi!");
 
+            // Susun data proyek, biarkan kosong jika tidak diisi agar default jalan di render
+            const projectData = { title, link, desc, btnText, btnIcon };
+
             if(editIndex > -1) {
-                dbData.projects[editIndex] = { title, link, desc };
+                dbData.projects[editIndex] = projectData;
                 kirimKeServerGAS("Log proyek berhasil diperbarui ke Cloud!");
             } else {
-                dbData.projects.push({ title, link, desc });
+                dbData.projects.push(projectData);
                 kirimKeServerGAS("Proyek baru berhasil diluncurkan ke Database Cloud!");
             }
             batalEdit();
@@ -325,7 +335,7 @@
             });
         }
 
-        // ================= AUTHENTICATION (Tetap di Local Storage Browser) =================
+        // ================= AUTHENTICATION =================
         function bukaModalAuth(type) {
             document.getElementById('auth-modal').classList.remove('hidden');
             switchTabAuth(type);
@@ -418,9 +428,11 @@
         // ================= CRUD UI HELPER =================
         function editProyek(index) {
             const p = dbData.projects[index];
-            document.getElementById('p-title').value = p.title;
-            document.getElementById('p-link').value = p.link;
-            document.getElementById('p-desc').value = p.desc;
+            document.getElementById('p-title').value = p.title || '';
+            document.getElementById('p-link').value = p.link || '';
+            document.getElementById('p-desc').value = p.desc || '';
+            document.getElementById('p-btn-text').value = p.btnText || '';
+            document.getElementById('p-btn-icon').value = p.btnIcon || '';
             
             editIndex = index;
             document.getElementById('label-form-proyek').innerText = "UPDATE PROYEK";
@@ -448,6 +460,8 @@
             document.getElementById('p-title').value = '';
             document.getElementById('p-link').value = '';
             document.getElementById('p-desc').value = '';
+            document.getElementById('p-btn-text').value = '';
+            document.getElementById('p-btn-icon').value = '';
             
             document.getElementById('label-form-proyek').innerText = "TAMBAH PROYEK BARU";
             document.getElementById('label-form-proyek').className = "text-xs text-starCyan font-bold mb-2 block";
@@ -469,19 +483,25 @@
                 return;
             }
 
-            grid.innerHTML = dbData.projects.map((p, index) => `
+            grid.innerHTML = dbData.projects.map((p, index) => {
+                // Menentukan Teks dan Ikon Tombol (Jika tidak diisi, gunakan default)
+                const btnText = p.btnText || 'LIVE DEMO';
+                const btnIcon = p.btnIcon || 'fa-solid fa-play';
+
+                return `
                 <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative">
                     <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
                     <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
-                    <a href="${p.link}" target="_blank" class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2">
-                        <i class="fa-solid fa-play mr-1"></i> LIVE DEMO
+                    <a href="${p.link}" target="_blank" class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2 uppercase tracking-wider">
+                        <i class="${btnIcon} mr-1"></i> ${btnText}
                     </a>
                     ${isAdmin ? `
                     <div class="flex gap-2 border-t border-gray-700 pt-3 mt-2">
                         <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-1.5 rounded hover:bg-yellow-500 hover:text-black transition-colors">EDIT</button>
                         <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-1.5 rounded hover:bg-red-500 hover:text-white transition-colors">HAPUS</button>
                     </div>` : ''}
-                </div>`).join('');
+                </div>`;
+            }).join('');
         }
     </script>
 </body>
