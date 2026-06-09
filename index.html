@@ -128,6 +128,15 @@
                 <h2 class="text-2xl font-bold text-white mb-8 scroll-anim scroll-right"><i class="fa-solid fa-rocket text-starCyan mr-2"></i> Launchpad Projects</h2>
                 <div id="project-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
+
+            <section class="border-t border-gray-800 pt-10 mt-10">
+                <h2 class="text-2xl font-bold text-white mb-8 scroll-anim scroll-left"><i class="fa-solid fa-map-location-dot text-nebulaPurple mr-2"></i> Galactic Journey</h2>
+                
+                <div class="ml-2 md:ml-6 py-4">
+                    <div id="journey-timeline" class="relative border-l-2 border-gray-700 ml-4 space-y-10 pb-4">
+                        </div>
+                </div>
+            </section>
         </div>
 
         <div id="page-profil" class="page space-y-10">
@@ -161,17 +170,15 @@
                                 </div>
                             </div>
 
-                            <div>
+                            <div class="border-b border-gray-800 pb-6">
                                 <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK CV (GOOGLE DRIVE / DIRECT LINK)</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="admin-cv-link" placeholder="Paste link disini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
                                 </div>
                             </div>
-                            
-                            <hr class="border-gray-800">
 
-                            <div>
+                            <div class="border-b border-gray-800 pb-6">
                                 <label class="text-xs text-starCyan font-bold mb-2 flex items-center gap-2" id="label-form-proyek"><i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU</label>
                                 <div class="space-y-3">
                                     <input type="text" id="p-title" placeholder="Nama Proyek (Contoh: Sistem Absense)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
@@ -187,24 +194,35 @@
                                         <div class="w-full md:w-1/2 relative" id="icon-dropdown-container">
                                             <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-icons"></i> Ikon Tombol</label>
                                             <input type="hidden" id="p-btn-icon-value" value="">
-                                            
                                             <div class="flex items-center w-full bg-black p-3 rounded border border-gray-700 focus-within:border-starCyan relative cursor-pointer" onclick="toggleDropdown()">
                                                 <i id="selected-icon-preview" class="fa-solid fa-play text-gray-500 mr-3 w-5 text-center"></i>
                                                 <input type="text" id="icon-search-input" placeholder="Cari ikon..." class="bg-transparent text-sm text-white outline-none w-full cursor-text" onkeyup="filterIcons()">
                                                 <i class="fa-solid fa-chevron-down text-gray-500 ml-2 text-xs"></i>
                                             </div>
-                                            
-                                            <div id="icon-dropdown-list" class="hidden absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded shadow-2xl max-h-48 overflow-y-auto custom-scroll">
-                                            </div>
+                                            <div id="icon-dropdown-list" class="hidden absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded shadow-2xl max-h-48 overflow-y-auto custom-scroll"></div>
                                         </div>
                                     </div>
 
                                     <div class="flex gap-2 pt-2">
-                                        <button onclick="simpanProyek()" id="btn-simpan-proyek" class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors"><i class="fa-solid fa-rocket mr-2"></i>TAMBAH KE LAUNCHPAD</button>
+                                        <button onclick="simpanProyek()" id="btn-simpan-proyek" class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors"><i class="fa-solid fa-rocket mr-2"></i>TAMBAH PROYEK</button>
                                         <button onclick="batalEdit()" id="btn-batal-edit" class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors"><i class="fa-solid fa-xmark mr-2"></i>BATAL</button>
                                     </div>
                                 </div>
                             </div>
+
+                            <div>
+                                <label class="text-xs text-nebulaPurple font-bold mb-2 flex items-center gap-2" id="label-form-journey"><i class="fa-solid fa-timeline text-lg"></i> TAMBAH JEJAK PERJALANAN</label>
+                                <div class="space-y-3">
+                                    <input type="text" id="j-year" placeholder="Tahun (Contoh: 2023 - 2026)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-nebulaPurple outline-none">
+                                    <input type="text" id="j-title" placeholder="Judul (Contoh: Membangun ZWS)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-nebulaPurple outline-none">
+                                    <textarea id="j-desc" placeholder="Ceritakan detail perjalanan ini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-nebulaPurple outline-none"></textarea>
+                                    <div class="flex gap-2 pt-2">
+                                        <button onclick="simpanJourney()" id="btn-simpan-journey" class="flex-1 bg-nebulaPurple text-white font-bold p-3 rounded hover:bg-purple-700 text-sm transition-colors"><i class="fa-solid fa-plus mr-2"></i>TAMBAH JEJAK</button>
+                                        <button onclick="batalEditJourney()" id="btn-batal-journey" class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors"><i class="fa-solid fa-xmark mr-2"></i>BATAL</button>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -218,7 +236,8 @@
         const ADMIN_EMAIL = "zhafranediting23@gmail.com";
         let modeForm = 'login'; 
         let editIndex = -1; 
-        let dbData = { profile: {}, cv: "#", projects: [] };
+        let editJourneyIndex = -1; // Variabel baru untuk deteksi edit Timeline
+        let dbData = { profile: {}, cv: "#", projects: [], journey: [] }; // Default schema
 
         // Animasi Scroll
         const scrollObserver = new IntersectionObserver((entries) => {
@@ -238,6 +257,7 @@
         function lockUI(pesan) {
             const loader = document.getElementById('loading-screen');
             document.getElementById('loading-text').innerText = pesan;
+            document.getElementById('loading-text').classList.remove('text-red-500');
             loader.classList.remove('hidden');
             setTimeout(() => loader.classList.remove('opacity-0'), 10);
         }
@@ -357,7 +377,7 @@
             return url;
         }
 
-        // Inisialisasi Pertama
+        // Inisialisasi API Fetch
         window.onload = () => {
             initIconDropdown(); 
             const loader = document.getElementById('loading-screen');
@@ -397,12 +417,13 @@
 
             const user = JSON.parse(localStorage.getItem('zws_user'));
             renderProjects(user);
-            if(user) tampilkanUser(user, false);
+            renderJourney(user); // MENGGAMBAR TIMELINE PERJALANAN
             
+            if(user) tampilkanUser(user, false);
             showPage('beranda');
         }
 
-        // FUNGSI CRUD & ADMIN PANEL (Dikembalikan secara utuh)
+        // PENGIRIMAN DATA KE CLOUD
         function kirimKeServerGAS(pesanSukses) {
             renderSeluruhUI(); 
             lockUI("MENGIRIM DATA KE CLOUD...");
@@ -415,7 +436,6 @@
             .then(res => {
                 unlockUI();
                 zwsToast(pesanSukses, "success");
-                showPage('beranda');
             })
             .catch(err => {
                 unlockUI(true);
@@ -434,6 +454,7 @@
             kirimKeServerGAS("Tautan CV berhasil disinkronkan ke seluruh galaksi!");
         }
 
+        // CRUD PROJECTS
         function simpanProyek() {
             const title = document.getElementById('p-title').value;
             const link = document.getElementById('p-link').value;
@@ -442,13 +463,13 @@
             const btnIcon = document.getElementById('p-btn-icon-value').value; 
 
             if(!title || !link) return zwsToast("Nama Proyek dan Link Demo wajib diisi!", "warning");
-
             const projectData = { title, link, desc, btnText, btnIcon };
 
             if(editIndex > -1) {
                 dbData.projects[editIndex] = projectData;
                 kirimKeServerGAS("Log proyek berhasil diperbarui ke Cloud!");
             } else {
+                if(!dbData.projects) dbData.projects = [];
                 dbData.projects.push(projectData);
                 kirimKeServerGAS("Proyek baru berhasil diluncurkan ke Database Cloud!");
             }
@@ -479,21 +500,14 @@
             editIndex = index;
             document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-pen-to-square text-lg"></i> UPDATE PROYEK';
             document.getElementById('label-form-proyek').className = "text-xs text-yellow-500 font-bold mb-2 flex items-center gap-2";
-            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN KE CLOUD';
+            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN';
             document.getElementById('btn-simpan-proyek').className = "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors";
             document.getElementById('btn-batal-edit').classList.remove('hidden');
 
             showPage('profil');
-            
             setTimeout(() => {
                 const panel = document.getElementById('admin-panel');
                 panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                panel.classList.replace('border-blue-500', 'border-yellow-500');
-                panel.classList.add('shadow-[0_0_30px_rgba(234,179,8,0.5)]');
-                setTimeout(() => {
-                    panel.classList.replace('border-yellow-500', 'border-blue-500');
-                    panel.classList.remove('shadow-[0_0_30px_rgba(234,179,8,0.5)]');
-                }, 1200);
             }, 100);
         }
 
@@ -509,11 +523,12 @@
             
             document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU';
             document.getElementById('label-form-proyek').className = "text-xs text-starCyan font-bold mb-2 flex items-center gap-2";
-            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-rocket mr-2"></i>TAMBAH KE LAUNCHPAD';
+            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-rocket mr-2"></i>TAMBAH PROYEK';
             document.getElementById('btn-simpan-proyek').className = "flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors";
             document.getElementById('btn-batal-edit').classList.add('hidden');
         }
 
+        // RENDER UI PROJECTS
         function renderProjects(user) {
             const grid = document.getElementById('project-grid');
             const isAdmin = user && user.email === ADMIN_EMAIL;
@@ -528,6 +543,7 @@
                 grid.innerHTML = dbData.projects.map((p, index) => {
                     const btnText = p.btnText || 'LIVE DEMO';
                     const btnIcon = p.btnIcon || 'fa-solid fa-play';
+
                     const isDrive = p.link && p.link.includes('drive.google.com');
                     const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk') || btnText.toLowerCase().includes('pdf');
                     
@@ -538,17 +554,11 @@
 
                     const delay = (index % 3) * 100;
                     
-                    // Tombol Edit/Hapus akan muncul di Bawah Card Jika User Adalah Admin
                     const adminActions = isAdmin ? `
                         <div class="flex gap-2 border-t border-gray-700 pt-3 mt-4">
-                            <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-2 rounded hover:bg-yellow-500 hover:text-black transition-colors">
-                                <i class="fa-solid fa-pen-to-square mr-1"></i> EDIT
-                            </button>
-                            <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-2 rounded hover:bg-red-500 hover:text-white transition-colors">
-                                <i class="fa-solid fa-trash mr-1"></i> HAPUS
-                            </button>
-                        </div>
-                    ` : '';
+                            <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-2 rounded hover:bg-yellow-500 hover:text-black transition-colors"><i class="fa-solid fa-pen-to-square mr-1"></i> EDIT</button>
+                            <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-2 rounded hover:bg-red-500 hover:text-white transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button>
+                        </div>` : '';
 
                     return `
                     <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up" style="transition-delay: ${delay}ms;">
@@ -563,6 +573,103 @@
             }
             aktifkanAnimasiScroll();
         }
+
+        // ================= BAGIAN BARU: FUNGSI CRUD PERJALANAN (TIMELINE) =================
+        function simpanJourney() {
+            const year = document.getElementById('j-year').value;
+            const title = document.getElementById('j-title').value;
+            const desc = document.getElementById('j-desc').value;
+
+            if(!year || !title) return zwsToast("Tahun dan Judul Perjalanan wajib diisi!", "warning");
+            const journeyData = { year, title, desc };
+
+            if(!dbData.journey) dbData.journey = []; // Buat struktur array jika belum ada di database lawas
+
+            if(editJourneyIndex > -1) {
+                dbData.journey[editJourneyIndex] = journeyData;
+                kirimKeServerGAS("Jejak perjalanan berhasil diperbarui!");
+            } else {
+                dbData.journey.push(journeyData);
+                kirimKeServerGAS("Jejak perjalanan baru berhasil diabadikan!");
+            }
+            batalEditJourney();
+        }
+
+        function hapusJourney(index) {
+            zwsConfirm("Yakin ingin menghapus jejak memori ini secara permanen?", function() {
+                dbData.journey.splice(index, 1);
+                kirimKeServerGAS("Jejak memori berhasil dihapus dari Cloud!");
+            });
+        }
+
+        function editJourney(index) {
+            const j = dbData.journey[index];
+            document.getElementById('j-year').value = j.year || '';
+            document.getElementById('j-title').value = j.title || '';
+            document.getElementById('j-desc').value = j.desc || '';
+            
+            editJourneyIndex = index;
+            document.getElementById('label-form-journey').innerHTML = '<i class="fa-solid fa-pen-to-square text-lg"></i> UPDATE JEJAK PERJALANAN';
+            document.getElementById('label-form-journey').className = "text-xs text-yellow-500 font-bold mb-2 flex items-center gap-2";
+            document.getElementById('btn-simpan-journey').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN';
+            document.getElementById('btn-simpan-journey').className = "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors";
+            document.getElementById('btn-batal-journey').classList.remove('hidden');
+
+            showPage('profil');
+            setTimeout(() => {
+                const panel = document.getElementById('admin-panel');
+                panel.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 100);
+        }
+
+        function batalEditJourney() {
+            editJourneyIndex = -1;
+            document.getElementById('j-year').value = '';
+            document.getElementById('j-title').value = '';
+            document.getElementById('j-desc').value = '';
+            
+            document.getElementById('label-form-journey').innerHTML = '<i class="fa-solid fa-timeline text-lg"></i> TAMBAH JEJAK PERJALANAN';
+            document.getElementById('label-form-journey').className = "text-xs text-nebulaPurple font-bold mb-2 flex items-center gap-2";
+            document.getElementById('btn-simpan-journey').innerHTML = '<i class="fa-solid fa-plus mr-2"></i>TAMBAH JEJAK';
+            document.getElementById('btn-simpan-journey').className = "flex-1 bg-nebulaPurple text-white font-bold p-3 rounded hover:bg-purple-700 text-sm transition-colors";
+            document.getElementById('btn-batal-journey').classList.add('hidden');
+        }
+
+        // RENDER UI TIMELINE
+        function renderJourney(user) {
+            const timeline = document.getElementById('journey-timeline');
+            const isAdmin = user && user.email === ADMIN_EMAIL;
+            
+            if(!dbData.journey || dbData.journey.length === 0) {
+                timeline.innerHTML = '<p class="text-gray-500 font-mono text-sm ml-6 scroll-anim scroll-right">Belum ada jejak perjalanan yang direkam di server Cloud.</p>';
+                return;
+            }
+            
+            timeline.innerHTML = dbData.journey.map((j, index) => {
+                const delay = (index % 5) * 150; // Animasi mengalir ke bawah
+                
+                const adminActions = isAdmin ? `
+                    <div class="mt-4 flex gap-4 pt-3 border-t border-gray-800">
+                        <button onclick="editJourney(${index})" class="text-xs text-yellow-500 hover:text-yellow-400 font-bold tracking-wider transition-colors"><i class="fa-solid fa-pen mr-1"></i> EDIT</button>
+                        <button onclick="hapusJourney(${index})" class="text-xs text-red-500 hover:text-red-400 font-bold tracking-wider transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button>
+                    </div>
+                ` : '';
+
+                return `
+                <div class="ml-8 relative scroll-anim scroll-left" style="transition-delay: ${delay}ms;">
+                    <div class="absolute -left-[41px] top-1 w-4 h-4 bg-spaceBlack border-2 border-nebulaPurple rounded-full shadow-[0_0_10px_rgba(76,29,149,0.8)] z-10"></div>
+                    
+                    <div class="glass p-5 rounded-xl border border-gray-800 hover:border-nebulaPurple transition-colors group">
+                        <span class="text-nebulaPurple font-mono text-xs font-bold px-2.5 py-1 bg-purple-900/30 border border-purple-500/30 rounded block w-max mb-3 tracking-widest">${j.year}</span>
+                        <h3 class="text-white font-bold text-lg mb-2">${j.title}</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">${j.desc}</p>
+                        ${adminActions}
+                    </div>
+                </div>`;
+            }).join('');
+            aktifkanAnimasiScroll();
+        }
+
 
         // ================= AUTH UI HELPER =================
         function bukaModalAuth(type) {
@@ -600,6 +707,7 @@
             tutupModalAuth();
             window.tampilkanUser(userData, true);
             renderProjects(userData);
+            renderJourney(userData); // Update tombol admin di Timeline
             zwsToast(`Selamat datang, ${name}!`, "success");
         }
 
@@ -658,10 +766,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // ===== PENTING: MENANGKAP HASIL REDIRECT SAAT KEMBALI KE WEB =====
+        // ===== MENANGKAP HASIL REDIRECT SAAT KEMBALI KE WEB =====
         getRedirectResult(auth).then((result) => {
             if (result) {
-                // User berhasil login dan dikembalikan ke halaman ini
                 const user = result.user;
                 const userData = { 
                     name: user.displayName || "Crew Member", 
@@ -671,8 +778,9 @@
                 localStorage.setItem('zws_user', JSON.stringify(userData));
                 window.tampilkanUser(userData, true);
                 
-                // Panggil renderProjects agar jika dia admin, tombol edit langsung muncul
+                // Pastikan fungsi render di-trigger ulang untuk memunculkan Tombol Edit/Hapus Admin
                 renderProjects(userData);
+                renderJourney(userData); 
                 
                 window.zwsToast(`Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
             }
@@ -680,14 +788,14 @@
             window.zwsToast("Gagal login via Redirect: " + error.message, "error");
         });
 
-        // ===== FUNGSI LOGIN (TIDAK MEMAKAI POPUP LAGI) =====
+        // ===== FUNGSI LOGIN =====
         window.loginGoogle = function(btn) {
             lockUI("MENGALIHKAN KE SISTEM GOOGLE...");
             setBtnLoading(btn);
             const provider = new GoogleAuthProvider();
             provider.addScope('profile');
             provider.addScope('email');
-            signInWithRedirect(auth, provider); // Langsung pindah halaman
+            signInWithRedirect(auth, provider);
         };
 
         window.loginGitHub = function(btn) {
