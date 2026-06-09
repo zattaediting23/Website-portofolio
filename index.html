@@ -317,6 +317,7 @@
         // Web Scraper untuk menembus MediaFire
         // ================= KEAJAIBAN: EKSTRAKTOR LINK DIRECT DOWNLOAD =================
         // Web Scraper untuk menembus MediaFire (Menggunakan Proxy Baru)
+        // ================= KEAJAIBAN: EKSTRAKTOR LINK MENGGUNAKAN PRIVATE API GAS =================
         async function downloadMediaFire(event, url) {
             event.preventDefault(); // Jangan pindah tab!
             
@@ -324,42 +325,33 @@
             const originalHtml = btn.innerHTML;
             
             // Ubah tombol jadi status loading
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> MENGEKSTRAK FILE...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> MENGHUBUNGI SATELIT...';
             btn.classList.add('opacity-75', 'cursor-not-allowed');
             btn.style.pointerEvents = 'none';
 
             try {
-                // Kita ganti agen proxy ke corsproxy.io yang mengembalikan raw HTML langsung
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                const response = await fetch(proxyUrl);
-                
-                if (!response.ok) {
-                    throw new Error(`Server Error: ${response.status}`);
-                }
+                // Memanggil API MediaFire buatanmu sendiri di Google Apps Script!
+                // Kita tambahkan ?mediafire=LINK di belakang URL API_URL
+                const customApiUrl = API_URL + "?mediafire=" + encodeURIComponent(url);
+                const response = await fetch(customApiUrl);
+                const data = await response.json();
 
-                const htmlText = await response.text();
-                
-                // Menganalisis HTML mentah MediaFire untuk mencari tombol aslinya
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, "text/html");
-                const downloadBtn = doc.querySelector('#downloadButton');
-
-                if (downloadBtn && downloadBtn.getAttribute('href')) {
-                    // Berhasil menemukan file! Perintahkan browser untuk langsung mengunduh
-                    window.location.href = downloadBtn.getAttribute('href');
+                if (data.status === "success" && data.direct_link) {
+                    // Misi Berhasil! Server Google berhasil mencurinya
+                    window.location.href = data.direct_link;
                 } else {
-                    zwsAlert("Gagal mengekstrak link MediaFire. Kemungkinan sistem keamanan mereka memblokir akses bot.");
+                    zwsAlert("Gagal mengekstrak: " + data.message);
                 }
             } catch (error) {
-                console.error("Scraping Error:", error);
-                zwsAlert("Koneksi ke agen ekstraktor gagal atau diblokir. Coba lagi nanti.");
+                console.error("API Error:", error);
+                zwsAlert("Koneksi ke API Internal gagal. Periksa jaringan.");
             } finally {
-                // Kembalikan desain tombol setelah proses selesai
+                // Kembalikan desain tombol setelah 3 detik
                 setTimeout(() => {
                     btn.innerHTML = originalHtml;
                     btn.classList.remove('opacity-75', 'cursor-not-allowed');
                     btn.style.pointerEvents = 'auto';
-                }, 2500);
+                }, 3000);
             }
         }
 
