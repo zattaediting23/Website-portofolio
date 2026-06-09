@@ -113,7 +113,107 @@
     </div>
 
     <main class="pt-32 pb-20 px-6 max-w-5xl mx-auto">
-        </main>
+        
+        <div id="page-beranda" class="page page-active space-y-20">
+            <section class="text-center">
+                <div class="inline-block relative mb-8 scroll-anim scroll-scale">
+                    <i class="fa-solid fa-user-astronaut text-7xl text-starCyan opacity-90 animate-bounce"></i>
+                </div>
+                <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms;">Loading...</h1>
+                <p class="text-starCyan font-mono tracking-widest mb-10 scroll-anim scroll-up" style="transition-delay: 200ms;">Admin Staff & Web Developer</p>
+                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;">
+                    <i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV
+                </a>
+            </section>
+
+            <section class="border-t border-gray-800 pt-10">
+                <h2 class="text-2xl font-bold text-white mb-8 scroll-anim scroll-right"><i class="fa-solid fa-rocket text-starCyan mr-2"></i> Launchpad Projects</h2>
+                <div id="project-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+        </div>
+
+        <div id="page-profil" class="page space-y-10">
+            <h2 class="text-3xl font-extrabold text-white scroll-anim scroll-left"><i class="fa-solid fa-id-card-clip text-nebulaPurple mr-2"></i> Flight Log</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="glass p-8 rounded-2xl md:col-span-1 text-center border-t-4 border-t-starCyan scroll-anim scroll-up" style="transition-delay: 100ms;">
+                    <img id="profil-img" src="" class="w-24 h-24 rounded-full border-4 border-gray-800 mx-auto mb-4 object-cover">
+                    <h3 id="profil-name" class="text-xl font-bold text-white">Guest</h3>
+                    <p id="profil-email" class="text-gray-400 text-xs font-mono break-all"></p>
+                </div>
+
+                <div class="md:col-span-2 space-y-8">
+                    <div class="glass p-8 rounded-2xl scroll-anim scroll-right" style="transition-delay: 200ms;">
+                        <h3 class="text-white font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice text-starCyan"></i> Transmission Bio</h3>
+                        <p id="profil-bio" class="text-gray-400 text-sm leading-relaxed"></p>
+                    </div>
+
+                    <div id="admin-panel" class="hidden glass p-8 rounded-2xl border-2 border-dashed border-blue-500 relative transition-all duration-500 scroll-anim scroll-up" style="transition-delay: 300ms;">
+                        <span class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase flex items-center gap-1" id="admin-panel-badge">
+                            <i class="fa-solid fa-user-shield"></i> Admin Command Center
+                        </span>
+                        
+                        <div class="space-y-6">
+                            <div class="border-b border-gray-800 pb-6 mt-2">
+                                <label class="text-xs text-starCyan font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-id-badge text-lg"></i> KELOLA IDENTITAS UTAMA</label>
+                                <div class="space-y-3">
+                                    <input type="text" id="admin-profile-name" placeholder="Ubah Nama Utama..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <textarea id="admin-profile-bio" placeholder="Ubah Isi Transmission Bio..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-24 focus:border-starCyan outline-none"></textarea>
+                                    <button onclick="simpanProfilUtama()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold p-2.5 rounded hover:from-cyan-400 hover:to-blue-500 text-xs transition-all tracking-wider"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>PERBARUI DATA PROFIL</button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK CV (GOOGLE DRIVE / DIRECT LINK)</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="admin-cv-link" placeholder="Paste link disini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
+                                </div>
+                            </div>
+                            
+                            <hr class="border-gray-800">
+
+                            <div>
+                                <label class="text-xs text-starCyan font-bold mb-2 flex items-center gap-2" id="label-form-proyek"><i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU</label>
+                                <div class="space-y-3">
+                                    <input type="text" id="p-title" placeholder="Nama Proyek (Contoh: Sistem Absense)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <input type="text" id="p-link" placeholder="Tautan URL / Link Download (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <textarea id="p-desc" placeholder="Deskripsi Singkat Proyek..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-starCyan outline-none"></textarea>
+                                    
+                                    <div class="flex flex-col md:flex-row gap-3">
+                                        <div class="w-full md:w-1/2">
+                                            <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-font"></i> Teks Tombol Aksi</label>
+                                            <input type="text" id="p-btn-text" placeholder="Cth: DOWNLOAD MOD / GITHUB" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                        </div>
+                                        
+                                        <div class="w-full md:w-1/2 relative" id="icon-dropdown-container">
+                                            <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-icons"></i> Ikon Tombol</label>
+                                            <input type="hidden" id="p-btn-icon-value" value="">
+                                            
+                                            <div class="flex items-center w-full bg-black p-3 rounded border border-gray-700 focus-within:border-starCyan relative cursor-pointer" onclick="toggleDropdown()">
+                                                <i id="selected-icon-preview" class="fa-solid fa-play text-gray-500 mr-3 w-5 text-center"></i>
+                                                <input type="text" id="icon-search-input" placeholder="Cari ikon..." class="bg-transparent text-sm text-white outline-none w-full cursor-text" onkeyup="filterIcons()">
+                                                <i class="fa-solid fa-chevron-down text-gray-500 ml-2 text-xs"></i>
+                                            </div>
+                                            
+                                            <div id="icon-dropdown-list" class="hidden absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded shadow-2xl max-h-48 overflow-y-auto custom-scroll">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-2 pt-2">
+                                        <button onclick="simpanProyek()" id="btn-simpan-proyek" class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors"><i class="fa-solid fa-rocket mr-2"></i>TAMBAH KE LAUNCHPAD</button>
+                                        <button onclick="batalEdit()" id="btn-batal-edit" class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors"><i class="fa-solid fa-xmark mr-2"></i>BATAL</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
