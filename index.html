@@ -32,6 +32,7 @@
         .scroll-scale { transform: scale(0.95); }
         .scroll-anim.show { opacity: 1; transform: translate(0) scale(1); }
     </style>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body class="font-sans min-h-screen relative overflow-x-hidden">
 
@@ -90,12 +91,16 @@
                 <div class="h-px bg-gray-800 flex-1"></div> ATAU LANJUTKAN DENGAN <div class="h-px bg-gray-800 flex-1"></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="flex justify-center mb-4">
+                <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-theme="dark" data-callback="bukaKunciLogin"></div>
+            </div>
+
+            <div id="auth-buttons-container" class="grid grid-cols-2 gap-3 opacity-50 pointer-events-none transition-all duration-500 blur-[1px]">
                 <button onclick="loginGoogle(this)" class="col-span-2 flex justify-center items-center gap-2 bg-white text-gray-900 p-2.5 rounded font-bold hover:bg-gray-200 transition-colors text-sm">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="w-4 h-4"> Google
                 </button>
-                <button onclick="loginInstagram(this)" class="flex justify-center items-center gap-2 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white p-2.5 rounded font-bold hover:opacity-90 transition-opacity text-sm shadow-[0_0_10px_rgba(220,39,67,0.4)]">
-                    <i class="fa-brands fa-instagram text-white text-lg"></i> Instagram
+                <button disabled class="flex justify-center items-center gap-2 bg-gray-900 border border-gray-700 text-gray-500 p-2.5 rounded font-bold cursor-not-allowed text-sm opacity-50">
+                    <i class="fa-solid fa-screwdriver-wrench mr-2"></i> Coming Soon
                 </button>
                 <button onclick="loginGitHub(this)" class="flex justify-center items-center gap-2 bg-[#24292e] text-white p-2.5 rounded font-bold hover:bg-[#1b1f23] transition-colors text-sm shadow-[0_0_10px_rgba(36,41,46,0.5)]">
                     <i class="fa-brands fa-github text-white text-lg"></i> GitHub
@@ -103,8 +108,8 @@
                 <button onclick="loginFacebook(this)" class="flex justify-center items-center gap-2 bg-[#1877f2] text-white p-2.5 rounded font-bold hover:bg-[#166fe5] transition-colors text-sm shadow-[0_0_10px_rgba(24,119,242,0.4)]">
                     <i class="fa-brands fa-facebook text-white text-lg"></i> Facebook
                 </button>
-                <button disabled class="flex justify-center items-center gap-2 bg-gray-900 border border-gray-700 text-gray-500 p-2.5 rounded font-bold cursor-not-allowed text-sm opacity-50">
-                    <i class="fa-solid fa-screwdriver-wrench mr-2"></i> Coming Soon
+                <button onclick="loginInstagram(this)" class="flex justify-center items-center gap-2 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white p-2.5 rounded font-bold hover:opacity-90 transition-opacity text-sm shadow-[0_0_10px_rgba(220,39,67,0.4)]">
+                    <i class="fa-brands fa-instagram text-white text-lg"></i> Instagram
                 </button>
             </div>
         </div>
@@ -746,6 +751,31 @@
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i>';
             btn.classList.add('opacity-75', 'cursor-not-allowed');
             return originalHtml;
+        }
+        // ================= SISTEM KEAMANAN BOT (CLOUDFLARE TURNSTILE) =================
+        window.bukaKunciLogin = function(token) {
+            // Jika berhasil diverifikasi, hapus segel pengunci pada tombol-tombol
+            const btnContainer = document.getElementById('auth-buttons-container');
+            if(btnContainer) {
+                btnContainer.classList.remove('opacity-50', 'pointer-events-none', 'blur-[1px]');
+                window.zwsToast("Verifikasi keamanan berhasil. Silakan Login.", "success");
+            }
+        };
+
+        // Modifikasi fungsi bukaModalAuth untuk me-reset keamanan setiap kali modal ditutup/dibuka
+        window.tutupModalAuth = function() { 
+            document.getElementById('auth-modal').classList.add('hidden'); 
+            
+            // Kunci kembali tombol jika modal ditutup (agar harus diverifikasi ulang)
+            const btnContainer = document.getElementById('auth-buttons-container');
+            if(btnContainer) {
+                btnContainer.classList.add('opacity-50', 'pointer-events-none', 'blur-[1px]');
+            }
+            
+            // Reset widget Turnstile agar siap untuk sesi berikutnya
+            if (typeof turnstile !== 'undefined') {
+                turnstile.reset();
+            }
         }
     </script>
 
