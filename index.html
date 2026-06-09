@@ -106,7 +106,7 @@
                 </div>
                 <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4">Loading...</h1>
                 <p class="text-starCyan font-mono tracking-widest mb-10">Admin Staff & Web Developer</p>
-                <a id="btn-download-cv" href="#" download class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)]">
                     <i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV
                 </a>
             </section>
@@ -149,12 +149,12 @@
                             </div>
 
                             <div>
-                                <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK GOOGLE DRIVE / MEDIAFIRE CV</label>
+                                <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK CV (GOOGLE DRIVE / MEDIAFIRE)</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="admin-cv-link" placeholder="Paste link disini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
                                 </div>
-                                <p class="text-[10px] text-gray-500 mt-1 italic">Trik: Untuk Mediafire, klik kanan tombol download warna biru lalu pilih "Copy link address" agar bisa di-download otomatis.</p>
+                                <p class="text-[10px] text-gray-500 mt-1 italic">Fitur Auto-Detect Aktif. Paste link MediaFire atau Google Drive secara normal, sistem akan otomatis menjadikannya Direct Download.</p>
                             </div>
                             
                             <hr class="border-gray-800">
@@ -163,13 +163,13 @@
                                 <label class="text-xs text-starCyan font-bold mb-2 flex items-center gap-2" id="label-form-proyek"><i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU</label>
                                 <div class="space-y-3">
                                     <input type="text" id="p-title" placeholder="Nama Proyek (Contoh: Sistem Absense)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
-                                    <input type="text" id="p-link" placeholder="Tautan URL (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <input type="text" id="p-link" placeholder="Tautan URL / MediaFire / GDrive (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <textarea id="p-desc" placeholder="Deskripsi Singkat Proyek..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-starCyan outline-none"></textarea>
                                     
                                     <div class="flex flex-col md:flex-row gap-3">
                                         <div class="w-full md:w-1/2">
                                             <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-font"></i> Teks Tombol Aksi</label>
-                                            <input type="text" id="p-btn-text" placeholder="Cth: GITHUB / LIVE DEMO" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                            <input type="text" id="p-btn-text" placeholder="Cth: DOWNLOAD MOD / GITHUB" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                         </div>
                                         
                                         <div class="w-full md:w-1/2 relative" id="icon-dropdown-container">
@@ -210,7 +210,6 @@
         const ADMIN_EMAIL = "zhafranediting23@gmail.com";
         let modeForm = 'login'; 
         let editIndex = -1; 
-        
         let dbData = { profile: {}, cv: "#", projects: [] };
 
         const iconList = [
@@ -223,6 +222,7 @@
             { name: "Google Drive", class: "fa-brands fa-google-drive" },
             { name: "YouTube (Video)", class: "fa-brands fa-youtube" },
             { name: "Aplikasi Mobile (APK)", class: "fa-solid fa-mobile-screen" },
+            { name: "Minecraft (Mod)", class: "fa-solid fa-cubes" },
             { name: "Dokumen (PDF)", class: "fa-solid fa-file-pdf" },
             { name: "Buku (Baca)", class: "fa-solid fa-book" },
             { name: "Toko (Cart)", class: "fa-solid fa-cart-shopping" },
@@ -304,26 +304,60 @@
             setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
 
-        // ================= FUNGSI KONVERSI LINK DIRECT DOWNLOAD =================
-        function prosesLinkDownload(url) {
+        // ================= KEAJAIBAN: EKSTRAKTOR LINK DIRECT DOWNLOAD =================
+        function prosesLinkDrive(url) {
             if (!url || url === '#') return '#';
-            
-            // Cek jika link dari Google Drive
             const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
             if (driveMatch && driveMatch[1]) {
-                // Konversi paksa ke sistem Direct Download G-Drive
                 return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
             }
-            
-            // Jika Mediafire (atau link lainnya), gunakan link aslinya secara utuh.
-            // (Catatan: Untuk Mediafire, harus memasukkan link direct aslinya seperti instruksi di panel admin)
             return url;
+        }
+
+        // Web Scraper untuk menembus MediaFire
+        async function downloadMediaFire(event, url) {
+            event.preventDefault(); // Jangan pindah tab!
+            
+            const btn = event.currentTarget;
+            const originalHtml = btn.innerHTML;
+            
+            // Ubah tombol jadi status loading
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> MENGEKSTRAK FILE...';
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            btn.style.pointerEvents = 'none';
+
+            try {
+                // Menyelinap ke Mediafire lewat proxy (Bypass CORS)
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                
+                // Menganalisis HTML mentah MediaFire untuk mencari tombol aslinya
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, "text/html");
+                const downloadBtn = doc.querySelector('#downloadButton');
+
+                if (downloadBtn && downloadBtn.getAttribute('href')) {
+                    // Berhasil menemukan file! Perintahkan browser untuk langsung mengunduh
+                    window.location.href = downloadBtn.getAttribute('href');
+                } else {
+                    zwsAlert("Gagal mengekstrak link MediaFire. Kemungkinan file dikunci, butuh captcha, atau link kadaluarsa.");
+                }
+            } catch (error) {
+                zwsAlert("Koneksi ke server ekstraktor gagal. Coba lagi nanti.");
+            } finally {
+                // Kembalikan desain tombol setelah proses selesai
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    btn.style.pointerEvents = 'auto';
+                }, 2500);
+            }
         }
 
         // ================= FETCH DATA DARI API GAS =================
         window.onload = () => {
             initIconDropdown(); 
-            
             fetch(API_URL)
                 .then(res => res.json())
                 .then(data => {
@@ -345,15 +379,22 @@
             document.getElementById('admin-profile-name').value = dbData.profile.name || "";
             document.getElementById('admin-profile-bio').value = dbData.profile.bio || "";
 
-            // Pasang Link CV ke tombol menggunakan fungsi Konversi
+            // Atur Link CV (Google Drive vs Mediafire)
             const rawCvLink = dbData.cv || '#';
-            document.getElementById('btn-download-cv').href = prosesLinkDownload(rawCvLink);
+            const btnCv = document.getElementById('btn-download-cv');
+            
+            if (rawCvLink.includes('mediafire.com')) {
+                btnCv.href = "#"; // Tahan href
+                btnCv.onclick = (e) => downloadMediaFire(e, rawCvLink); // Panggil Scraper
+            } else {
+                btnCv.href = prosesLinkDrive(rawCvLink); // Langsung Convert Drive
+                btnCv.onclick = null;
+            }
             document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
 
             const user = JSON.parse(localStorage.getItem('zws_user'));
             renderProjects(user);
             if(user) tampilkanUser(user, false);
-            
             showPage('beranda');
         }
 
@@ -492,7 +533,6 @@
             } else {
                 document.getElementById('admin-panel').classList.add('hidden');
             }
-            
             if(isLoginBaru) showPage('profil');
         }
 
@@ -580,18 +620,27 @@
                 const btnText = p.btnText || 'LIVE DEMO';
                 const btnIcon = p.btnIcon || 'fa-solid fa-play';
 
-                // Hapus target="_blank" dan tambahkan atribut 'download' khusus jika ini adalah file yang bisa diunduh
-                // Karena kita tidak tahu pasti apakah link proyek ini web biasa atau APK/PDF,
-                // Kita akan menggunakan _blank secara default KECUALI teks tombolnya mengindikasikan unduhan
-                const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk') || btnText.toLowerCase().includes('pdf');
-                const targetAttr = isDownloadable ? '' : 'target="_blank"';
-                const downloadAttr = isDownloadable ? 'download' : '';
+                const isMediaFire = p.link && p.link.includes('mediafire.com');
+                const isDrive = p.link && p.link.includes('drive.google.com');
+                
+                let actionAttr = '';
+                if (isMediaFire) {
+                    // Kalau link mediafire, panggil Javascript Scraper, jangan buka tab baru
+                    actionAttr = `href="#" onclick="downloadMediaFire(event, '${p.link}')"`;
+                } else if (isDrive) {
+                    // Kalau link G-Drive, jadikan direct download tanpa buka tab baru
+                    actionAttr = `href="${prosesLinkDrive(p.link)}"`;
+                } else {
+                    // Cek jika teks tombol memiliki kata 'download' atau 'unduh', paksa donwload tanpa buka tab
+                    const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk');
+                    actionAttr = `href="${p.link}" ${isDownloadable ? 'download' : 'target="_blank"'}`;
+                }
 
                 return `
                 <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative">
                     <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
                     <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
-                    <a href="${p.link}" ${targetAttr} ${downloadAttr} class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2 uppercase tracking-wider">
+                    <a ${actionAttr} class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2 uppercase tracking-wider">
                         <i class="${btnIcon} mr-2"></i> ${btnText}
                     </a>
                     ${isAdmin ? `
