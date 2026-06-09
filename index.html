@@ -45,11 +45,15 @@
 </head>
 <body class="font-sans min-h-screen relative overflow-x-hidden">
 
+    <div id="toast-container" class="fixed top-6 right-6 z-[300] flex flex-col gap-3 pointer-events-none"></div>
+
     <div id="zws-dialog" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="glass p-8 rounded-2xl w-full max-w-sm border-t-4 border-t-starCyan text-center transform scale-95 transition-transform duration-300" id="zws-dialog-box">
-            <div class="text-5xl mb-4 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)] text-starCyan" id="zws-dialog-icon"><i class="fa-solid fa-bell"></i></div>
-            <h3 class="text-white font-bold text-lg mb-2 tracking-widest font-mono" id="zws-dialog-title">SYSTEM MESSAGE</h3>
-            <p class="text-gray-400 text-sm mb-8 leading-relaxed" id="zws-dialog-msg">Pesan akan tampil di sini.</p>
+        <div class="glass p-8 rounded-2xl w-full max-w-sm border-t-4 border-t-red-500 text-center transform scale-95 transition-transform duration-300 shadow-[0_0_40px_rgba(239,68,68,0.2)]" id="zws-dialog-box">
+            <div class="text-5xl mb-4 text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" id="zws-dialog-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-white font-bold text-lg mb-2 tracking-widest font-mono" id="zws-dialog-title">CRITICAL WARNING</h3>
+            <p class="text-gray-400 text-sm mb-8 leading-relaxed" id="zws-dialog-msg">Pesan konfirmasi akan tampil di sini.</p>
             <div class="flex justify-center gap-3" id="zws-dialog-buttons"></div>
         </div>
     </div>
@@ -102,19 +106,15 @@
                 <button onclick="loginGoogle()" class="col-span-2 flex justify-center items-center gap-2 bg-white text-gray-900 p-2.5 rounded font-bold hover:bg-gray-200 transition-colors text-sm">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="w-4 h-4"> Google
                 </button>
-                
                 <button onclick="loginApple()" class="flex justify-center items-center gap-2 bg-black border border-gray-700 text-white p-2.5 rounded font-bold hover:bg-gray-900 transition-colors text-sm">
                     <i class="fa-brands fa-apple text-white text-lg mb-0.5"></i> Apple
                 </button>
-                
                 <button onclick="loginGitHub()" class="flex justify-center items-center gap-2 bg-[#24292e] text-white p-2.5 rounded font-bold hover:bg-[#1b1f23] transition-colors text-sm shadow-[0_0_10px_rgba(36,41,46,0.5)]">
                     <i class="fa-brands fa-github text-white text-lg"></i> GitHub
                 </button>
-                
                 <button onclick="loginFacebook()" class="flex justify-center items-center gap-2 bg-[#1877f2] text-white p-2.5 rounded font-bold hover:bg-[#166fe5] transition-colors text-sm shadow-[0_0_10px_rgba(24,119,242,0.4)]">
                     <i class="fa-brands fa-facebook text-white text-lg"></i> Facebook
                 </button>
-                
                 <button onclick="loginInstagram()" class="flex justify-center items-center gap-2 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white p-2.5 rounded font-bold hover:opacity-90 transition-opacity text-sm shadow-[0_0_10px_rgba(220,39,67,0.4)]">
                     <i class="fa-brands fa-instagram text-white text-lg"></i> Instagram
                 </button>
@@ -207,7 +207,7 @@
                                             </div>
                                             
                                             <div id="icon-dropdown-list" class="hidden absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded shadow-2xl max-h-48 overflow-y-auto custom-scroll">
-                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -226,10 +226,7 @@
     </main>
 
     <script>
-        // =============================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
-        // =============================================================
-
         const ADMIN_EMAIL = "zhafranediting23@gmail.com";
         let modeForm = 'login'; 
         let editIndex = -1; 
@@ -303,39 +300,71 @@
             }
         });
 
-        function zwsAlert(msg) {
-            const dialog = document.getElementById('zws-dialog');
-            const box = document.getElementById('zws-dialog-box');
-            document.getElementById('zws-dialog-title').innerText = "SYSTEM NOTIFICATION";
-            document.getElementById('zws-dialog-title').className = "text-starCyan font-bold text-lg mb-2 tracking-widest font-mono";
-            document.getElementById('zws-dialog-icon').innerHTML = '<i class="fa-solid fa-bell"></i>';
-            document.getElementById('zws-dialog-icon').className = "text-5xl mb-4 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)] text-starCyan";
-            document.getElementById('zws-dialog-msg').innerText = msg;
-            document.getElementById('zws-dialog-buttons').innerHTML = `<button onclick="closeZwsDialog()" class="bg-starCyan text-black font-bold px-8 py-2 rounded hover:bg-white transition-colors w-full">OK MENGERTI</button>`;
-            dialog.classList.remove('hidden');
-            setTimeout(() => { dialog.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+        // ================= SISTEM TOAST (PENGGANTI ALERT) =================
+        window.zwsToast = function(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            // Pengaturan warna dan ikon berdasarkan tipe
+            let bgClass = 'bg-gray-800 border-gray-600 text-white';
+            let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
+            
+            if (type === 'success') {
+                bgClass = 'bg-emerald-900/95 border border-emerald-500 text-emerald-50';
+                icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+            } else if (type === 'error') {
+                bgClass = 'bg-red-900/95 border border-red-500 text-red-50';
+                icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>';
+            } else if (type === 'warning') {
+                bgClass = 'bg-yellow-900/95 border border-yellow-500 text-yellow-50';
+                icon = '<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>';
+            }
+
+            toast.className = `flex items-center gap-3 px-5 py-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto backdrop-blur-md ${bgClass}`;
+            toast.innerHTML = `<div class="text-xl">${icon}</div> <span class="text-sm font-medium tracking-wide leading-tight">${msg}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Animasi Masuk
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            }, 10);
+
+            // Auto hapus setelah 3.5 detik
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
 
+        // ================= SISTEM CUSTOM CONFIRMATION =================
         function zwsConfirm(msg, onConfirmCallback) {
             const dialog = document.getElementById('zws-dialog');
             const box = document.getElementById('zws-dialog-box');
-            document.getElementById('zws-dialog-title').innerText = "CRITICAL WARNING";
-            document.getElementById('zws-dialog-title').className = "text-red-500 font-bold text-lg mb-2 tracking-widest font-mono";
-            document.getElementById('zws-dialog-icon').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
-            document.getElementById('zws-dialog-icon').className = "text-5xl mb-4 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)] text-red-500";
             document.getElementById('zws-dialog-msg').innerText = msg;
-            window.tempConfirmCallback = () => { closeZwsDialog(); if(onConfirmCallback) onConfirmCallback(); };
+            
+            window.tempConfirmCallback = () => { 
+                closeZwsDialog(); 
+                if(onConfirmCallback) onConfirmCallback(); 
+            };
+            
+            // Desain tombol confirm yang elegan
             document.getElementById('zws-dialog-buttons').innerHTML = `
-                <button onclick="closeZwsDialog()" class="flex-1 bg-gray-800 border border-gray-600 text-white font-bold px-4 py-2 rounded hover:bg-gray-700 transition-colors">BATAL</button>
-                <button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2 rounded hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.5)]">YA, LANJUTKAN</button>`;
+                <button onclick="closeZwsDialog()" class="flex-1 bg-transparent border border-gray-600 text-gray-300 font-bold px-4 py-2.5 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">BATAL</button>
+                <button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">YA, LANJUTKAN</button>`;
+            
             dialog.classList.remove('hidden');
-            setTimeout(() => { dialog.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+            setTimeout(() => { 
+                dialog.classList.remove('opacity-0'); 
+                box.classList.remove('scale-95'); 
+            }, 10);
         }
 
         function closeZwsDialog() {
             const dialog = document.getElementById('zws-dialog');
             const box = document.getElementById('zws-dialog-box');
-            dialog.classList.add('opacity-0'); box.classList.add('scale-95');
+            dialog.classList.add('opacity-0'); 
+            box.classList.add('scale-95');
             setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
 
@@ -361,7 +390,7 @@
                 .catch(err => {
                     console.error("Gagal terhubung ke API:", err);
                     document.getElementById('loading-screen').classList.add('hidden');
-                    zwsAlert("Koneksi ke server satelit terputus. Pastikan kode Code.gs sudah benar.");
+                    zwsToast("Koneksi ke server satelit terputus. Pastikan link Google Apps Script sudah benar.", "error");
                 });
         };
 
@@ -397,12 +426,12 @@
             .then(res => {
                 document.getElementById('loading-screen').classList.add('opacity-0');
                 setTimeout(() => document.getElementById('loading-screen').classList.add('hidden'), 500);
-                zwsAlert(pesanSukses);
+                zwsToast(pesanSukses, "success");
                 showPage('beranda');
             })
             .catch(err => {
                 document.getElementById('loading-screen').classList.add('hidden');
-                zwsAlert("Gagal mengirim data. Periksa koneksi.");
+                zwsToast("Gagal mengirim data. Periksa koneksi internet Anda.", "error");
             });
         }
 
@@ -424,7 +453,7 @@
             const btnText = document.getElementById('p-btn-text').value;
             const btnIcon = document.getElementById('p-btn-icon-value').value; 
 
-            if(!title || !link) return zwsAlert("Nama Proyek dan Link Demo wajib diisi!");
+            if(!title || !link) return zwsToast("Nama Proyek dan Link Demo wajib diisi!", "warning");
 
             const projectData = { title, link, desc, btnText, btnIcon };
 
@@ -474,7 +503,6 @@
             }
         }
 
-        // Ini hanya untuk login manual dummy, yang asli di handle Firebase
         document.getElementById('auth-form').onsubmit = function(e) {
             e.preventDefault();
             const email = document.getElementById('input-email').value;
@@ -485,6 +513,7 @@
             tutupModalAuth();
             window.tampilkanUser(userData, true);
             renderProjects(userData);
+            zwsToast(`Selamat datang kembali, ${name}!`, "success");
         }
 
         window.tampilkanUser = function(user, isLoginBaru = false) {
@@ -504,7 +533,7 @@
         }
 
         function logout() {
-            zwsConfirm("Apakah Anda yakin ingin memutus koneksi dan Log Out?", function() {
+            zwsConfirm("Apakah Anda yakin ingin memutus koneksi dan Log Out dari station?", function() {
                 localStorage.removeItem('zws_user');
                 location.reload(); 
             });
@@ -567,7 +596,6 @@
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-        // Konfigurasi Firebase milikmu
         const firebaseConfig = {
             apiKey: "AIzaSyDXiY33kAumrMp4kMM_6J-LsWuGCtPM6hY",
             authDomain: "zws-auth.firebaseapp.com",
@@ -582,7 +610,6 @@
         const analytics = getAnalytics(app);
         const auth = getAuth(app);
 
-        // Fungsi Helper untuk memproses data setelah login sukses
         function handleLoginSuccess(result) {
             const user = result.user;
             const userData = { 
@@ -591,40 +618,39 @@
                 picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
             };
             
-            // Simpan ke local storage dan update UI (Memanggil fungsi dari script utama)
             localStorage.setItem('zws_user', JSON.stringify(userData));
             window.tutupModalAuth();
             window.tampilkanUser(userData, true);
+            window.zwsToast(`Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
         }
 
-        // Menyambungkan fungsi ke tombol HTML menggunakan `window.`
         window.loginGoogle = function() {
             const provider = new GoogleAuthProvider();
             signInWithPopup(auth, provider)
                 .then(handleLoginSuccess)
-                .catch((error) => alert("Gagal login dengan Google: " + error.message));
+                .catch((error) => window.zwsToast("Gagal login dengan Google: " + error.message, "error"));
         };
 
         window.loginGitHub = function() {
             const provider = new GithubAuthProvider();
             signInWithPopup(auth, provider)
                 .then(handleLoginSuccess)
-                .catch((error) => alert("Gagal login dengan GitHub: " + error.message));
+                .catch((error) => window.zwsToast("Gagal login dengan GitHub: " + error.message, "error"));
         };
 
         window.loginFacebook = function() {
             const provider = new FacebookAuthProvider();
             signInWithPopup(auth, provider)
                 .then(handleLoginSuccess)
-                .catch((error) => alert("Gagal login dengan Facebook: " + error.message));
+                .catch((error) => window.zwsToast("Gagal login dengan Facebook: " + error.message, "error"));
         };
 
         window.loginApple = function() {
-            alert("Akses Ditolak: Anda membutuhkan akun Apple Developer berbayar ($99/tahun) untuk mengaktifkan fitur ini.");
+            window.zwsToast("Akses Ditolak: Membutuhkan Apple Developer Account berbayar ($99/tahun).", "warning");
         };
 
         window.loginInstagram = function() {
-            alert("Login Instagram terintegrasi di dalam infrastruktur Meta. Silakan klik tombol 'Facebook' jika akun Instagram Anda sudah tertaut.");
+            window.zwsToast("Gunakan tombol 'Facebook' jika akun Instagram Anda sudah tertaut ke Meta.", "info");
         };
     </script>
 </body>
