@@ -305,7 +305,6 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             
-            // Pengaturan warna dan ikon berdasarkan tipe
             let bgClass = 'bg-gray-800 border-gray-600 text-white';
             let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
             
@@ -325,12 +324,10 @@
             
             container.appendChild(toast);
             
-            // Animasi Masuk
             setTimeout(() => {
                 toast.classList.remove('translate-x-full', 'opacity-0');
             }, 10);
 
-            // Auto hapus setelah 3.5 detik
             setTimeout(() => {
                 toast.classList.add('translate-x-full', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
@@ -348,7 +345,6 @@
                 if(onConfirmCallback) onConfirmCallback(); 
             };
             
-            // Desain tombol confirm yang elegan
             document.getElementById('zws-dialog-buttons').innerHTML = `
                 <button onclick="closeZwsDialog()" class="flex-1 bg-transparent border border-gray-600 text-gray-300 font-bold px-4 py-2.5 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">BATAL</button>
                 <button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">YA, LANJUTKAN</button>`;
@@ -610,6 +606,9 @@
         const analytics = getAnalytics(app);
         const auth = getAuth(app);
 
+        // Kunci anti popup-spam (mencegah error cancelled-popup-request)
+        let isAuthInProgress = false;
+
         function handleLoginSuccess(result) {
             const user = result.user;
             const userData = { 
@@ -624,25 +623,56 @@
             window.zwsToast(`Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
         }
 
+        function handleLoginError(error) {
+            // Abaikan error jika user sengaja menutup popup atau klik ganda
+            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                return;
+            }
+            window.zwsToast("Gagal login: " + error.message, "error");
+        }
+
         window.loginGoogle = function() {
+            if (isAuthInProgress) return;
+            isAuthInProgress = true;
+            
             const provider = new GoogleAuthProvider();
+            provider.addScope('profile');
+            provider.addScope('email');
+            
             signInWithPopup(auth, provider)
                 .then(handleLoginSuccess)
-                .catch((error) => window.zwsToast("Gagal login dengan Google: " + error.message, "error"));
+                .catch(handleLoginError)
+                .finally(() => { isAuthInProgress = false; });
         };
 
         window.loginGitHub = function() {
+            if (isAuthInProgress) return;
+            isAuthInProgress = true;
+            
             const provider = new GithubAuthProvider();
+            // Memaksa meminta akses baca data user dan email
+            provider.addScope('read:user');
+            provider.addScope('user:email');
+            
             signInWithPopup(auth, provider)
                 .then(handleLoginSuccess)
-                .catch((error) => window.zwsToast("Gagal login dengan GitHub: " + error.message, "error"));
+                .catch(handleLoginError)
+                .finally(() => { isAuthInProgress = false; });
         };
 
         window.loginFacebook = function() {
+            if (isAuthInProgress) return;
+            isAuthInProgress = true;
+            
             const provider = new FacebookAuthProvider();
+            // Memaksa meminta profil publik dan email
+            provider.addScope('public_profile');
+            provider.addScope('email');
+            
             signInWithPopup(auth, provider)
                 .then(handleLoginSuccess)
-                .catch((error) => window.zwsToast("Gagal login dengan Facebook: " + error.message, "error"));
+                .catch(handleLoginError)
+                .finally(() => { isAuthInProgress = false; });
         };
 
         window.loginApple = function() {
