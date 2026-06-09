@@ -94,8 +94,8 @@
                 <button onclick="loginGoogle(this)" class="col-span-2 flex justify-center items-center gap-2 bg-white text-gray-900 p-2.5 rounded font-bold hover:bg-gray-200 transition-colors text-sm">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="w-4 h-4"> Google
                 </button>
-                <button disabled class="flex justify-center items-center gap-2 bg-gray-900 border border-gray-700 text-gray-500 p-2.5 rounded font-bold cursor-not-allowed text-sm opacity-50">
-                    <i class="fa-solid fa-screwdriver-wrench mr-2"></i> Coming Soon
+                <button onclick="loginInstagram(this)" class="flex justify-center items-center gap-2 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white p-2.5 rounded font-bold hover:opacity-90 transition-opacity text-sm shadow-[0_0_10px_rgba(220,39,67,0.4)]">
+                    <i class="fa-brands fa-instagram text-white text-lg"></i> Instagram
                 </button>
                 <button onclick="loginGitHub(this)" class="flex justify-center items-center gap-2 bg-[#24292e] text-white p-2.5 rounded font-bold hover:bg-[#1b1f23] transition-colors text-sm shadow-[0_0_10px_rgba(36,41,46,0.5)]">
                     <i class="fa-brands fa-github text-white text-lg"></i> GitHub
@@ -820,8 +820,26 @@
             window.zwsToast("Akses Ditolak: Membutuhkan Apple Developer Account berbayar ($99/tahun).", "warning");
         };
 
-        window.loginInstagram = function() {
-            window.zwsToast("Gunakan tombol 'Facebook' jika akun Instagram Anda sudah tertaut ke Meta.", "info");
+        // ===== FUNGSI LOGIN INSTAGRAM (ROUTE VIA META) =====
+        window.loginInstagram = function(btn) {
+            if (isAuthInProgress) return;
+            isAuthInProgress = true;
+            
+            // 1. Berikan edukasi UX kepada user dengan Toast
+            window.zwsToast("Membuka gerbang Meta. Silakan gunakan akun Instagram yang tertaut di halaman berikutnya.", "info");
+            
+            // 2. Beri jeda 2 detik agar pesan terbaca, lalu eksekusi
+            setTimeout(() => {
+                lockUI("MENGALIHKAN KE SISTEM META/INSTAGRAM...");
+                setBtnLoading(btn);
+                
+                // Meminjam pintu FacebookAuthProvider karena Instagram berada di bawah Meta
+                const provider = new FacebookAuthProvider();
+                provider.addScope('public_profile');
+                provider.addScope('email');
+                
+                signInWithRedirect(auth, provider);
+            }, 2000);
         };
     </script>
 </body>
