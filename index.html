@@ -395,7 +395,6 @@
       let modeForm = "login";
       let editIndex = -1;
 
-      // Data Default bawaan CV
       const defaultProfile = {
         name: "M. Zhafran .MA",
         bio: "Profesional administrasi yang teliti dan terorganisir dengan pengalaman dalam pengelolaan dokumen, pengarsipan, serta koordinasi operasional. Berpengalaman sebagai Software Developer yang mengkombinasikan ketelitian administratif dengan pemecahan masalah teknis (React, Tailwind, Google Apps Script, Baileys API).",
@@ -455,10 +454,8 @@
 
       // ================= INISIALISASI UTAMA =================
       window.onload = () => {
-        // 1. Muat Data Profil (Nama & Bio)
         loadProfileData();
 
-        // 2. Muat Link CV (Direct Download)
         const cvLink = localStorage.getItem("zws_cv") || "#";
         let directLink = cvLink;
         const driveMatch = cvLink.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -468,10 +465,15 @@
         document.getElementById("admin-cv-link").value =
           cvLink === "#" ? "" : cvLink;
 
-        // 3. Muat Proyek
         const user = JSON.parse(localStorage.getItem("zws_user"));
         renderProjects(user);
-        if (user) tampilkanUser(user);
+
+        if (user) {
+          // Jangan paksa ke profil saat refresh
+          tampilkanUser(user, false);
+        }
+        // Pastikan Beranda selalu terbuka pertama kali
+        showPage("beranda");
       };
 
       // ================= FUNGSI CMS PROFIL UTAMA =================
@@ -479,11 +481,9 @@
         const savedProfile =
           JSON.parse(localStorage.getItem("zws_profile")) || defaultProfile;
 
-        // Pasang ke Element HTML
         document.getElementById("hero-name").innerText = savedProfile.name;
         document.getElementById("profil-bio").innerText = savedProfile.bio;
 
-        // Masukkan ke Input Form Admin Panel
         document.getElementById("admin-profile-name").value = savedProfile.name;
         document.getElementById("admin-profile-bio").value = savedProfile.bio;
       }
@@ -496,7 +496,7 @@
           return zwsAlert("Nama dan data Bio tidak boleh kosong!");
 
         localStorage.setItem("zws_profile", JSON.stringify({ name, bio }));
-        loadProfileData(); // Sinkronisasi UI
+        loadProfileData();
 
         zwsAlert("Log Identitas berhasil diperbarui di seluruh pusat komando!");
         showPage("beranda");
@@ -558,7 +558,7 @@
         localStorage.setItem("zws_user", JSON.stringify(userData));
 
         tutupModalAuth();
-        tampilkanUser(userData);
+        tampilkanUser(userData, true); // true = pindah ke profil
         renderProjects(userData);
       };
 
@@ -582,7 +582,7 @@
                   };
                   localStorage.setItem("zws_user", JSON.stringify(userData));
                   tutupModalAuth();
-                  tampilkanUser(userData);
+                  tampilkanUser(userData, true); // true = pindah ke profil
                   renderProjects(userData);
                 });
             },
@@ -591,7 +591,7 @@
         tokenClient.requestAccessToken();
       }
 
-      function tampilkanUser(user) {
+      function tampilkanUser(user, isLoginBaru = false) {
         document.getElementById("nav-logged-out").classList.add("hidden");
         document.getElementById("nav-logged-in").classList.remove("hidden");
         document.getElementById("nav-foto").src = user.picture;
@@ -605,7 +605,11 @@
         } else {
           document.getElementById("admin-panel").classList.add("hidden");
         }
-        showPage("profil");
+
+        // Pindah halaman HANYA JIKA ini proses login baru (bukan refresh)
+        if (isLoginBaru) {
+          showPage("profil");
+        }
       }
 
       function logout() {
@@ -717,6 +721,7 @@
             );
             projects.splice(index, 1);
             localStorage.setItem("zws_projects", JSON.stringify(projects));
+
             const user = JSON.parse(localStorage.getItem("zws_user"));
             renderProjects(user);
           },
