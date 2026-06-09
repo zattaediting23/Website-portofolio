@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="id" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZWS | Galactic Station</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              spaceBlack: "#020204",
+              nebulaPurple: "#4c1d95",
+              starCyan: "#22d3ee",
+              voidGray: "#1f2937",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              mono: ["Space Mono", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background-color: #020204;
+        color: #e2e8f0;
+        background-image:
+          radial-gradient(white, rgba(255, 255, 255, 0.2) 2px, transparent 3px),
+          radial-gradient(white, rgba(255, 255, 255, 0.15) 1px, transparent 2px);
+        background-size:
+          550px 550px,
+          350px 350px;
+        background-position:
+          0 0,
+          40px 60px;
+      }
+      .glass {
+        background: rgba(17, 24, 39, 0.8);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .page {
+        display: none;
+      }
+      .page-active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body class="font-sans min-h-screen relative">
+    <div
+      id="zws-dialog"
+      class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-300"
+    >
+      <div
+        class="glass p-8 rounded-2xl w-full max-w-sm border-t-4 border-t-starCyan text-center transform scale-95 transition-transform duration-300"
+        id="zws-dialog-box"
+      >
+        <div
+          class="text-5xl mb-4 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+          id="zws-dialog-icon"
+        >
+          🔔
+        </div>
+        <h3
+          class="text-white font-bold text-lg mb-2 tracking-widest font-mono"
+          id="zws-dialog-title"
+        >
+          SYSTEM MESSAGE
+        </h3>
+        <p
+          class="text-gray-400 text-sm mb-8 leading-relaxed"
+          id="zws-dialog-msg"
+        >
+          Pesan akan tampil di sini.
+        </p>
+        <div class="flex justify-center gap-3" id="zws-dialog-buttons"></div>
+      </div>
+    </div>
+
+    <nav
+      class="fixed w-full z-50 glass px-6 py-4 flex justify-between items-center"
+    >
+      <a
+        href="#"
+        onclick="showPage('beranda')"
+        class="text-2xl font-black text-white tracking-widest flex items-center gap-2 hover:text-starCyan transition-colors"
+      >
+        <i class="fa-solid fa-satellite-dish text-starCyan"></i> ZWS.
+      </a>
+
+      <div id="nav-logged-out" class="flex gap-3">
+        <button
+          onclick="bukaModalAuth('login')"
+          class="text-xs font-bold text-gray-300 hover:text-white px-3 py-2"
+        >
+          LOG IN
+        </button>
+        <button
+          onclick="bukaModalAuth('signup')"
+          class="text-xs font-bold bg-starCyan/20 text-starCyan border border-starCyan px-4 py-2 rounded hover:bg-starCyan hover:text-black transition-colors"
+        >
+          SIGN UP
+        </button>
+      </div>
+
+      <div id="nav-logged-in" class="hidden flex items-center gap-4">
+        <button
+          onclick="showPage('profil')"
+          class="text-xs font-bold text-white hover:text-starCyan flex items-center gap-2"
+        >
+          <img
+            id="nav-foto"
+            src=""
+            class="w-8 h-8 rounded-full border border-starCyan object-cover"
+          />
+          <span class="hidden md:block">PROFIL</span>
+        </button>
+        <button
+          onclick="logout()"
+          class="text-xs font-bold text-red-500 border border-red-500 px-4 py-2 rounded hover:bg-red-500 hover:text-white transition-colors"
+        >
+          LOG OUT
+        </button>
+      </div>
+    </nav>
+
+    <div
+      id="auth-modal"
+      class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4"
+    >
+      <div class="glass p-8 rounded-2xl w-full max-w-sm relative">
+        <button
+          onclick="tutupModalAuth()"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white"
+        >
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+
+        <div class="flex border-b border-gray-700 mb-6">
+          <button
+            id="tab-login"
+            onclick="switchTabAuth('login')"
+            class="flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan"
+          >
+            LOG IN
+          </button>
+          <button
+            id="tab-signup"
+            onclick="switchTabAuth('signup')"
+            class="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300"
+          >
+            SIGN UP
+          </button>
+        </div>
+
+        <form id="auth-form" class="space-y-4">
+          <input
+            type="text"
+            id="input-name"
+            placeholder="Nama Lengkap"
+            class="hidden w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none"
+          />
+          <input
+            type="email"
+            id="input-email"
+            required
+            placeholder="Email"
+            class="w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none"
+          />
+          <input
+            type="password"
+            id="input-password"
+            required
+            placeholder="Password"
+            class="w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none"
+          />
+          <button
+            type="submit"
+            id="btn-submit"
+            class="w-full bg-nebulaPurple hover:bg-purple-700 p-3 rounded font-bold text-white text-sm transition-colors"
+          >
+            MASUK
+          </button>
+        </form>
+
+        <div
+          class="my-6 flex items-center gap-4 text-gray-600 text-xs font-bold"
+        >
+          <div class="h-px bg-gray-700 flex-1"></div>
+          ATAU
+          <div class="h-px bg-gray-700 flex-1"></div>
+        </div>
+
+        <button
+          onclick="mulaiLoginGoogle()"
+          class="w-full flex justify-center items-center gap-2 bg-white text-black p-3 rounded font-bold hover:bg-gray-200 transition-colors text-sm"
+        >
+          <i class="fa-brands fa-google text-blue-600"></i> Sign in with Google
+        </button>
+      </div>
+    </div>
+
+    <main class="pt-32 pb-20 px-6 max-w-5xl mx-auto">
+      <div id="page-beranda" class="page page-active space-y-20">
+        <section class="text-center">
+          <div class="inline-block relative mb-8">
+            <i
+              class="fa-solid fa-user-astronaut text-7xl text-starCyan opacity-90 animate-bounce"
+            ></i>
+          </div>
+          <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-4">
+            M. Zhafran .MA
+          </h1>
+          <p class="text-starCyan font-mono tracking-widest mb-10">
+            Admin Staff & Web Developer
+          </p>
+          <a
+            id="btn-download-cv"
+            href="#"
+            target="_blank"
+            class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)]"
+          >
+            <i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV
+          </a>
+        </section>
+
+        <section class="border-t border-gray-800 pt-10">
+          <h2 class="text-2xl font-bold text-white mb-8">
+            <i class="fa-solid fa-rocket text-starCyan mr-2"></i> Launchpad
+            Projects
+          </h2>
+          <div
+            id="project-grid"
+            class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          ></div>
+        </section>
+      </div>
+
+      <div id="page-profil" class="page space-y-10">
+        <h2 class="text-3xl font-extrabold text-white">
+          <i class="fa-solid fa-id-card-clip text-nebulaPurple mr-2"></i> Flight
+          Log
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <div
+            class="glass p-8 rounded-2xl md:col-span-1 text-center border-t-4 border-t-starCyan"
+          >
+            <img
+              id="profil-img"
+              src=""
+              class="w-24 h-24 rounded-full border-4 border-gray-800 mx-auto mb-4 object-cover"
+            />
+            <h3 id="profil-name" class="text-xl font-bold text-white">Guest</h3>
+            <p
+              id="profil-email"
+              class="text-gray-400 text-xs font-mono break-all"
+            ></p>
+          </div>
+
+          <div class="md:col-span-2 space-y-8">
+            <div class="glass p-8 rounded-2xl">
+              <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-file-invoice text-starCyan"></i>
+                Transmission Bio
+              </h3>
+              <p class="text-gray-400 text-sm leading-relaxed">
+                Profesional administrasi yang teliti dan terorganisir dengan
+                pengalaman dalam pengelolaan dokumen, pengarsipan, serta
+                koordinasi operasional. Berpengalaman sebagai Software Developer
+                yang mengkombinasikan ketelitian administratif dengan pemecahan
+                masalah teknis.
+              </p>
+            </div>
+
+            <div
+              id="admin-panel"
+              class="hidden glass p-8 rounded-2xl border-2 border-dashed border-blue-500 relative transition-all duration-500"
+            >
+              <span
+                class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase"
+                id="admin-panel-badge"
+                >Admin Command Center</span
+              >
+
+              <div class="space-y-6">
+                <div>
+                  <label class="text-xs text-gray-400 font-bold mb-1 block"
+                    >LINK GOOGLE DRIVE CV (PDF)</label
+                  >
+                  <div class="flex gap-2">
+                    <input
+                      type="text"
+                      id="admin-cv-link"
+                      placeholder="Paste link disini..."
+                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none"
+                    />
+                    <button
+                      onclick="simpanCV()"
+                      class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"
+                    >
+                      SIMPAN
+                    </button>
+                  </div>
+                </div>
+
+                <hr class="border-gray-800" />
+
+                <div>
+                  <label
+                    class="text-xs text-starCyan font-bold mb-2 block"
+                    id="label-form-proyek"
+                    >TAMBAH PROYEK BARU</label
+                  >
+                  <div class="space-y-3">
+                    <input
+                      type="text"
+                      id="p-title"
+                      placeholder="Nama Proyek (Contoh: Sistem Absense)"
+                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none"
+                    />
+                    <input
+                      type="text"
+                      id="p-link"
+                      placeholder="Link Demo URL (Contoh: https://...)"
+                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none"
+                    />
+                    <textarea
+                      id="p-desc"
+                      placeholder="Deskripsi Singkat Proyek..."
+                      class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-starCyan outline-none"
+                    ></textarea>
+
+                    <div class="flex gap-2">
+                      <button
+                        onclick="simpanDataProyek()"
+                        id="btn-simpan-proyek"
+                        class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors"
+                      >
+                        TAMBAH KE LAUNCHPAD
+                      </button>
+                      <button
+                        onclick="batalEdit()"
+                        id="btn-batal-edit"
+                        class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors"
+                      >
+                        BATAL
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+      const ADMIN_EMAIL = "zhafranediting23@gmail.com";
+      let modeForm = "login";
+      let editIndex = -1;
+
+      // ================= SISTEM CUSTOM ALERT & CONFIRM =================
+      function zwsAlert(msg) {
+        const dialog = document.getElementById("zws-dialog");
+        const box = document.getElementById("zws-dialog-box");
+
+        document.getElementById("zws-dialog-title").innerText =
+          "SYSTEM NOTIFICATION";
+        document.getElementById("zws-dialog-title").className =
+          "text-starCyan font-bold text-lg mb-2 tracking-widest font-mono";
+        document.getElementById("zws-dialog-icon").innerText = "🔔";
+        document.getElementById("zws-dialog-msg").innerText = msg;
+
+        document.getElementById("zws-dialog-buttons").innerHTML = `
+                <button onclick="closeZwsDialog()" class="bg-starCyan text-black font-bold px-8 py-2 rounded hover:bg-white transition-colors w-full">OK MENGERTI</button>
+            `;
+
+        dialog.classList.remove("hidden");
+        setTimeout(() => {
+          dialog.classList.remove("opacity-0");
+          box.classList.remove("scale-95");
+        }, 10);
+      }
+
+      function zwsConfirm(msg, onConfirmCallback) {
+        const dialog = document.getElementById("zws-dialog");
+        const box = document.getElementById("zws-dialog-box");
+
+        document.getElementById("zws-dialog-title").innerText =
+          "CRITICAL WARNING";
+        document.getElementById("zws-dialog-title").className =
+          "text-red-500 font-bold text-lg mb-2 tracking-widest font-mono";
+        document.getElementById("zws-dialog-icon").innerText = "⚠️";
+        document.getElementById("zws-dialog-msg").innerText = msg;
+
+        window.tempConfirmCallback = () => {
+          closeZwsDialog();
+          if (onConfirmCallback) onConfirmCallback();
+        };
+
+        document.getElementById("zws-dialog-buttons").innerHTML = `
+                <button onclick="closeZwsDialog()" class="flex-1 bg-gray-800 border border-gray-600 text-white font-bold px-4 py-2 rounded hover:bg-gray-700 transition-colors">BATAL</button>
+                <button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2 rounded hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.5)]">YA, LANJUTKAN</button>
+            `;
+
+        dialog.classList.remove("hidden");
+        setTimeout(() => {
+          dialog.classList.remove("opacity-0");
+          box.classList.remove("scale-95");
+        }, 10);
+      }
+
+      function closeZwsDialog() {
+        const dialog = document.getElementById("zws-dialog");
+        const box = document.getElementById("zws-dialog-box");
+        dialog.classList.add("opacity-0");
+        box.classList.add("scale-95");
+        setTimeout(() => {
+          dialog.classList.add("hidden");
+        }, 300);
+      }
+
+      // ================= INISIALISASI =================
+      window.onload = () => {
+        const cvLink = localStorage.getItem("zws_cv") || "#";
+        let directLink = cvLink;
+        const driveMatch = cvLink.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (driveMatch && driveMatch[1])
+          directLink = `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+
+        document.getElementById("btn-download-cv").href = directLink;
+        document.getElementById("admin-cv-link").value =
+          cvLink === "#" ? "" : cvLink;
+
+        const user = JSON.parse(localStorage.getItem("zws_user"));
+        renderProjects(user);
+        if (user) tampilkanUser(user);
+      };
+
+      function showPage(id) {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("page-active"));
+        document.getElementById("page-" + id).classList.add("page-active");
+        window.scrollTo(0, 0);
+      }
+
+      // ================= AUTHENTICATION =================
+      function bukaModalAuth(type) {
+        document.getElementById("auth-modal").classList.remove("hidden");
+        switchTabAuth(type);
+      }
+      function tutupModalAuth() {
+        document.getElementById("auth-modal").classList.add("hidden");
+      }
+
+      function switchTabAuth(type) {
+        modeForm = type;
+        const tLogin = document.getElementById("tab-login");
+        const tSignup = document.getElementById("tab-signup");
+        const iName = document.getElementById("input-name");
+        const btn = document.getElementById("btn-submit");
+
+        if (type === "login") {
+          tLogin.className =
+            "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
+          tSignup.className =
+            "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+          iName.classList.add("hidden");
+          iName.removeAttribute("required");
+          btn.innerText = "MASUK";
+        } else {
+          tSignup.className =
+            "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
+          tLogin.className =
+            "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+          iName.classList.remove("hidden");
+          iName.setAttribute("required", "true");
+          btn.innerText = "BUAT AKUN";
+        }
+      }
+
+      document.getElementById("auth-form").onsubmit = function (e) {
+        e.preventDefault();
+        const email = document.getElementById("input-email").value;
+        const name =
+          document.getElementById("input-name").value || "Crew Member";
+        const userData = {
+          name: name,
+          email: email,
+          picture: `https://ui-avatars.com/api/?name=${name}&background=1f2937&color=22d3ee`,
+        };
+        localStorage.setItem("zws_user", JSON.stringify(userData));
+
+        tutupModalAuth();
+        tampilkanUser(userData);
+        renderProjects(userData);
+      };
+
+      let tokenClient;
+      function mulaiLoginGoogle() {
+        if (!tokenClient) {
+          tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id:
+              "43329305891-s1hl56d4tk9mca5pvubru17o86fljrt4.apps.googleusercontent.com",
+            scope: "email profile",
+            callback: (res) => {
+              fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                headers: { Authorization: `Bearer ${res.access_token}` },
+              })
+                .then((r) => r.json())
+                .then((user) => {
+                  const userData = {
+                    name: user.name,
+                    email: user.email,
+                    picture: user.picture,
+                  };
+                  localStorage.setItem("zws_user", JSON.stringify(userData));
+                  tutupModalAuth();
+                  tampilkanUser(userData);
+                  renderProjects(userData);
+                });
+            },
+          });
+        }
+        tokenClient.requestAccessToken();
+      }
+
+      function tampilkanUser(user) {
+        document.getElementById("nav-logged-out").classList.add("hidden");
+        document.getElementById("nav-logged-in").classList.remove("hidden");
+        document.getElementById("nav-foto").src = user.picture;
+
+        document.getElementById("profil-img").src = user.picture;
+        document.getElementById("profil-name").innerText = user.name;
+        document.getElementById("profil-email").innerText = user.email;
+
+        if (user.email === ADMIN_EMAIL) {
+          document.getElementById("admin-panel").classList.remove("hidden");
+        } else {
+          document.getElementById("admin-panel").classList.add("hidden");
+        }
+        showPage("profil");
+      }
+
+      function logout() {
+        zwsConfirm(
+          "Apakah Anda yakin ingin memutus koneksi dan Log Out?",
+          function () {
+            localStorage.removeItem("zws_user");
+            location.reload();
+          },
+        );
+      }
+
+      // ================= CRUD ADMIN =================
+      function simpanCV() {
+        const url = document.getElementById("admin-cv-link").value;
+        localStorage.setItem("zws_cv", url);
+        let directLink = url;
+        const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (driveMatch && driveMatch[1])
+          directLink = `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+        document.getElementById("btn-download-cv").href = directLink || "#";
+        zwsAlert(
+          "Tautan CV berhasil diperbarui dengan sistem Direct Download.",
+        );
+      }
+
+      function simpanDataProyek() {
+        const title = document.getElementById("p-title").value;
+        const link = document.getElementById("p-link").value;
+        const desc = document.getElementById("p-desc").value;
+
+        if (!title || !link)
+          return zwsAlert("Nama Proyek dan Link Demo tidak boleh kosong!");
+
+        let projects = JSON.parse(localStorage.getItem("zws_projects") || "[]");
+
+        if (editIndex > -1) {
+          projects[editIndex] = { title, link, desc };
+          zwsAlert("Log proyek berhasil diperbarui!");
+        } else {
+          projects.push({ title, link, desc });
+          zwsAlert("Proyek baru berhasil meluncur ke Launchpad!");
+        }
+
+        localStorage.setItem("zws_projects", JSON.stringify(projects));
+        batalEdit();
+        const user = JSON.parse(localStorage.getItem("zws_user"));
+        renderProjects(user);
+        showPage("beranda");
+      }
+
+      function editProyek(index) {
+        let projects = JSON.parse(localStorage.getItem("zws_projects") || "[]");
+        const p = projects[index];
+
+        document.getElementById("p-title").value = p.title;
+        document.getElementById("p-link").value = p.link;
+        document.getElementById("p-desc").value = p.desc;
+
+        editIndex = index;
+        document.getElementById("label-form-proyek").innerText =
+          "UPDATE PROYEK";
+        document.getElementById("label-form-proyek").className =
+          "text-xs text-yellow-500 font-bold mb-2 block";
+        document.getElementById("btn-simpan-proyek").innerText =
+          "SIMPAN PERUBAHAN";
+        document.getElementById("btn-simpan-proyek").className =
+          "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors";
+        document.getElementById("btn-batal-edit").classList.remove("hidden");
+
+        showPage("profil");
+
+        setTimeout(() => {
+          const panel = document.getElementById("admin-panel");
+          panel.scrollIntoView({ behavior: "smooth", block: "center" });
+          panel.classList.replace("border-blue-500", "border-yellow-500");
+          panel.classList.add("shadow-[0_0_30px_rgba(234,179,8,0.5)]");
+
+          setTimeout(() => {
+            panel.classList.replace("border-yellow-500", "border-blue-500");
+            panel.classList.remove("shadow-[0_0_30px_rgba(234,179,8,0.5)]");
+          }, 1200);
+        }, 100);
+      }
+
+      function batalEdit() {
+        editIndex = -1;
+        document.getElementById("p-title").value = "";
+        document.getElementById("p-link").value = "";
+        document.getElementById("p-desc").value = "";
+
+        document.getElementById("label-form-proyek").innerText =
+          "TAMBAH PROYEK BARU";
+        document.getElementById("label-form-proyek").className =
+          "text-xs text-starCyan font-bold mb-2 block";
+        document.getElementById("btn-simpan-proyek").innerText =
+          "TAMBAH KE LAUNCHPAD";
+        document.getElementById("btn-simpan-proyek").className =
+          "flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors";
+        document.getElementById("btn-batal-edit").classList.add("hidden");
+      }
+
+      function hapusProyek(index) {
+        zwsConfirm(
+          "Menghapus log proyek tidak dapat dibatalkan. Konfirmasi penghancuran data?",
+          function () {
+            let projects = JSON.parse(
+              localStorage.getItem("zws_projects") || "[]",
+            );
+            projects.splice(index, 1);
+            localStorage.setItem("zws_projects", JSON.stringify(projects));
+
+            const user = JSON.parse(localStorage.getItem("zws_user"));
+            renderProjects(user);
+          },
+        );
+      }
+
+      function renderProjects(user) {
+        const grid = document.getElementById("project-grid");
+        let projects = JSON.parse(localStorage.getItem("zws_projects"));
+
+        // PERBAIKAN BUG: Pastikan data default langsung tersimpan ke memori
+        if (!projects || projects.length === 0) {
+          projects = [
+            {
+              title: "Klinik Registration Web",
+              desc: "Sistem pendaftaran antrean dan rekam medis pasien klinik berbasis Fullstack.",
+              link: "#",
+            },
+          ];
+          localStorage.setItem("zws_projects", JSON.stringify(projects));
+        }
+
+        const isAdmin = user && user.email === ADMIN_EMAIL;
+
+        grid.innerHTML = projects
+          .map(
+            (p, index) => `
+                <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative">
+                    <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
+                    <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
+                    
+                    <a href="${p.link}" target="_blank" class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors mb-2">
+                        <i class="fa-solid fa-play mr-1"></i> LIVE DEMO
+                    </a>
+
+                    ${
+                      isAdmin
+                        ? `
+                    <div class="flex gap-2 border-t border-gray-700 pt-3 mt-2">
+                        <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-1.5 rounded hover:bg-yellow-500 hover:text-black transition-colors">EDIT</button>
+                        <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-1.5 rounded hover:bg-red-500 hover:text-white transition-colors">HAPUS</button>
+                    </div>
+                    `
+                        : ""
+                    }
+                </div>
+            `,
+          )
+          .join("");
+      }
+    </script>
+  </body>
+</html>
