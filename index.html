@@ -602,6 +602,21 @@
 
         let isAuthInProgress = false;
 
+        // KUNCI LAYAR PENUH (Mencegah Klik Apapun di Background)
+        function lockUI(pesan) {
+            const loader = document.getElementById('loading-screen');
+            document.getElementById('loading-text').innerText = pesan;
+            loader.classList.remove('hidden');
+            setTimeout(() => loader.classList.remove('opacity-0'), 10);
+        }
+
+        // BUKA KUNCI LAYAR
+        function unlockUI() {
+            const loader = document.getElementById('loading-screen');
+            loader.classList.add('opacity-0');
+            setTimeout(() => loader.classList.add('hidden'), 500);
+        }
+
         function handleLoginSuccess(result) {
             const user = result.user;
             const userData = { 
@@ -617,13 +632,15 @@
         }
 
         function handleLoginError(error) {
+            // DETEKSI KHUSUS JIKA TAB/POPUP DITUTUP MANUAL
             if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                window.zwsToast("Otentikasi dibatalkan oleh pengguna.", "warning");
                 return;
             }
             window.zwsToast("Gagal login: " + error.message, "error");
         }
 
-        // ================= LOADING STATE HELPER =================
+        // ================= HELPER LOADING TOMBOL =================
         function setBtnLoading(btn) {
             if(!btn) return null;
             const originalHtml = btn.innerHTML;
@@ -638,12 +655,13 @@
             btn.classList.remove('opacity-75', 'cursor-not-allowed');
         }
 
-        // ================= FUNGSI LOGIN DENGAN TOMBOL (THIS) =================
+        // ================= FUNGSI OAUTH DENGAN LOCK & RESET =================
         window.loginGoogle = function(btn) {
             if (isAuthInProgress) return;
             isAuthInProgress = true;
             
             const originalHtml = setBtnLoading(btn);
+            lockUI("MENUNGGU OTENTIKASI GOOGLE..."); // Kunci Layar
             
             const provider = new GoogleAuthProvider();
             provider.addScope('profile');
@@ -655,6 +673,7 @@
                 .finally(() => { 
                     isAuthInProgress = false; 
                     resetBtnLoading(btn, originalHtml);
+                    unlockUI(); // Buka Layar Apapun yang Terjadi
                 });
         };
 
@@ -663,6 +682,7 @@
             isAuthInProgress = true;
             
             const originalHtml = setBtnLoading(btn);
+            lockUI("MENUNGGU OTENTIKASI GITHUB...");
 
             const provider = new GithubAuthProvider();
             provider.addScope('read:user');
@@ -674,6 +694,7 @@
                 .finally(() => { 
                     isAuthInProgress = false; 
                     resetBtnLoading(btn, originalHtml);
+                    unlockUI(); 
                 });
         };
 
@@ -682,6 +703,7 @@
             isAuthInProgress = true;
             
             const originalHtml = setBtnLoading(btn);
+            lockUI("MENUNGGU OTENTIKASI FACEBOOK/META...");
 
             const provider = new FacebookAuthProvider();
             provider.addScope('public_profile');
@@ -693,6 +715,7 @@
                 .finally(() => { 
                     isAuthInProgress = false; 
                     resetBtnLoading(btn, originalHtml);
+                    unlockUI(); 
                 });
         };
 
