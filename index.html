@@ -97,10 +97,10 @@
             <div class="flex justify-center gap-3" id="zws-dialog-buttons"></div>
         </div>
     </div>
-    <div id="loading-screen" class="hidden fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex flex-col justify-center items-center transition-opacity duration-500">
+    <div id="loading-screen" class="fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex flex-col justify-center items-center transition-opacity duration-500">
         <div class="loader mb-4 w-12 h-12"></div>
         <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse" id="loading-text">
-            SYNCING...
+            MENYINKRONKAN DATA DARI GOOGLE CLOUD...
         </p>
     </div>
 
@@ -567,36 +567,34 @@
       window.onload = () => {
         initIconDropdown();
 
-        // DEBUG: Cek URL API
-        console.log("Mencoba terhubung ke:", API_URL);
+        // 1. Tampilkan loader secara paksa saat load pertama
+        const loader = document.getElementById("loading-screen");
+        loader.classList.remove("hidden");
+        loader.classList.remove("opacity-0");
+
+        // 2. Tandai waktu mulai
+        const startTime = Date.now();
 
         fetch(API_URL)
-          .then((res) => {
-            if (!res.ok)
-              throw new Error(
-                "Server tidak merespons (Status: " + res.status + ")",
-              );
-            return res.json();
-          })
+          .then((res) => res.json())
           .then((data) => {
-            console.log("Data berhasil diterima dari Cloud:", data);
             dbData = data;
             renderSeluruhUI();
-            document
-              .getElementById("loading-screen")
-              .classList.add("opacity-0");
-            setTimeout(
-              () =>
-                document
-                  .getElementById("loading-screen")
-                  .classList.add("hidden"),
-              500,
-            );
+
+            // 3. Hitung sisa waktu supaya loader tampil minimal 1 detik (1000ms)
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, 1000 - elapsed);
+
+            // 4. Sembunyikan loader setelah durasi minimum terpenuhi
+            setTimeout(() => {
+              loader.classList.add("opacity-0");
+              setTimeout(() => loader.classList.add("hidden"), 500);
+            }, remaining);
           })
           .catch((err) => {
-            console.error("DEBUG ERROR:", err);
-            document.getElementById("loading-screen").classList.add("hidden");
-            zwsToast("Koneksi gagal: " + err.message, "error");
+            console.error("Gagal sinkronisasi:", err);
+            loader.classList.add("hidden"); // Sembunyikan jika error
+            zwsToast("Koneksi ke Google Cloud gagal.", "error");
           });
       };
 
