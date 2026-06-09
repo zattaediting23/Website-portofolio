@@ -6,6 +6,10 @@
     <title>ZWS | Galactic Station</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -32,8 +36,6 @@
         .scroll-scale { transform: scale(0.95); }
         .scroll-anim.show { opacity: 1; transform: translate(0) scale(1); }
     </style>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="font-sans min-h-screen relative overflow-x-hidden">
 
@@ -72,11 +74,11 @@
         </div>
     </nav>
 
-    <div id="auth-modal" class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4">
-        <div class="glass p-8 rounded-2xl w-full max-w-sm relative">
+    <div id="auth-modal" class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex justify-center items-center p-4 overflow-y-auto">
+        <div class="glass p-6 md:p-8 rounded-2xl w-full max-w-sm relative my-auto">
             <button onclick="tutupModalAuth()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             
-            <div class="flex border-b border-gray-700 mb-6">
+            <div class="flex border-b border-gray-700 mb-6 mt-2">
                 <button id="tab-login" onclick="switchTabAuth('login')" class="flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan">LOG IN</button>
                 <button id="tab-signup" onclick="switchTabAuth('signup')" class="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300">SIGN UP</button>
             </div>
@@ -89,16 +91,20 @@
             </form>
 
             <div class="my-5 flex items-center gap-4 text-gray-600 text-[10px] font-bold tracking-widest uppercase">
-                <div class="h-px bg-gray-800 flex-1"></div> ATAU LANJUTKAN DENGAN <div class="h-px bg-gray-800 flex-1"></div>
-            </div>
-            
-            <div class="flex flex-col gap-3 items-center mb-4 transform scale-90 origin-top">
-                <div class="cf-turnstile" data-sitekey="0x4AAAAAADhbRHVyHjQV1Umn" data-theme="dark" data-callback="turnstileSelesai"></div>
-                
-                <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-theme="dark" data-callback="recaptchaSelesai"></div>
+                <div class="h-px bg-gray-800 flex-1"></div> ATAU VIA <div class="h-px bg-gray-800 flex-1"></div>
             </div>
 
-            <div id="auth-buttons-container" class="grid grid-cols-2 gap-3 opacity-50 pointer-events-none transition-all duration-500 blur-[1px]">
+            <div class="flex flex-col gap-2 items-center mb-5 bg-spaceBlack border border-gray-800 p-3 rounded-xl shadow-inner">
+                <div class="text-[10px] text-gray-500 font-bold tracking-widest mb-1"><i class="fa-solid fa-shield-halved mr-1"></i> SECURITY CHECK</div>
+                
+                <div class="transform scale-90">
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAADhbRHVyHjQV1Umn" data-theme="dark" data-callback="turnstileSelesai"></div>
+                </div>
+                
+                <div class="transform scale-90 -mt-2">
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-theme="dark" data-callback="recaptchaSelesai"></div>
+                </div>
+            </div>
 
             <div id="auth-buttons-container" class="grid grid-cols-2 gap-3 opacity-50 pointer-events-none transition-all duration-500 blur-[1px]">
                 <button onclick="loginGoogle(this)" class="col-span-2 flex justify-center items-center gap-2 bg-white text-gray-900 p-2.5 rounded font-bold hover:bg-gray-200 transition-colors text-sm">
@@ -124,14 +130,10 @@
         
         <div id="page-beranda" class="page page-active space-y-20">
             <section class="text-center">
-                <div class="inline-block relative mb-8 scroll-anim scroll-scale">
-                    <i class="fa-solid fa-user-astronaut text-7xl text-starCyan opacity-90 animate-bounce"></i>
-                </div>
+                <div class="inline-block relative mb-8 scroll-anim scroll-scale"><i class="fa-solid fa-user-astronaut text-7xl text-starCyan opacity-90 animate-bounce"></i></div>
                 <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms;">Loading...</h1>
                 <p class="text-starCyan font-mono tracking-widest mb-10 scroll-anim scroll-up" style="transition-delay: 200ms;">Admin Staff & Web Developer</p>
-                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;">
-                    <i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV
-                </a>
+                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;"><i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV</a>
             </section>
 
             <section class="border-t border-gray-800 pt-10">
@@ -141,24 +143,20 @@
 
             <section class="border-t border-gray-800 pt-10 mt-10">
                 <h2 class="text-2xl font-bold text-white mb-8 scroll-anim scroll-left"><i class="fa-solid fa-map-location-dot text-nebulaPurple mr-2"></i> Galactic Journey</h2>
-                
                 <div class="ml-2 md:ml-6 py-4">
-                    <div id="journey-timeline" class="relative border-l-2 border-gray-700 ml-4 space-y-10 pb-4">
-                        </div>
+                    <div id="journey-timeline" class="relative border-l-2 border-gray-700 ml-4 space-y-10 pb-4"></div>
                 </div>
             </section>
         </div>
 
         <div id="page-profil" class="page space-y-10">
             <h2 class="text-3xl font-extrabold text-white scroll-anim scroll-left"><i class="fa-solid fa-id-card-clip text-nebulaPurple mr-2"></i> Flight Log</h2>
-            
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="glass p-8 rounded-2xl md:col-span-1 text-center border-t-4 border-t-starCyan scroll-anim scroll-up" style="transition-delay: 100ms;">
                     <img id="profil-img" src="" class="w-24 h-24 rounded-full border-4 border-gray-800 mx-auto mb-4 object-cover">
                     <h3 id="profil-name" class="text-xl font-bold text-white">Guest</h3>
                     <p id="profil-email" class="text-gray-400 text-xs font-mono break-all"></p>
                 </div>
-
                 <div class="md:col-span-2 space-y-8">
                     <div class="glass p-8 rounded-2xl scroll-anim scroll-right" style="transition-delay: 200ms;">
                         <h3 class="text-white font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice text-starCyan"></i> Transmission Bio</h3>
@@ -166,9 +164,7 @@
                     </div>
 
                     <div id="admin-panel" class="hidden glass p-8 rounded-2xl border-2 border-dashed border-blue-500 relative transition-all duration-500 scroll-anim scroll-up" style="transition-delay: 300ms;">
-                        <span class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase flex items-center gap-1" id="admin-panel-badge">
-                            <i class="fa-solid fa-user-shield"></i> Admin Command Center
-                        </span>
+                        <span class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase flex items-center gap-1" id="admin-panel-badge"><i class="fa-solid fa-user-shield"></i> Admin Command Center</span>
                         
                         <div class="space-y-6">
                             <div class="border-b border-gray-800 pb-6 mt-2">
@@ -200,7 +196,6 @@
                                             <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-font"></i> Teks Tombol Aksi</label>
                                             <input type="text" id="p-btn-text" placeholder="Cth: DOWNLOAD MOD / GITHUB" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                         </div>
-                                        
                                         <div class="w-full md:w-1/2 relative" id="icon-dropdown-container">
                                             <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-icons"></i> Ikon Tombol</label>
                                             <input type="hidden" id="p-btn-icon-value" value="">
@@ -232,185 +227,151 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </main>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
         const ADMIN_EMAIL = "zhafranediting23@gmail.com";
-        let modeForm = 'login'; 
-        let editIndex = -1; 
-        let editJourneyIndex = -1; // Variabel baru untuk deteksi edit Timeline
-        let dbData = { profile: {}, cv: "#", projects: [], journey: [] }; // Default schema
+        let modeForm = 'login'; let editIndex = -1; let editJourneyIndex = -1; 
+        let dbData = { profile: {}, cv: "#", projects: [], journey: [] };
 
-        // Animasi Scroll
-        const scrollObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('show');
-                    scrollObserver.unobserve(entry.target); 
+        // ================= SISTEM KEAMANAN GANDA (TURNSTILE + RECAPTCHA) =================
+        let statusTurnstile = false;
+        let statusRecaptcha = false;
+
+        window.turnstileSelesai = function(token) { statusTurnstile = true; cekKunciGanda(); };
+        window.recaptchaSelesai = function(token) { statusRecaptcha = true; cekKunciGanda(); };
+
+        function cekKunciGanda() {
+            if (statusTurnstile === true && statusRecaptcha === true) {
+                const btnContainer = document.getElementById('auth-buttons-container');
+                if(btnContainer) {
+                    btnContainer.classList.remove('opacity-50', 'pointer-events-none', 'blur-[1px]');
+                    window.zwsToast("Akses diizinkan. Silakan pilih metode Login.", "success");
                 }
-            });
-        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
-
-        function aktifkanAnimasiScroll() {
-            document.querySelectorAll('.scroll-anim:not(.show)').forEach(el => scrollObserver.observe(el));
+            }
         }
 
-        // Fitur Lock UI / Loading
+        window.tutupModalAuth = function() { 
+            document.getElementById('auth-modal').classList.add('hidden'); 
+            const btnContainer = document.getElementById('auth-buttons-container');
+            if(btnContainer) btnContainer.classList.add('opacity-50', 'pointer-events-none', 'blur-[1px]');
+            
+            statusTurnstile = false; statusRecaptcha = false;
+            if (typeof turnstile !== 'undefined') turnstile.reset();
+            if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+        }
+
+        function bukaModalAuth(type) {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            switchTabAuth(type);
+        }
+
+        function switchTabAuth(type) {
+            modeForm = type;
+            const tLogin = document.getElementById('tab-login'); const tSignup = document.getElementById('tab-signup');
+            const iName = document.getElementById('input-name'); const btn = document.getElementById('btn-submit');
+            if(type === 'login') {
+                tLogin.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
+                tSignup.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+                iName.classList.add('hidden'); iName.removeAttribute('required'); btn.innerText = "MASUK";
+            } else {
+                tSignup.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
+                tLogin.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+                iName.classList.remove('hidden'); iName.setAttribute('required', 'true'); btn.innerText = "BUAT AKUN";
+            }
+        }
+
+        // ================= ANIMASI SCROLL & LOADING UI =================
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('show'); scrollObserver.unobserve(entry.target); } });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        function aktifkanAnimasiScroll() { document.querySelectorAll('.scroll-anim:not(.show)').forEach(el => scrollObserver.observe(el)); }
+
         function lockUI(pesan) {
             const loader = document.getElementById('loading-screen');
-            document.getElementById('loading-text').innerText = pesan;
-            document.getElementById('loading-text').classList.remove('text-red-500');
-            loader.classList.remove('hidden');
-            setTimeout(() => loader.classList.remove('opacity-0'), 10);
+            document.getElementById('loading-text').innerText = pesan; document.getElementById('loading-text').classList.remove('text-red-500');
+            loader.classList.remove('hidden'); setTimeout(() => loader.classList.remove('opacity-0'), 10);
         }
         function unlockUI(instant = false) {
             const loader = document.getElementById('loading-screen');
-            if(instant) {
-                loader.classList.add('hidden');
-                loader.classList.remove('opacity-0');
-            } else {
-                loader.classList.add('opacity-0');
-                setTimeout(() => loader.classList.add('hidden'), 500);
-            }
+            if(instant) { loader.classList.add('hidden'); loader.classList.remove('opacity-0'); } 
+            else { loader.classList.add('opacity-0'); setTimeout(() => loader.classList.add('hidden'), 500); }
         }
 
-        // Icon Dropdown System
+        // ================= ICON SYSTEM & TOAST =================
         const iconList = [
-            { name: "Mainkan (Play)", class: "fa-solid fa-play" },
-            { name: "Unduh (Download)", class: "fa-solid fa-download" },
-            { name: "GitHub (Source Code)", class: "fa-brands fa-github" },
-            { name: "Website (Globe)", class: "fa-solid fa-globe" },
-            { name: "Buka Tautan (External)", class: "fa-solid fa-arrow-up-right-from-square" },
-            { name: "Kode (Code)", class: "fa-solid fa-code" },
-            { name: "Google Drive", class: "fa-brands fa-google-drive" },
-            { name: "YouTube (Video)", class: "fa-brands fa-youtube" },
-            { name: "Aplikasi Mobile (APK)", class: "fa-solid fa-mobile-screen" },
-            { name: "Minecraft (Mod)", class: "fa-solid fa-cubes" },
-            { name: "Dokumen (PDF)", class: "fa-solid fa-file-pdf" },
-            { name: "Buku (Baca)", class: "fa-solid fa-book" },
-            { name: "Toko (Cart)", class: "fa-solid fa-cart-shopping" },
-            { name: "Info (Detail)", class: "fa-solid fa-circle-info" }
+            { name: "Mainkan", class: "fa-solid fa-play" }, { name: "Unduh", class: "fa-solid fa-download" },
+            { name: "GitHub", class: "fa-brands fa-github" }, { name: "Website", class: "fa-solid fa-globe" },
+            { name: "Tautan", class: "fa-solid fa-arrow-up-right-from-square" }, { name: "Google Drive", class: "fa-brands fa-google-drive" },
+            { name: "YouTube", class: "fa-brands fa-youtube" }, { name: "Aplikasi", class: "fa-solid fa-mobile-screen" }
         ];
 
         function initIconDropdown() {
-            const listContainer = document.getElementById('icon-dropdown-list');
-            listContainer.innerHTML = iconList.map(icon => `
+            document.getElementById('icon-dropdown-list').innerHTML = iconList.map(icon => `
                 <div onclick="selectIcon('${icon.class}', '${icon.name}')" class="flex items-center p-3 hover:bg-gray-800 cursor-pointer border-b border-gray-800 last:border-0">
-                    <i class="${icon.class} text-starCyan w-6 text-center mr-3 text-lg"></i>
-                    <span class="text-sm text-gray-300 font-medium">${icon.name}</span>
-                </div>
-            `).join('');
+                    <i class="${icon.class} text-starCyan w-6 text-center mr-3 text-lg"></i> <span class="text-sm text-gray-300">${icon.name}</span>
+                </div>`).join('');
         }
-
-        function toggleDropdown() {
-            document.getElementById('icon-dropdown-list').classList.toggle('hidden');
-            document.getElementById('icon-search-input').focus();
-        }
-
+        function toggleDropdown() { document.getElementById('icon-dropdown-list').classList.toggle('hidden'); document.getElementById('icon-search-input').focus(); }
         function filterIcons() {
             const searchVal = document.getElementById('icon-search-input').value.toLowerCase();
             const items = document.getElementById('icon-dropdown-list').children;
-            for(let i = 0; i < items.length; i++) {
-                const text = items[i].innerText.toLowerCase();
-                items[i].style.display = text.includes(searchVal) ? 'flex' : 'none';
-            }
+            for(let i = 0; i < items.length; i++) items[i].style.display = items[i].innerText.toLowerCase().includes(searchVal) ? 'flex' : 'none';
         }
-
         function selectIcon(iconClass, iconName) {
-            document.getElementById('p-btn-icon-value').value = iconClass;
-            document.getElementById('icon-search-input').value = iconName;
-            document.getElementById('selected-icon-preview').className = `${iconClass} text-starCyan mr-3 w-5 text-center`;
-            document.getElementById('icon-dropdown-list').classList.add('hidden');
+            document.getElementById('p-btn-icon-value').value = iconClass; document.getElementById('icon-search-input').value = iconName;
+            document.getElementById('selected-icon-preview').className = `${iconClass} text-starCyan mr-3 w-5 text-center`; document.getElementById('icon-dropdown-list').classList.add('hidden');
         }
-
         document.addEventListener('click', function(event) {
             const container = document.getElementById('icon-dropdown-container');
-            if (container && !container.contains(event.target)) {
-                document.getElementById('icon-dropdown-list').classList.add('hidden');
-            }
+            if (container && !container.contains(event.target)) document.getElementById('icon-dropdown-list').classList.add('hidden');
         });
 
-        // Toast & Dialog
         window.zwsToast = function(msg, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            
-            let bgClass = 'bg-gray-800 border-gray-600 text-white';
-            let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
-            
+            const container = document.getElementById('toast-container'); const toast = document.createElement('div');
+            let bgClass = 'bg-gray-800 border-gray-600 text-white'; let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
             if (type === 'success') { bgClass = 'bg-emerald-900/95 border border-emerald-500 text-emerald-50'; icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>'; } 
             else if (type === 'error') { bgClass = 'bg-red-900/95 border border-red-500 text-red-50'; icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>'; } 
             else if (type === 'warning') { bgClass = 'bg-yellow-900/95 border border-yellow-500 text-yellow-50'; icon = '<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>'; }
-
             toast.className = `flex items-center gap-3 px-5 py-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto backdrop-blur-md ${bgClass}`;
             toast.innerHTML = `<div class="text-xl">${icon}</div> <span class="text-sm font-medium tracking-wide leading-tight">${msg}</span>`;
-            
-            container.appendChild(toast);
-            setTimeout(() => { toast.classList.remove('translate-x-full', 'opacity-0'); }, 10);
-            setTimeout(() => {
-                toast.classList.add('translate-x-full', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            container.appendChild(toast); setTimeout(() => toast.classList.remove('translate-x-full', 'opacity-0'), 10);
+            setTimeout(() => { toast.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3500);
         }
 
         function zwsConfirm(msg, onConfirmCallback) {
-            const dialog = document.getElementById('zws-dialog');
-            const box = document.getElementById('zws-dialog-box');
-            document.getElementById('zws-dialog-msg').innerText = msg;
-            window.tempConfirmCallback = () => { closeZwsDialog(); if(onConfirmCallback) onConfirmCallback(); };
-            document.getElementById('zws-dialog-buttons').innerHTML = `
-                <button onclick="closeZwsDialog()" class="flex-1 bg-transparent border border-gray-600 text-gray-300 font-bold px-4 py-2.5 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">BATAL</button>
-                <button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">YA, LANJUTKAN</button>`;
-            dialog.classList.remove('hidden');
-            setTimeout(() => { dialog.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+            const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box');
+            document.getElementById('zws-dialog-msg').innerText = msg; window.tempConfirmCallback = () => { closeZwsDialog(); if(onConfirmCallback) onConfirmCallback(); };
+            document.getElementById('zws-dialog-buttons').innerHTML = `<button onclick="closeZwsDialog()" class="flex-1 bg-transparent border border-gray-600 text-gray-300 font-bold px-4 py-2.5 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">BATAL</button><button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">YA, LANJUTKAN</button>`;
+            dialog.classList.remove('hidden'); setTimeout(() => { dialog.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
         }
-
-        function closeZwsDialog() {
-            const dialog = document.getElementById('zws-dialog');
-            const box = document.getElementById('zws-dialog-box');
-            dialog.classList.add('opacity-0'); box.classList.add('scale-95');
-            setTimeout(() => { dialog.classList.add('hidden'); }, 300);
-        }
-
+        function closeZwsDialog() { const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box'); dialog.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(() => dialog.classList.add('hidden'), 300); }
         function prosesLinkDrive(url) {
             if (!url || url === '#') return '#';
             const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-            if (driveMatch && driveMatch[1]) return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
-            return url;
+            if (driveMatch && driveMatch[1]) return `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`; return url;
         }
 
-        // Inisialisasi API Fetch
+        // ================= INISIALISASI DATA =================
         window.onload = () => {
             initIconDropdown(); 
-            const loader = document.getElementById('loading-screen');
-            loader.classList.remove('hidden'); loader.classList.remove('opacity-0');
+            const loader = document.getElementById('loading-screen'); loader.classList.remove('hidden', 'opacity-0');
             const startTime = Date.now();
-            
             fetch(API_URL)
-                .then(res => {
-                    if (!res.ok) throw new Error("Server Error: " + res.status);
-                    return res.json();
-                })
+                .then(res => { if (!res.ok) throw new Error("Server Error: " + res.status); return res.json(); })
                 .then(data => {
-                    dbData = data;
-                    renderSeluruhUI();
-                    const elapsed = Date.now() - startTime;
-                    const remaining = Math.max(0, 1000 - elapsed);
-                    setTimeout(() => unlockUI(), remaining);
+                    dbData = data; renderSeluruhUI(); const remaining = Math.max(0, 1000 - (Date.now() - startTime)); setTimeout(() => unlockUI(), remaining);
                 })
                 .catch(err => {
-                    console.error("Gagal sinkronisasi:", err);
-                    document.getElementById('loading-text').innerText = "ERROR: " + err.message;
-                    document.getElementById('loading-text').classList.add('text-red-500');
-                    zwsToast("Gagal mengambil data dari cloud.", "error");
+                    console.error("Gagal:", err); document.getElementById('loading-text').innerText = "ERROR: " + err.message;
+                    document.getElementById('loading-text').classList.add('text-red-500'); zwsToast("Gagal mengambil data dari cloud.", "error");
                 });
         };
 
@@ -419,386 +380,98 @@
             document.getElementById('profil-bio').innerText = dbData.profile.bio || "Bio kosong.";
             document.getElementById('admin-profile-name').value = dbData.profile.name || "";
             document.getElementById('admin-profile-bio').value = dbData.profile.bio || "";
-
-            const rawCvLink = dbData.cv || '#';
-            const btnCv = document.getElementById('btn-download-cv');
-            btnCv.href = prosesLinkDrive(rawCvLink); 
+            const rawCvLink = dbData.cv || '#'; document.getElementById('btn-download-cv').href = prosesLinkDrive(rawCvLink); 
             document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
 
             const user = JSON.parse(localStorage.getItem('zws_user'));
-            renderProjects(user);
-            renderJourney(user); // MENGGAMBAR TIMELINE PERJALANAN
-            
-            if(user) tampilkanUser(user, false);
-            showPage('beranda');
+            renderProjects(user); renderJourney(user);
+            if(user) tampilkanUser(user, false); showPage('beranda');
         }
 
-        // PENGIRIMAN DATA KE CLOUD
+        // ================= CRUD SYSTEM =================
         function kirimKeServerGAS(pesanSukses) {
-            renderSeluruhUI(); 
-            lockUI("MENGIRIM DATA KE CLOUD...");
-
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify(dbData)
-            })
-            .then(res => res.json())
-            .then(res => {
-                unlockUI();
-                zwsToast(pesanSukses, "success");
-            })
-            .catch(err => {
-                unlockUI(true);
-                zwsToast("Gagal mengirim data. Periksa koneksi internet Anda.", "error");
-            });
+            renderSeluruhUI(); lockUI("MENGIRIM DATA...");
+            fetch(API_URL, { method: 'POST', body: JSON.stringify(dbData) })
+            .then(res => res.json()).then(res => { unlockUI(); zwsToast(pesanSukses, "success"); })
+            .catch(err => { unlockUI(true); zwsToast("Gagal mengirim data.", "error"); });
         }
 
-        function simpanProfilUtama() {
-            dbData.profile.name = document.getElementById('admin-profile-name').value;
-            dbData.profile.bio = document.getElementById('admin-profile-bio').value;
-            kirimKeServerGAS("Log Identitas berhasil diperbarui secara global!");
-        }
+        function simpanProfilUtama() { dbData.profile.name = document.getElementById('admin-profile-name').value; dbData.profile.bio = document.getElementById('admin-profile-bio').value; kirimKeServerGAS("Log Identitas diperbarui!"); }
+        function simpanCVKeDatabase() { dbData.cv = document.getElementById('admin-cv-link').value; kirimKeServerGAS("Tautan CV disinkronkan!"); }
 
-        function simpanCVKeDatabase() {
-            dbData.cv = document.getElementById('admin-cv-link').value;
-            kirimKeServerGAS("Tautan CV berhasil disinkronkan ke seluruh galaksi!");
-        }
-
-        // CRUD PROJECTS
         function simpanProyek() {
-            const title = document.getElementById('p-title').value;
-            const link = document.getElementById('p-link').value;
-            const desc = document.getElementById('p-desc').value;
-            const btnText = document.getElementById('p-btn-text').value;
-            const btnIcon = document.getElementById('p-btn-icon-value').value; 
-
-            if(!title || !link) return zwsToast("Nama Proyek dan Link Demo wajib diisi!", "warning");
+            const title = document.getElementById('p-title').value; const link = document.getElementById('p-link').value;
+            const desc = document.getElementById('p-desc').value; const btnText = document.getElementById('p-btn-text').value; const btnIcon = document.getElementById('p-btn-icon-value').value; 
+            if(!title || !link) return zwsToast("Nama Proyek dan Link wajib diisi!", "warning");
             const projectData = { title, link, desc, btnText, btnIcon };
-
-            if(editIndex > -1) {
-                dbData.projects[editIndex] = projectData;
-                kirimKeServerGAS("Log proyek berhasil diperbarui ke Cloud!");
-            } else {
-                if(!dbData.projects) dbData.projects = [];
-                dbData.projects.push(projectData);
-                kirimKeServerGAS("Proyek baru berhasil diluncurkan ke Database Cloud!");
-            }
+            if(editIndex > -1) { dbData.projects[editIndex] = projectData; kirimKeServerGAS("Proyek diperbarui!"); } 
+            else { if(!dbData.projects) dbData.projects = []; dbData.projects.push(projectData); kirimKeServerGAS("Proyek ditambahkan!"); }
             batalEdit();
         }
-
-        function hapusProyek(index) {
-            zwsConfirm("Menghapus log proyek ini akan menghilangkannya dari server global. Lanjutkan?", function() {
-                dbData.projects.splice(index, 1);
-                kirimKeServerGAS("Proyek berhasil dilenyapkan dari sistem Cloud!");
-            });
-        }
-
+        function hapusProyek(index) { zwsConfirm("Hapus log proyek ini?", function() { dbData.projects.splice(index, 1); kirimKeServerGAS("Proyek dihapus!"); }); }
         function editProyek(index) {
-            const p = dbData.projects[index];
-            document.getElementById('p-title').value = p.title || '';
-            document.getElementById('p-link').value = p.link || '';
-            document.getElementById('p-desc').value = p.desc || '';
-            document.getElementById('p-btn-text').value = p.btnText || '';
-            
-            const iconVal = p.btnIcon || 'fa-solid fa-play';
-            document.getElementById('p-btn-icon-value').value = iconVal;
-            document.getElementById('selected-icon-preview').className = `${iconVal} text-starCyan mr-3 w-5 text-center`;
-            
-            const foundIcon = iconList.find(i => i.class === iconVal);
-            document.getElementById('icon-search-input').value = foundIcon ? foundIcon.name : '';
-            
-            editIndex = index;
-            document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-pen-to-square text-lg"></i> UPDATE PROYEK';
-            document.getElementById('label-form-proyek').className = "text-xs text-yellow-500 font-bold mb-2 flex items-center gap-2";
-            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN';
-            document.getElementById('btn-simpan-proyek').className = "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors";
-            document.getElementById('btn-batal-edit').classList.remove('hidden');
-
-            showPage('profil');
-            setTimeout(() => {
-                const panel = document.getElementById('admin-panel');
-                panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
+            const p = dbData.projects[index]; document.getElementById('p-title').value = p.title || ''; document.getElementById('p-link').value = p.link || '';
+            document.getElementById('p-desc').value = p.desc || ''; document.getElementById('p-btn-text').value = p.btnText || '';
+            const iconVal = p.btnIcon || 'fa-solid fa-play'; document.getElementById('p-btn-icon-value').value = iconVal; document.getElementById('selected-icon-preview').className = `${iconVal} text-starCyan mr-3 w-5 text-center`;
+            const foundIcon = iconList.find(i => i.class === iconVal); document.getElementById('icon-search-input').value = foundIcon ? foundIcon.name : '';
+            editIndex = index; document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-pen-to-square text-lg"></i> UPDATE PROYEK'; document.getElementById('label-form-proyek').className = "text-xs text-yellow-500 font-bold mb-2 flex items-center gap-2"; document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN'; document.getElementById('btn-simpan-proyek').className = "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors"; document.getElementById('btn-batal-edit').classList.remove('hidden'); showPage('profil'); setTimeout(() => document.getElementById('admin-panel').scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
         }
-
         function batalEdit() {
-            editIndex = -1;
-            document.getElementById('p-title').value = '';
-            document.getElementById('p-link').value = '';
-            document.getElementById('p-desc').value = '';
-            document.getElementById('p-btn-text').value = '';
-            document.getElementById('p-btn-icon-value').value = '';
-            document.getElementById('icon-search-input').value = '';
-            document.getElementById('selected-icon-preview').className = 'fa-solid fa-play text-gray-500 mr-3 w-5 text-center';
-            
-            document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU';
-            document.getElementById('label-form-proyek').className = "text-xs text-starCyan font-bold mb-2 flex items-center gap-2";
-            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-rocket mr-2"></i>TAMBAH PROYEK';
-            document.getElementById('btn-simpan-proyek').className = "flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors";
-            document.getElementById('btn-batal-edit').classList.add('hidden');
+            editIndex = -1; document.getElementById('p-title').value = ''; document.getElementById('p-link').value = ''; document.getElementById('p-desc').value = ''; document.getElementById('p-btn-text').value = ''; document.getElementById('p-btn-icon-value').value = ''; document.getElementById('icon-search-input').value = ''; document.getElementById('selected-icon-preview').className = 'fa-solid fa-play text-gray-500 mr-3 w-5 text-center'; document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU'; document.getElementById('label-form-proyek').className = "text-xs text-starCyan font-bold mb-2 flex items-center gap-2"; document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-rocket mr-2"></i>TAMBAH PROYEK'; document.getElementById('btn-simpan-proyek').className = "flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors"; document.getElementById('btn-batal-edit').classList.add('hidden');
         }
 
-        // RENDER UI PROJECTS
         function renderProjects(user) {
-            const grid = document.getElementById('project-grid');
-            const isAdmin = user && user.email === ADMIN_EMAIL;
-
-            if(!dbData.projects || dbData.projects.length === 0) {
-                grid.innerHTML = `
-                    <div class="md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl scroll-anim scroll-up">
-                        <i class="fa-solid fa-folder-open text-4xl text-gray-700 mb-3"></i>
-                        <p class="text-gray-500 font-mono text-sm tracking-widest">LAUNCHPAD KOSONG. BELUM ADA PROYEK DARI CLOUD.</p>
-                    </div>`;
-            } else {
+            const grid = document.getElementById('project-grid'); const isAdmin = user && user.email === ADMIN_EMAIL;
+            if(!dbData.projects || dbData.projects.length === 0) { grid.innerHTML = `<div class="md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl scroll-anim scroll-up"><i class="fa-solid fa-folder-open text-4xl text-gray-700 mb-3"></i><p class="text-gray-500 font-mono text-sm tracking-widest">LAUNCHPAD KOSONG.</p></div>`; } 
+            else {
                 grid.innerHTML = dbData.projects.map((p, index) => {
-                    const btnText = p.btnText || 'LIVE DEMO';
-                    const btnIcon = p.btnIcon || 'fa-solid fa-play';
-
-                    const isDrive = p.link && p.link.includes('drive.google.com');
-                    const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk') || btnText.toLowerCase().includes('pdf');
-                    
-                    let processedLink = isDrive ? prosesLinkDrive(p.link) : p.link;
-                    let actionAttr = `href="${processedLink}"`;
-                    if (isDownloadable) actionAttr += ` download target="_blank"`; 
-                    else actionAttr += ` target="_blank"`;
-
-                    const delay = (index % 3) * 100;
-                    
-                    const adminActions = isAdmin ? `
-                        <div class="flex gap-2 border-t border-gray-700 pt-3 mt-4">
-                            <button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-2 rounded hover:bg-yellow-500 hover:text-black transition-colors"><i class="fa-solid fa-pen-to-square mr-1"></i> EDIT</button>
-                            <button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-2 rounded hover:bg-red-500 hover:text-white transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button>
-                        </div>` : '';
-
-                    return `
-                    <div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up" style="transition-delay: ${delay}ms;">
-                        <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
-                        <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
-                        <a ${actionAttr} class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors uppercase tracking-wider">
-                            <i class="${btnIcon} mr-2"></i> ${btnText}
-                        </a>
-                        ${adminActions}
-                    </div>`;
+                    let processedLink = (p.link && p.link.includes('drive.google.com')) ? prosesLinkDrive(p.link) : p.link;
+                    let actionAttr = `href="${processedLink}"`; if ((p.btnText || '').toLowerCase().includes('download')) actionAttr += ` download target="_blank"`; else actionAttr += ` target="_blank"`;
+                    const adminActions = isAdmin ? `<div class="flex gap-2 border-t border-gray-700 pt-3 mt-4"><button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-2 rounded hover:bg-yellow-500 transition-colors"><i class="fa-solid fa-pen-to-square mr-1"></i> EDIT</button><button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-2 rounded hover:bg-red-500 hover:text-white transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button></div>` : '';
+                    return `<div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up" style="transition-delay: ${(index % 3) * 100}ms;"><h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3><p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p><a ${actionAttr} class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors uppercase tracking-wider"><i class="${p.btnIcon || 'fa-solid fa-play'} mr-2"></i> ${p.btnText || 'LIVE DEMO'}</a>${adminActions}</div>`;
                 }).join('');
             }
             aktifkanAnimasiScroll();
         }
 
-        // ================= BAGIAN BARU: FUNGSI CRUD PERJALANAN (TIMELINE) =================
+        // CRUD TIMELINE
         function simpanJourney() {
-            const year = document.getElementById('j-year').value;
-            const title = document.getElementById('j-title').value;
-            const desc = document.getElementById('j-desc').value;
-
+            const year = document.getElementById('j-year').value; const title = document.getElementById('j-title').value; const desc = document.getElementById('j-desc').value;
             if(!year || !title) return zwsToast("Tahun dan Judul Perjalanan wajib diisi!", "warning");
-            const journeyData = { year, title, desc };
-
-            if(!dbData.journey) dbData.journey = []; // Buat struktur array jika belum ada di database lawas
-
-            if(editJourneyIndex > -1) {
-                dbData.journey[editJourneyIndex] = journeyData;
-                kirimKeServerGAS("Jejak perjalanan berhasil diperbarui!");
-            } else {
-                dbData.journey.push(journeyData);
-                kirimKeServerGAS("Jejak perjalanan baru berhasil diabadikan!");
-            }
-            batalEditJourney();
+            if(!dbData.journey) dbData.journey = []; 
+            if(editJourneyIndex > -1) { dbData.journey[editJourneyIndex] = { year, title, desc }; kirimKeServerGAS("Jejak diperbarui!"); } 
+            else { dbData.journey.push({ year, title, desc }); kirimKeServerGAS("Jejak ditambahkan!"); } batalEditJourney();
         }
-
-        function hapusJourney(index) {
-            zwsConfirm("Yakin ingin menghapus jejak memori ini secara permanen?", function() {
-                dbData.journey.splice(index, 1);
-                kirimKeServerGAS("Jejak memori berhasil dihapus dari Cloud!");
-            });
-        }
-
+        function hapusJourney(index) { zwsConfirm("Hapus jejak memori ini?", function() { dbData.journey.splice(index, 1); kirimKeServerGAS("Jejak dihapus!"); }); }
         function editJourney(index) {
-            const j = dbData.journey[index];
-            document.getElementById('j-year').value = j.year || '';
-            document.getElementById('j-title').value = j.title || '';
-            document.getElementById('j-desc').value = j.desc || '';
-            
-            editJourneyIndex = index;
-            document.getElementById('label-form-journey').innerHTML = '<i class="fa-solid fa-pen-to-square text-lg"></i> UPDATE JEJAK PERJALANAN';
-            document.getElementById('label-form-journey').className = "text-xs text-yellow-500 font-bold mb-2 flex items-center gap-2";
-            document.getElementById('btn-simpan-journey').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN';
-            document.getElementById('btn-simpan-journey').className = "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors";
-            document.getElementById('btn-batal-journey').classList.remove('hidden');
-
-            showPage('profil');
-            setTimeout(() => {
-                const panel = document.getElementById('admin-panel');
-                panel.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }, 100);
+            const j = dbData.journey[index]; document.getElementById('j-year').value = j.year || ''; document.getElementById('j-title').value = j.title || ''; document.getElementById('j-desc').value = j.desc || '';
+            editJourneyIndex = index; document.getElementById('label-form-journey').innerHTML = '<i class="fa-solid fa-pen-to-square text-lg"></i> UPDATE JEJAK'; document.getElementById('label-form-journey').className = "text-xs text-yellow-500 font-bold mb-2 flex items-center gap-2"; document.getElementById('btn-simpan-journey').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN'; document.getElementById('btn-simpan-journey').className = "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors"; document.getElementById('btn-batal-journey').classList.remove('hidden'); showPage('profil'); setTimeout(() => document.getElementById('admin-panel').scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
         }
-
         function batalEditJourney() {
-            editJourneyIndex = -1;
-            document.getElementById('j-year').value = '';
-            document.getElementById('j-title').value = '';
-            document.getElementById('j-desc').value = '';
-            
-            document.getElementById('label-form-journey').innerHTML = '<i class="fa-solid fa-timeline text-lg"></i> TAMBAH JEJAK PERJALANAN';
-            document.getElementById('label-form-journey').className = "text-xs text-nebulaPurple font-bold mb-2 flex items-center gap-2";
-            document.getElementById('btn-simpan-journey').innerHTML = '<i class="fa-solid fa-plus mr-2"></i>TAMBAH JEJAK';
-            document.getElementById('btn-simpan-journey').className = "flex-1 bg-nebulaPurple text-white font-bold p-3 rounded hover:bg-purple-700 text-sm transition-colors";
-            document.getElementById('btn-batal-journey').classList.add('hidden');
+            editJourneyIndex = -1; document.getElementById('j-year').value = ''; document.getElementById('j-title').value = ''; document.getElementById('j-desc').value = '';
+            document.getElementById('label-form-journey').innerHTML = '<i class="fa-solid fa-timeline text-lg"></i> TAMBAH JEJAK PERJALANAN'; document.getElementById('label-form-journey').className = "text-xs text-nebulaPurple font-bold mb-2 flex items-center gap-2"; document.getElementById('btn-simpan-journey').innerHTML = '<i class="fa-solid fa-plus mr-2"></i>TAMBAH JEJAK'; document.getElementById('btn-simpan-journey').className = "flex-1 bg-nebulaPurple text-white font-bold p-3 rounded hover:bg-purple-700 text-sm transition-colors"; document.getElementById('btn-batal-journey').classList.add('hidden');
         }
-
-        // RENDER UI TIMELINE
         function renderJourney(user) {
-            const timeline = document.getElementById('journey-timeline');
-            const isAdmin = user && user.email === ADMIN_EMAIL;
-            
-            if(!dbData.journey || dbData.journey.length === 0) {
-                timeline.innerHTML = '<p class="text-gray-500 font-mono text-sm ml-6 scroll-anim scroll-right">Belum ada jejak perjalanan yang direkam di server Cloud.</p>';
-                return;
-            }
-            
+            const timeline = document.getElementById('journey-timeline'); const isAdmin = user && user.email === ADMIN_EMAIL;
+            if(!dbData.journey || dbData.journey.length === 0) { timeline.innerHTML = '<p class="text-gray-500 font-mono text-sm ml-6 scroll-anim scroll-right">Belum ada jejak perjalanan.</p>'; return; }
             timeline.innerHTML = dbData.journey.map((j, index) => {
-                const delay = (index % 5) * 150; // Animasi mengalir ke bawah
-                
-                const adminActions = isAdmin ? `
-                    <div class="mt-4 flex gap-4 pt-3 border-t border-gray-800">
-                        <button onclick="editJourney(${index})" class="text-xs text-yellow-500 hover:text-yellow-400 font-bold tracking-wider transition-colors"><i class="fa-solid fa-pen mr-1"></i> EDIT</button>
-                        <button onclick="hapusJourney(${index})" class="text-xs text-red-500 hover:text-red-400 font-bold tracking-wider transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button>
-                    </div>
-                ` : '';
-
-                return `
-                <div class="ml-8 relative scroll-anim scroll-left" style="transition-delay: ${delay}ms;">
-                    <div class="absolute -left-[41px] top-1 w-4 h-4 bg-spaceBlack border-2 border-nebulaPurple rounded-full shadow-[0_0_10px_rgba(76,29,149,0.8)] z-10"></div>
-                    
-                    <div class="glass p-5 rounded-xl border border-gray-800 hover:border-nebulaPurple transition-colors group">
-                        <span class="text-nebulaPurple font-mono text-xs font-bold px-2.5 py-1 bg-purple-900/30 border border-purple-500/30 rounded block w-max mb-3 tracking-widest">${j.year}</span>
-                        <h3 class="text-white font-bold text-lg mb-2">${j.title}</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">${j.desc}</p>
-                        ${adminActions}
-                    </div>
-                </div>`;
+                const adminActions = isAdmin ? `<div class="mt-4 flex gap-4 pt-3 border-t border-gray-800"><button onclick="editJourney(${index})" class="text-xs text-yellow-500 hover:text-yellow-400 font-bold transition-colors"><i class="fa-solid fa-pen mr-1"></i> EDIT</button><button onclick="hapusJourney(${index})" class="text-xs text-red-500 hover:text-red-400 font-bold transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button></div>` : '';
+                return `<div class="ml-8 relative scroll-anim scroll-left" style="transition-delay: ${(index % 5) * 150}ms;"><div class="absolute -left-[41px] top-1 w-4 h-4 bg-spaceBlack border-2 border-nebulaPurple rounded-full shadow-[0_0_10px_rgba(76,29,149,0.8)] z-10"></div><div class="glass p-5 rounded-xl border border-gray-800 hover:border-nebulaPurple transition-colors group"><span class="text-nebulaPurple font-mono text-xs font-bold px-2.5 py-1 bg-purple-900/30 border border-purple-500/30 rounded block w-max mb-3 tracking-widest">${j.year}</span><h3 class="text-white font-bold text-lg mb-2">${j.title}</h3><p class="text-gray-400 text-sm leading-relaxed">${j.desc}</p>${adminActions}</div></div>`;
             }).join('');
             aktifkanAnimasiScroll();
         }
 
-
-        // ================= AUTH UI HELPER =================
-        function bukaModalAuth(type) {
-            document.getElementById('auth-modal').classList.remove('hidden');
-            switchTabAuth(type);
-        }
-        window.tutupModalAuth = function() { document.getElementById('auth-modal').classList.add('hidden'); }
-        
-        function switchTabAuth(type) {
-            modeForm = type;
-            const tLogin = document.getElementById('tab-login');
-            const tSignup = document.getElementById('tab-signup');
-            const iName = document.getElementById('input-name');
-            const btn = document.getElementById('btn-submit');
-
-            if(type === 'login') {
-                tLogin.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
-                tSignup.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
-                iName.classList.add('hidden'); iName.removeAttribute('required');
-                btn.innerText = "MASUK";
-            } else {
-                tSignup.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
-                tLogin.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
-                iName.classList.remove('hidden'); iName.setAttribute('required', 'true');
-                btn.innerText = "BUAT AKUN";
-            }
-        }
-
-        document.getElementById('auth-form').onsubmit = function(e) {
-            e.preventDefault();
-            const email = document.getElementById('input-email').value;
-            const name = document.getElementById('input-name').value || "Crew Member";
-            const userData = { name: name, email: email, picture: `https://ui-avatars.com/api/?name=${name}&background=1f2937&color=22d3ee` };
-            localStorage.setItem('zws_user', JSON.stringify(userData));
-            tutupModalAuth();
-            window.tampilkanUser(userData, true);
-            renderProjects(userData);
-            renderJourney(userData); // Update tombol admin di Timeline
-            zwsToast(`Selamat datang, ${name}!`, "success");
-        }
-
+        // ================= USER & AUTH MANAGEMENT =================
         window.tampilkanUser = function(user, isLoginBaru = false) {
-            document.getElementById('nav-logged-out').classList.add('hidden');
-            document.getElementById('nav-logged-in').classList.remove('hidden');
-            document.getElementById('nav-foto').src = user.picture;
-            document.getElementById('profil-img').src = user.picture;
-            document.getElementById('profil-name').innerText = user.name;
-            document.getElementById('profil-email').innerText = user.email;
-
-            // Admin cek
-            if(user.email === ADMIN_EMAIL) document.getElementById('admin-panel').classList.remove('hidden');
-            else document.getElementById('admin-panel').classList.add('hidden');
-            
+            document.getElementById('nav-logged-out').classList.add('hidden'); document.getElementById('nav-logged-in').classList.remove('hidden');
+            document.getElementById('nav-foto').src = user.picture; document.getElementById('profil-img').src = user.picture;
+            document.getElementById('profil-name').innerText = user.name; document.getElementById('profil-email').innerText = user.email;
+            if(user.email === ADMIN_EMAIL) document.getElementById('admin-panel').classList.remove('hidden'); else document.getElementById('admin-panel').classList.add('hidden');
             if(isLoginBaru) showPage('profil');
         }
-
-        function logout() {
-            zwsConfirm("Apakah Anda yakin ingin memutus koneksi dan Log Out dari station?", function() {
-                localStorage.removeItem('zws_user');
-                location.reload(); 
-            });
-        }
-
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
-            document.getElementById('page-'+id).classList.add('page-active');
-            window.scrollTo(0,0);
-            setTimeout(aktifkanAnimasiScroll, 50);
-        }
-
-        function setBtnLoading(btn) {
-            if(!btn) return null;
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i>';
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
-            return originalHtml;
-        }
-        // ================= SISTEM KEAMANAN GANDA (TURNSTILE + RECAPTCHA) =================
-        let statusTurnstile = false;
-        let statusRecaptcha = false;
-
-        // Fungsi saat Turnstile sukses
-        window.turnstileSelesai = function(token) {
-            statusTurnstile = true;
-            cekKunciGanda();
-        };
-
-        // Fungsi saat reCAPTCHA sukses
-        window.recaptchaSelesai = function(token) {
-            statusRecaptcha = true;
-            cekKunciGanda();
-        };
-
-        // Mesin Pengecek Gembok Ganda
-        function cekKunciGanda() {
-            if (statusTurnstile === true && statusRecaptcha === true) {
-                const btnContainer = document.getElementById('auth-buttons-container');
-                if(btnContainer) {
-                    btnContainer.classList.remove('opacity-50', 'pointer-events-none', 'blur-[1px]');
-                    window.zwsToast("Pertahanan Ganda Berhasil Ditembus. Silakan Login.", "success");
-                }
-            }
-        }
-
-        // Reset Keamanan saat modal ditutup
-        window.tutupModalAuth = function() { 
-            document.getElementById('auth-modal').classList.add('hidden'); 
-            
-            const btnContainer = document.getElementById('auth-buttons-container');
-            if(btnContainer) {
-                btnContainer.classList.add('opacity-50', 'pointer-events-none', 'blur-[1px]');
-            }
-            
-            // Reset status dan widget
-            statusTurnstile = false;
-            statusRecaptcha = false;
-            if (typeof turnstile !== 'undefined') turnstile.reset();
-            if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
-        }
+        function logout() { zwsConfirm("Yakin ingin Log Out?", function() { localStorage.removeItem('zws_user'); location.reload(); }); }
+        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active')); document.getElementById('page-'+id).classList.add('page-active'); window.scrollTo(0,0); setTimeout(aktifkanAnimasiScroll, 50); }
+        function setBtnLoading(btn) { if(!btn) return null; const o = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i>'; btn.classList.add('opacity-75', 'cursor-not-allowed'); return o; }
     </script>
 
     <script type="module">
@@ -814,84 +487,25 @@
             appId: "1:21592339559:web:95b00074154e6f2f3050c2",
             measurementId: "G-SVM7V0L2C5"
         };
+        const app = initializeApp(firebaseConfig); const auth = getAuth(app);
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // ===== MENANGKAP HASIL REDIRECT SAAT KEMBALI KE WEB =====
         getRedirectResult(auth).then((result) => {
             if (result) {
                 const user = result.user;
-                const userData = { 
-                    name: user.displayName || "Crew Member", 
-                    email: user.email || "Tanpa Email", 
-                    picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
-                };
-                localStorage.setItem('zws_user', JSON.stringify(userData));
-                window.tampilkanUser(userData, true);
-                
-                // Pastikan fungsi render di-trigger ulang untuk memunculkan Tombol Edit/Hapus Admin
-                renderProjects(userData);
-                renderJourney(userData); 
-                
+                const userData = { name: user.displayName || "Crew Member", email: user.email || "Tanpa Email", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
+                localStorage.setItem('zws_user', JSON.stringify(userData)); window.tampilkanUser(userData, true);
+                renderProjects(userData); renderJourney(userData); 
                 window.zwsToast(`Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
             }
-        }).catch((error) => {
-            window.zwsToast("Gagal login via Redirect: " + error.message, "error");
-        });
+        }).catch((error) => { window.zwsToast("Gagal login via Redirect: " + error.message, "error"); });
 
-        // ===== FUNGSI LOGIN =====
-        window.loginGoogle = function(btn) {
-            lockUI("MENGALIHKAN KE SISTEM GOOGLE...");
-            setBtnLoading(btn);
-            const provider = new GoogleAuthProvider();
-            provider.addScope('profile');
-            provider.addScope('email');
-            signInWithRedirect(auth, provider);
-        };
-
-        window.loginGitHub = function(btn) {
-            lockUI("MENGALIHKAN KE SISTEM GITHUB...");
-            setBtnLoading(btn);
-            const provider = new GithubAuthProvider();
-            provider.addScope('read:user');
-            provider.addScope('user:email');
-            signInWithRedirect(auth, provider);
-        };
-
-        window.loginFacebook = function(btn) {
-            lockUI("MENGALIHKAN KE SISTEM FACEBOOK/META...");
-            setBtnLoading(btn);
-            const provider = new FacebookAuthProvider();
-            provider.addScope('public_profile');
-            provider.addScope('email');
-            signInWithRedirect(auth, provider);
-        };
-
-        window.loginApple = function() {
-            window.zwsToast("Akses Ditolak: Membutuhkan Apple Developer Account berbayar ($99/tahun).", "warning");
-        };
-
-        // ===== FUNGSI LOGIN INSTAGRAM (ROUTE VIA META) =====
+        window.loginGoogle = function(btn) { lockUI("MENGALIHKAN KE GOOGLE..."); setBtnLoading(btn); const provider = new GoogleAuthProvider(); provider.addScope('profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
+        window.loginGitHub = function(btn) { lockUI("MENGALIHKAN KE GITHUB..."); setBtnLoading(btn); const provider = new GithubAuthProvider(); provider.addScope('read:user'); provider.addScope('user:email'); signInWithRedirect(auth, provider); };
+        window.loginFacebook = function(btn) { lockUI("MENGALIHKAN KE FACEBOOK..."); setBtnLoading(btn); const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
+        
         window.loginInstagram = function(btn) {
-            if (isAuthInProgress) return;
-            isAuthInProgress = true;
-            
-            // 1. Berikan edukasi UX kepada user dengan Toast
-            window.zwsToast("Membuka gerbang Meta. Silakan gunakan akun Instagram yang tertaut di halaman berikutnya.", "info");
-            
-            // 2. Beri jeda 2 detik agar pesan terbaca, lalu eksekusi
-            setTimeout(() => {
-                lockUI("MENGALIHKAN KE SISTEM META/INSTAGRAM...");
-                setBtnLoading(btn);
-                
-                // Meminjam pintu FacebookAuthProvider karena Instagram berada di bawah Meta
-                const provider = new FacebookAuthProvider();
-                provider.addScope('public_profile');
-                provider.addScope('email');
-                
-                signInWithRedirect(auth, provider);
-            }, 2000);
+            window.zwsToast("Membuka gerbang Meta. Gunakan akun Instagram yang tertaut di halaman selanjutnya.", "info");
+            setTimeout(() => { lockUI("MENGALIHKAN KE META..."); setBtnLoading(btn); const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); signInWithRedirect(auth, provider); }, 2000);
         };
     </script>
 </body>
