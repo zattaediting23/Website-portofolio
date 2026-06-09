@@ -149,12 +149,12 @@
                             </div>
 
                             <div>
-                                <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK CV (GOOGLE DRIVE / MEDIAFIRE)</label>
+                                <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK CV (GOOGLE DRIVE / DIRECT LINK)</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="admin-cv-link" placeholder="Paste link disini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
                                 </div>
-                                <p class="text-[10px] text-gray-500 mt-1 italic">Fitur Auto-Detect Aktif. Paste link MediaFire atau Google Drive secara normal, sistem akan otomatis menjadikannya Direct Download.</p>
+                                <p class="text-[10px] text-gray-500 mt-1 italic">Link Google Drive akan otomatis didownload langsung (auto-detect).</p>
                             </div>
                             
                             <hr class="border-gray-800">
@@ -163,7 +163,7 @@
                                 <label class="text-xs text-starCyan font-bold mb-2 flex items-center gap-2" id="label-form-proyek"><i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU</label>
                                 <div class="space-y-3">
                                     <input type="text" id="p-title" placeholder="Nama Proyek (Contoh: Sistem Absense)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
-                                    <input type="text" id="p-link" placeholder="Tautan URL / MediaFire / GDrive (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <input type="text" id="p-link" placeholder="Tautan URL / Link Download (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <textarea id="p-desc" placeholder="Deskripsi Singkat Proyek..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-starCyan outline-none"></textarea>
                                     
                                     <div class="flex flex-col md:flex-row gap-3">
@@ -267,7 +267,6 @@
             }
         });
 
-        // ================= SISTEM CUSTOM DIALOG =================
         function zwsAlert(msg) {
             const dialog = document.getElementById('zws-dialog');
             const box = document.getElementById('zws-dialog-box');
@@ -304,7 +303,8 @@
             setTimeout(() => { dialog.classList.add('hidden'); }, 300);
         }
 
-        // ================= KEAJAIBAN: EKSTRAKTOR LINK DIRECT DOWNLOAD =================
+        // ================= FUNGSI KONVERSI LINK DIRECT DOWNLOAD =================
+        // Menangani Google Drive menjadi auto-download. Sisanya (termasuk MediaFire biasa) dibiarkan default.
         function prosesLinkDrive(url) {
             if (!url || url === '#') return '#';
             const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
@@ -314,48 +314,6 @@
             return url;
         }
 
-        // Web Scraper untuk menembus MediaFire
-        // ================= KEAJAIBAN: EKSTRAKTOR LINK DIRECT DOWNLOAD =================
-        // Web Scraper untuk menembus MediaFire (Menggunakan Proxy Baru)
-        // ================= KEAJAIBAN: EKSTRAKTOR LINK MENGGUNAKAN PRIVATE API GAS =================
-        async function downloadMediaFire(event, url) {
-            event.preventDefault(); // Jangan pindah tab!
-            
-            const btn = event.currentTarget;
-            const originalHtml = btn.innerHTML;
-            
-            // Ubah tombol jadi status loading
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> MENGHUBUNGI SATELIT...';
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
-            btn.style.pointerEvents = 'none';
-
-            try {
-                // Memanggil API MediaFire buatanmu sendiri di Google Apps Script!
-                // Kita tambahkan ?mediafire=LINK di belakang URL API_URL
-                const customApiUrl = API_URL + "?mediafire=" + encodeURIComponent(url);
-                const response = await fetch(customApiUrl);
-                const data = await response.json();
-
-                if (data.status === "success" && data.direct_link) {
-                    // Misi Berhasil! Server Google berhasil mencurinya
-                    window.location.href = data.direct_link;
-                } else {
-                    zwsAlert("Gagal mengekstrak: " + data.message);
-                }
-            } catch (error) {
-                console.error("API Error:", error);
-                zwsAlert("Koneksi ke API Internal gagal. Periksa jaringan.");
-            } finally {
-                // Kembalikan desain tombol setelah 3 detik
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                    btn.style.pointerEvents = 'auto';
-                }, 3000);
-            }
-        }
-
-        // ================= FETCH DATA DARI API GAS =================
         window.onload = () => {
             initIconDropdown(); 
             fetch(API_URL)
@@ -379,17 +337,12 @@
             document.getElementById('admin-profile-name').value = dbData.profile.name || "";
             document.getElementById('admin-profile-bio').value = dbData.profile.bio || "";
 
-            // Atur Link CV (Google Drive vs Mediafire)
             const rawCvLink = dbData.cv || '#';
             const btnCv = document.getElementById('btn-download-cv');
             
-            if (rawCvLink.includes('mediafire.com')) {
-                btnCv.href = "#"; // Tahan href
-                btnCv.onclick = (e) => downloadMediaFire(e, rawCvLink); // Panggil Scraper
-            } else {
-                btnCv.href = prosesLinkDrive(rawCvLink); // Langsung Convert Drive
-                btnCv.onclick = null;
-            }
+            // Format ulang link Google Drive agar langsung mendownload
+            btnCv.href = prosesLinkDrive(rawCvLink); 
+            
             document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
 
             const user = JSON.parse(localStorage.getItem('zws_user'));
@@ -620,20 +573,19 @@
                 const btnText = p.btnText || 'LIVE DEMO';
                 const btnIcon = p.btnIcon || 'fa-solid fa-play';
 
-                const isMediaFire = p.link && p.link.includes('mediafire.com');
+                // Sistem cerdas menangani link (Download VS Tab Baru)
                 const isDrive = p.link && p.link.includes('drive.google.com');
+                const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk') || btnText.toLowerCase().includes('pdf');
                 
-                let actionAttr = '';
-                if (isMediaFire) {
-                    // Kalau link mediafire, panggil Javascript Scraper, jangan buka tab baru
-                    actionAttr = `href="#" onclick="downloadMediaFire(event, '${p.link}')"`;
-                } else if (isDrive) {
-                    // Kalau link G-Drive, jadikan direct download tanpa buka tab baru
-                    actionAttr = `href="${prosesLinkDrive(p.link)}"`;
+                let processedLink = isDrive ? prosesLinkDrive(p.link) : p.link;
+                
+                // Jika itu link web biasa/youtube, buka di tab baru.
+                // Jika itu file yg terdeteksi unduhan, biarkan download (browser otomatis menutup tab kosong).
+                let actionAttr = `href="${processedLink}"`;
+                if (isDownloadable) {
+                    actionAttr += ` download target="_blank"`; // target_blank aman untuk mencegah bug download di beberapa browser HP
                 } else {
-                    // Cek jika teks tombol memiliki kata 'download' atau 'unduh', paksa donwload tanpa buka tab
-                    const isDownloadable = btnText.toLowerCase().includes('unduh') || btnText.toLowerCase().includes('download') || btnText.toLowerCase().includes('apk');
-                    actionAttr = `href="${p.link}" ${isDownloadable ? 'download' : 'target="_blank"'}`;
+                    actionAttr += ` target="_blank"`;
                 }
 
                 return `
