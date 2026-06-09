@@ -35,14 +35,11 @@
         .custom-scroll::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 4px; }
 
-        /* ================= ANIMASI SCROLL ELEGAN ================= */
         .scroll-anim { opacity: 0; transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .scroll-up { transform: translateY(30px); }
         .scroll-left { transform: translateX(-30px); }
         .scroll-right { transform: translateX(30px); }
         .scroll-scale { transform: scale(0.95); }
-        
-        /* Kelas saat elemen masuk ke layar */
         .scroll-anim.show { opacity: 1; transform: translate(0) scale(1); }
     </style>
 </head>
@@ -94,16 +91,34 @@
                 <input type="text" id="input-name" placeholder="Nama Lengkap" class="hidden w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none">
                 <input type="email" id="input-email" required placeholder="Email" class="w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none">
                 <input type="password" id="input-password" required placeholder="Password" class="w-full bg-black p-3 rounded border border-gray-700 text-white text-sm focus:border-starCyan outline-none">
-                <button type="submit" id="btn-submit" class="w-full bg-nebulaPurple hover:bg-purple-700 p-3 rounded font-bold text-white text-sm transition-colors">MASUK</button>
+                <button type="submit" id="btn-submit" class="w-full bg-nebulaPurple hover:bg-purple-700 p-3 rounded font-bold text-white text-sm transition-colors shadow-[0_0_15px_rgba(76,29,149,0.5)]">MASUK</button>
             </form>
 
-            <div class="my-6 flex items-center gap-4 text-gray-600 text-xs font-bold">
-                <div class="h-px bg-gray-700 flex-1"></div> ATAU <div class="h-px bg-gray-700 flex-1"></div>
+            <div class="my-5 flex items-center gap-4 text-gray-600 text-[10px] font-bold tracking-widest uppercase">
+                <div class="h-px bg-gray-800 flex-1"></div> ATAU LANJUTKAN DENGAN <div class="h-px bg-gray-800 flex-1"></div>
             </div>
 
-            <button onclick="mulaiLoginGoogle()" class="w-full flex justify-center items-center gap-2 bg-white text-black p-3 rounded font-bold hover:bg-gray-200 transition-colors text-sm">
-                <i class="fa-brands fa-google text-blue-600"></i> Sign in with Google
-            </button>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="loginGoogle()" class="col-span-2 flex justify-center items-center gap-2 bg-white text-gray-900 p-2.5 rounded font-bold hover:bg-gray-200 transition-colors text-sm">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="w-4 h-4"> Google
+                </button>
+                
+                <button onclick="loginApple()" class="flex justify-center items-center gap-2 bg-black border border-gray-700 text-white p-2.5 rounded font-bold hover:bg-gray-900 transition-colors text-sm">
+                    <i class="fa-brands fa-apple text-white text-lg mb-0.5"></i> Apple
+                </button>
+                
+                <button onclick="loginGitHub()" class="flex justify-center items-center gap-2 bg-[#24292e] text-white p-2.5 rounded font-bold hover:bg-[#1b1f23] transition-colors text-sm shadow-[0_0_10px_rgba(36,41,46,0.5)]">
+                    <i class="fa-brands fa-github text-white text-lg"></i> GitHub
+                </button>
+                
+                <button onclick="loginFacebook()" class="flex justify-center items-center gap-2 bg-[#1877f2] text-white p-2.5 rounded font-bold hover:bg-[#166fe5] transition-colors text-sm shadow-[0_0_10px_rgba(24,119,242,0.4)]">
+                    <i class="fa-brands fa-facebook text-white text-lg"></i> Facebook
+                </button>
+                
+                <button onclick="loginInstagram()" class="flex justify-center items-center gap-2 bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] text-white p-2.5 rounded font-bold hover:opacity-90 transition-opacity text-sm shadow-[0_0_10px_rgba(220,39,67,0.4)]">
+                    <i class="fa-brands fa-instagram text-white text-lg"></i> Instagram
+                </button>
+            </div>
         </div>
     </div>
 
@@ -164,7 +179,6 @@
                                     <input type="text" id="admin-cv-link" placeholder="Paste link disini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
                                     <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
                                 </div>
-                                <p class="text-[10px] text-gray-500 mt-1 italic">Link Google Drive akan otomatis didownload langsung (auto-detect).</p>
                             </div>
                             
                             <hr class="border-gray-800">
@@ -211,10 +225,9 @@
 
     </main>
 
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         // =============================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbxATcI1_FFFr65T0TfShi62czWOlpu_3D34rCLJ6Cf6SQxK3PkClxnraoYGGzeQ8m37Ig/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
         // =============================================================
 
         const ADMIN_EMAIL = "zhafranediting23@gmail.com";
@@ -222,12 +235,11 @@
         let editIndex = -1; 
         let dbData = { profile: {}, cv: "#", projects: [] };
 
-        // ================= ANIMASI OBSERVER (Sensor Scroll) =================
         const scrollObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('show');
-                    scrollObserver.unobserve(entry.target); // Animasi hanya berjalan 1 kali
+                    scrollObserver.unobserve(entry.target); 
                 }
             });
         }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
@@ -236,7 +248,6 @@
             document.querySelectorAll('.scroll-anim:not(.show)').forEach(el => scrollObserver.observe(el));
         }
 
-        // ================= DAFTAR IKON =================
         const iconList = [
             { name: "Mainkan (Play)", class: "fa-solid fa-play" },
             { name: "Unduh (Download)", class: "fa-solid fa-download" },
@@ -434,12 +445,14 @@
             });
         }
 
-        // ================= AUTHENTICATION =================
+        // ================= MODAL & BASIC AUTH =================
         function bukaModalAuth(type) {
             document.getElementById('auth-modal').classList.remove('hidden');
             switchTabAuth(type);
         }
-        function tutupModalAuth() { document.getElementById('auth-modal').classList.add('hidden'); }
+        window.tutupModalAuth = function() { 
+            document.getElementById('auth-modal').classList.add('hidden'); 
+        }
         
         function switchTabAuth(type) {
             modeForm = type;
@@ -461,6 +474,7 @@
             }
         }
 
+        // Ini hanya untuk login manual dummy, yang asli di handle Firebase
         document.getElementById('auth-form').onsubmit = function(e) {
             e.preventDefault();
             const email = document.getElementById('input-email').value;
@@ -469,32 +483,11 @@
             localStorage.setItem('zws_user', JSON.stringify(userData));
             
             tutupModalAuth();
-            tampilkanUser(userData, true);
+            window.tampilkanUser(userData, true);
             renderProjects(userData);
         }
 
-        let tokenClient;
-        function mulaiLoginGoogle() {
-            if (!tokenClient) {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: '43329305891-s1hl56d4tk9mca5pvubru17o86fljrt4.apps.googleusercontent.com',
-                    scope: 'email profile',
-                    callback: (res) => {
-                        fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${res.access_token}` } })
-                        .then(r => r.json()).then(user => {
-                            const userData = { name: user.name, email: user.email, picture: user.picture };
-                            localStorage.setItem('zws_user', JSON.stringify(userData));
-                            tutupModalAuth();
-                            tampilkanUser(userData, true);
-                            renderProjects(userData);
-                        });
-                    }
-                });
-            }
-            tokenClient.requestAccessToken();
-        }
-
-        function tampilkanUser(user, isLoginBaru = false) {
+        window.tampilkanUser = function(user, isLoginBaru = false) {
             document.getElementById('nav-logged-out').classList.add('hidden');
             document.getElementById('nav-logged-in').classList.remove('hidden');
             document.getElementById('nav-foto').src = user.picture;
@@ -521,63 +514,7 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
             document.getElementById('page-'+id).classList.add('page-active');
             window.scrollTo(0,0);
-            
-            // Re-trigger animasi ketika pindah halaman
             setTimeout(aktifkanAnimasiScroll, 50);
-        }
-
-        // ================= CRUD UI HELPER =================
-        function editProyek(index) {
-            const p = dbData.projects[index];
-            document.getElementById('p-title').value = p.title || '';
-            document.getElementById('p-link').value = p.link || '';
-            document.getElementById('p-desc').value = p.desc || '';
-            document.getElementById('p-btn-text').value = p.btnText || '';
-            
-            const iconVal = p.btnIcon || 'fa-solid fa-play';
-            document.getElementById('p-btn-icon-value').value = iconVal;
-            document.getElementById('selected-icon-preview').className = `${iconVal} text-starCyan mr-3 w-5 text-center`;
-            
-            const foundIcon = iconList.find(i => i.class === iconVal);
-            document.getElementById('icon-search-input').value = foundIcon ? foundIcon.name : '';
-            
-            editIndex = index;
-            document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-pen-to-square text-lg"></i> UPDATE PROYEK';
-            document.getElementById('label-form-proyek').className = "text-xs text-yellow-500 font-bold mb-2 flex items-center gap-2";
-            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>SIMPAN PERUBAHAN KE CLOUD';
-            document.getElementById('btn-simpan-proyek').className = "flex-1 bg-yellow-600 text-white font-bold p-3 rounded hover:bg-yellow-700 text-sm transition-colors";
-            document.getElementById('btn-batal-edit').classList.remove('hidden');
-
-            showPage('profil');
-            
-            setTimeout(() => {
-                const panel = document.getElementById('admin-panel');
-                panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                panel.classList.replace('border-blue-500', 'border-yellow-500');
-                panel.classList.add('shadow-[0_0_30px_rgba(234,179,8,0.5)]');
-                setTimeout(() => {
-                    panel.classList.replace('border-yellow-500', 'border-blue-500');
-                    panel.classList.remove('shadow-[0_0_30px_rgba(234,179,8,0.5)]');
-                }, 1200);
-            }, 100);
-        }
-
-        function batalEdit() {
-            editIndex = -1;
-            document.getElementById('p-title').value = '';
-            document.getElementById('p-link').value = '';
-            document.getElementById('p-desc').value = '';
-            document.getElementById('p-btn-text').value = '';
-            
-            document.getElementById('p-btn-icon-value').value = '';
-            document.getElementById('icon-search-input').value = '';
-            document.getElementById('selected-icon-preview').className = 'fa-solid fa-play text-gray-500 mr-3 w-5 text-center';
-            
-            document.getElementById('label-form-proyek').innerHTML = '<i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU';
-            document.getElementById('label-form-proyek').className = "text-xs text-starCyan font-bold mb-2 flex items-center gap-2";
-            document.getElementById('btn-simpan-proyek').innerHTML = '<i class="fa-solid fa-rocket mr-2"></i>TAMBAH KE LAUNCHPAD';
-            document.getElementById('btn-simpan-proyek').className = "flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors";
-            document.getElementById('btn-batal-edit').classList.add('hidden');
         }
 
         function renderProjects(user) {
@@ -601,13 +538,9 @@
                     let processedLink = isDrive ? prosesLinkDrive(p.link) : p.link;
                     
                     let actionAttr = `href="${processedLink}"`;
-                    if (isDownloadable) {
-                        actionAttr += ` download target="_blank"`; 
-                    } else {
-                        actionAttr += ` target="_blank"`;
-                    }
+                    if (isDownloadable) actionAttr += ` download target="_blank"`; 
+                    else actionAttr += ` target="_blank"`;
 
-                    // Trik Stagger Delay untuk Grid Proyek
                     const delay = (index % 3) * 100;
 
                     return `
@@ -625,10 +558,74 @@
                     </div>`;
                 }).join('');
             }
-            
-            // Panggil observer setelah proyek selesai dirender
             aktifkanAnimasiScroll();
         }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+        // Konfigurasi Firebase milikmu
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXiY33kAumrMp4kMM_6J-LsWuGCtPM6hY",
+            authDomain: "zws-auth.firebaseapp.com",
+            projectId: "zws-auth",
+            storageBucket: "zws-auth.firebasestorage.app",
+            messagingSenderId: "21592339559",
+            appId: "1:21592339559:web:95b00074154e6f2f3050c2",
+            measurementId: "G-SVM7V0L2C5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+
+        // Fungsi Helper untuk memproses data setelah login sukses
+        function handleLoginSuccess(result) {
+            const user = result.user;
+            const userData = { 
+                name: user.displayName || "Crew Member", 
+                email: user.email || "Tanpa Email", 
+                picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
+            };
+            
+            // Simpan ke local storage dan update UI (Memanggil fungsi dari script utama)
+            localStorage.setItem('zws_user', JSON.stringify(userData));
+            window.tutupModalAuth();
+            window.tampilkanUser(userData, true);
+        }
+
+        // Menyambungkan fungsi ke tombol HTML menggunakan `window.`
+        window.loginGoogle = function() {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider)
+                .then(handleLoginSuccess)
+                .catch((error) => alert("Gagal login dengan Google: " + error.message));
+        };
+
+        window.loginGitHub = function() {
+            const provider = new GithubAuthProvider();
+            signInWithPopup(auth, provider)
+                .then(handleLoginSuccess)
+                .catch((error) => alert("Gagal login dengan GitHub: " + error.message));
+        };
+
+        window.loginFacebook = function() {
+            const provider = new FacebookAuthProvider();
+            signInWithPopup(auth, provider)
+                .then(handleLoginSuccess)
+                .catch((error) => alert("Gagal login dengan Facebook: " + error.message));
+        };
+
+        window.loginApple = function() {
+            alert("Akses Ditolak: Anda membutuhkan akun Apple Developer berbayar ($99/tahun) untuk mengaktifkan fitur ini.");
+        };
+
+        window.loginInstagram = function() {
+            alert("Login Instagram terintegrasi di dalam infrastruktur Meta. Silakan klik tombol 'Facebook' jika akun Instagram Anda sudah tertaut.");
+        };
     </script>
 </body>
 </html>
