@@ -674,8 +674,9 @@
         const grid = document.getElementById("project-grid");
         let projects = JSON.parse(localStorage.getItem("zws_projects"));
 
-        // PERBAIKAN BUG: Pastikan data default langsung tersimpan ke memori
-        if (!projects || projects.length === 0) {
+        // PERBAIKAN BUG ZOMBIE:
+        // Hanya buat data default JIKA data benar-benar "null" (web pertama kali diakses selamanya)
+        if (!projects) {
           projects = [
             {
               title: "Klinik Registration Web",
@@ -688,6 +689,17 @@
 
         const isAdmin = user && user.email === ADMIN_EMAIL;
 
+        // Jika array kosong (sengaja dihapus semua oleh Admin), tampilkan pesan kosong.
+        if (projects.length === 0) {
+          grid.innerHTML = `
+                    <div class="md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl">
+                        <i class="fa-solid fa-folder-open text-4xl text-gray-700 mb-3"></i>
+                        <p class="text-gray-500 font-mono text-sm tracking-widest">LAUNCHPAD KOSONG. BELUM ADA PROYEK.</p>
+                    </div>`;
+          return; // Berhenti di sini, jangan render kotak-kotak proyek
+        }
+
+        // Render proyek yang ada
         grid.innerHTML = projects
           .map(
             (p, index) => `
