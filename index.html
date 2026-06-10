@@ -98,7 +98,7 @@
                 <div class="text-[10px] text-gray-500 font-bold tracking-widest mb-1"><i class="fa-solid fa-shield-halved mr-1"></i> SECURITY CHECK</div>
                 
                 <div class="transform scale-90">
-                    <div class="cf-turnstile" data-sitekey="0x4AAAAAADhbRHVyHjQV1UmnI" data-theme="dark" data-callback="turnstileSelesai"></div>
+                    <div id="cf-turnstile-widget"></div>
                 </div>
                 
                 <div class="transform scale-90 -mt-2">
@@ -249,7 +249,10 @@
         let dbData = { profile: {}, cv: "#", projects: [], journey: [] };
 
         // ================= SISTEM KEAMANAN GANDA (TURNSTILE + RECAPTCHA) =================
-        let statusTurnstile = false; let statusRecaptcha = false;
+        let statusTurnstile = false; 
+        let statusRecaptcha = false;
+        let turnstileWidgetId = null; // Menyimpan ID widget Turnstile
+
         window.turnstileSelesai = function(token) { statusTurnstile = true; cekKunciGanda(); };
         window.recaptchaSelesai = function(token) { statusRecaptcha = true; cekKunciGanda(); };
 
@@ -269,27 +272,25 @@
             if(btnContainer) btnContainer.classList.add('opacity-50', 'pointer-events-none', 'blur-[1px]');
             
             statusTurnstile = false; statusRecaptcha = false;
-            if (typeof turnstile !== 'undefined') turnstile.reset();
+            
+            // Reset Turnstile dan reCAPTCHA secara aman
+            if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+                turnstile.reset(turnstileWidgetId);
+            }
             if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
         }
 
         function bukaModalAuth(type) {
             document.getElementById('auth-modal').classList.remove('hidden');
             switchTabAuth(type);
-        }
 
-        function switchTabAuth(type) {
-            modeForm = type;
-            const tLogin = document.getElementById('tab-login'); const tSignup = document.getElementById('tab-signup');
-            const iName = document.getElementById('input-name'); const btn = document.getElementById('btn-submit');
-            if(type === 'login') {
-                tLogin.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
-                tSignup.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
-                iName.classList.add('hidden'); iName.removeAttribute('required'); btn.innerText = "MASUK";
-            } else {
-                tSignup.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
-                tLogin.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
-                iName.classList.remove('hidden'); iName.setAttribute('required', 'true'); btn.innerText = "BUAT AKUN";
+            // Render Turnstile HANYA saat modal terbuka (Solusi Widget Hilang)
+            if (typeof turnstile !== 'undefined' && turnstileWidgetId === null) {
+                turnstileWidgetId = turnstile.render('#cf-turnstile-widget', {
+                    sitekey: 'KUNCI_TURNSTILE_KAMU_DISINI', // <--- MASUKKAN SITE KEY CLOUDFLARE DI SINI!
+                    theme: 'dark',
+                    callback: 'turnstileSelesai'
+                });
             }
         }
 
@@ -431,7 +432,7 @@
         function renderProjects(user) {
             const grid = document.getElementById('project-grid'); 
             // Cek apakah email user masuk ke dalam daftar array ADMIN_ACCOUNTS
-            const isAdmin = user && ADMIN_ACCOUNTS.includes(user.email);
+            const isAdmin = user && user.email && ADMIN_ACCOUNTS.includes(user.email);
 
             if(!dbData.projects || dbData.projects.length === 0) { grid.innerHTML = `<div class="md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl scroll-anim scroll-up"><i class="fa-solid fa-folder-open text-4xl text-gray-700 mb-3"></i><p class="text-gray-500 font-mono text-sm tracking-widest">LAUNCHPAD KOSONG.</p></div>`; } 
             else {
@@ -465,7 +466,7 @@
         function renderJourney(user) {
             const timeline = document.getElementById('journey-timeline'); 
             // Cek apakah email user masuk ke dalam daftar array ADMIN_ACCOUNTS
-            const isAdmin = user && ADMIN_ACCOUNTS.includes(user.email);
+            const isAdmin = user && user.email && ADMIN_ACCOUNTS.includes(user.email);
             
             if(!dbData.journey || dbData.journey.length === 0) { timeline.innerHTML = '<p class="text-gray-500 font-mono text-sm ml-6 scroll-anim scroll-right">Belum ada jejak perjalanan.</p>'; return; }
             timeline.innerHTML = dbData.journey.map((j, index) => {
@@ -482,7 +483,11 @@
             document.getElementById('profil-name').innerText = user.name; document.getElementById('profil-email').innerText = user.email;
             
             // Cek apakah email user masuk ke dalam daftar array ADMIN_ACCOUNTS
-            if(user && ADMIN_ACCOUNTS.includes(user.email)) document.getElementById('admin-panel').classList.remove('hidden'); 
+            if(user && user.email && ADMIN_ACCOUNTS.includes(user.email)) {
+                document.getElementById('admin-panel').classList.remove('hidden');
+            } else {
+                document.getElementById('admin-panel').classList.add('hidden');
+            } 
             else document.getElementById('admin-panel').classList.add('hidden');
             
             if(isLoginBaru) showPage('profil');
