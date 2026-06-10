@@ -279,13 +279,17 @@
             document.getElementById('auth-modal').classList.remove('hidden');
             switchTabAuth(type);
 
-            // Render Turnstile Paksa Saat Modal Dibuka
-            if (typeof turnstile !== 'undefined' && turnstileWidgetId === null) {
-                turnstileWidgetId = turnstile.render('#cf-turnstile-widget', {
-                    sitekey: '0x4AAAAAADhbRHVyHjQV1Umn',
-                    theme: 'dark',
-                    callback: 'turnstileSelesai'
-                });
+            // Render Turnstile menggunakan referensi fungsi LANGSUNG (Bukan String)
+            if (typeof turnstile !== 'undefined') {
+                if (turnstileWidgetId === null) {
+                    turnstileWidgetId = turnstile.render('#cf-turnstile-widget', {
+                        sitekey: 'KUNCI_TURNSTILE_KAMU_DISINI', // <--- JANGAN LUPA MASUKKAN KUNCIMU
+                        theme: 'dark',
+                        callback: window.turnstileSelesai // <--- Ini yang memperbaiki tombol macet!
+                    });
+                } else {
+                    turnstile.reset(turnstileWidgetId);
+                }
             }
         }
 
@@ -393,17 +397,34 @@
         };
 
         function renderSeluruhUI() {
+            // 1. PROTEKSI ANTI-CRASH: Jika database cloud kosong, buat kerangka default
+            if (!dbData) dbData = {};
+            if (!dbData.profile) dbData.profile = {};
+            if (!dbData.projects) dbData.projects = [];
+            if (!dbData.journey) dbData.journey = [];
+
             document.getElementById('hero-name').innerText = dbData.profile.name || "M. Zhafran .MA";
             document.getElementById('profil-bio').innerText = dbData.profile.bio || "Bio kosong.";
             document.getElementById('admin-profile-name').value = dbData.profile.name || "";
             document.getElementById('admin-profile-bio').value = dbData.profile.bio || "";
-            const rawCvLink = dbData.cv || '#'; document.getElementById('btn-download-cv').href = prosesLinkDrive(rawCvLink); 
+            
+            const rawCvLink = dbData.cv || '#'; 
+            document.getElementById('btn-download-cv').href = prosesLinkDrive(rawCvLink); 
             document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
 
-            const user = JSON.parse(localStorage.getItem('zws_user'));
-            renderProjects(user); renderJourney(user);
+            const userStr = localStorage.getItem('zws_user');
+            const user = userStr ? JSON.parse(userStr) : null;
+            
+            renderProjects(user); 
+            renderJourney(user);
+            
             if(user) tampilkanUser(user, false); 
             if(!document.getElementById('page-profil').classList.contains('page-active')) { showPage('beranda'); }
+
+            // 2. FALLBACK ANIMASI: Paksa semua UI muncul setelah 1 detik meski ada error
+            setTimeout(() => {
+                document.querySelectorAll('.scroll-anim').forEach(el => el.classList.add('show'));
+            }, 1000);
         }
 
         // ================= CRUD SYSTEM =================
