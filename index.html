@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZWS | Galactic Station</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     
@@ -21,8 +22,8 @@
         }
     </script>
     <style>
-        body { background-col
-            or: #020204; color: #e2e8f0; background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px); background-size: 550px 550px, 350px 350px; background-position: 0 0, 40px 60px; }
+        /* Desain Latar Belakang Bintang */
+        body { background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px); background-size: 550px 550px, 350px 350px; background-position: 0 0, 40px 60px; }
         .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .page { display: none; }
         .page-active { display: block; }
@@ -36,7 +37,8 @@
         .scroll-anim.show { opacity: 1; transform: translate(0) scale(1); }
     </style>
 </head>
-<body class="font-sans min-h-screen relative overflow-x-hidden">
+
+<body class="bg-[#020204] text-[#e2e8f0] font-sans min-h-screen relative overflow-x-hidden">
 
     <div id="toast-container" class="fixed top-6 right-6 z-[300] flex flex-col gap-3 pointer-events-none"></div>
 
@@ -51,7 +53,7 @@
 
     <div id="loading-screen" class="hidden fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex flex-col justify-center items-center transition-opacity duration-500">
         <div class="loader mb-4 w-12 h-12"></div>
-        <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse" id="loading-text">MENYINKRONKAN DATA...</p>
+        <p class="text-starCyan font-mono text-sm tracking-widest animate-pulse" id="loading-text">MENYINKRONKAN DATA CLOUD...</p>
     </div>
 
     <nav class="fixed w-full z-50 glass px-6 py-4 flex justify-between items-center">
@@ -90,7 +92,7 @@
             </form>
 
             <div class="my-5 flex items-center gap-4 text-gray-600 text-[10px] font-bold tracking-widest uppercase">
-                <div class="h-px bg-gray-800 flex-1"></div> ATAU VIA <div class="h-px bg-gray-800 flex-1"></div>
+                <div class="h-px bg-gray-800 flex-1"></div> ATAU LANJUTKAN DENGAN <div class="h-px bg-gray-800 flex-1"></div>
             </div>
 
             <div class="flex flex-col gap-2 items-center mb-5 bg-spaceBlack border border-gray-800 p-3 rounded-xl shadow-inner">
@@ -224,9 +226,8 @@
     </main>
 
     <script>
+        // ================= PENGATURAN ADMIN =================
         const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
-        
-        // ================= DAFTAR EMAIL ADMIN MULTI-AKUN =================
         const ADMIN_ACCOUNTS = [
             "zhafranediting23@gmail.com",   
             "email_github_kamu@gmail.com",  
@@ -235,6 +236,7 @@
 
         let modeForm = 'login'; let editIndex = -1; let editJourneyIndex = -1; 
         let dbData = { profile: {}, cv: "#", projects: [], journey: [] };
+        let currentUserInfo = null; // Menyimpan data user yang login
 
         // ================= SISTEM KEAMANAN GANDA =================
         let statusTurnstile = false; 
@@ -249,7 +251,6 @@
                 const btnContainer = document.getElementById('auth-buttons-container');
                 if(btnContainer) {
                     btnContainer.classList.remove('opacity-50', 'pointer-events-none', 'blur-[1px]');
-                    window.zwsToast("Akses diizinkan. Silakan pilih metode Login.", "success");
                 }
             }
         }
@@ -260,31 +261,23 @@
             if(btnContainer) btnContainer.classList.add('opacity-50', 'pointer-events-none', 'blur-[1px]');
             
             statusTurnstile = false; statusRecaptcha = false;
-            if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
-                try { turnstile.reset(turnstileWidgetId); } catch(e){}
-            }
-            if (typeof grecaptcha !== 'undefined') {
-                try { grecaptcha.reset(); } catch(e){}
-            }
+            if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) { try { turnstile.reset(turnstileWidgetId); } catch(e){} }
+            if (typeof grecaptcha !== 'undefined') { try { grecaptcha.reset(); } catch(e){} }
         }
 
         function bukaModalAuth(type) {
             document.getElementById('auth-modal').classList.remove('hidden');
             switchTabAuth(type);
 
-            // Render Turnstile Paksa Saat Modal Dibuka (DILINDUNGI TRY-CATCH ANTI CRASH)
             try {
                 if (typeof turnstile !== 'undefined' && turnstileWidgetId === null) {
                     turnstileWidgetId = turnstile.render('#cf-turnstile-widget', {
-                        sitekey: '0x4AAAAAADhbRHVyHjQV1Umn', // <--- GANTI INI
+                        sitekey: '0x4AAAAAADhbRHVyHjQV1Umn',
                         theme: 'dark',
                         callback: window.turnstileSelesai
                     });
                 }
-            } catch (error) {
-                console.error("Turnstile Crash Guard:", error);
-                window.zwsToast("Error Cloudflare: Site Key Tidak Valid.", "error");
-            }
+            } catch (error) { console.error("Turnstile Error:", error); }
         }
 
         function switchTabAuth(type) {
@@ -302,7 +295,7 @@
             }
         }
 
-        // ================= ANIMASI SCROLL & LOADING UI =================
+        // ================= UI & ANIMASI =================
         const scrollObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('show'); scrollObserver.unobserve(entry.target); } });
         }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
@@ -314,33 +307,32 @@
             document.getElementById('loading-text').innerText = pesan; document.getElementById('loading-text').classList.remove('text-red-500');
             loader.classList.remove('hidden'); setTimeout(() => loader.classList.remove('opacity-0'), 10);
         }
-        function unlockUI(instant = false) {
+        function unlockUI() {
             const loader = document.getElementById('loading-screen');
-            if(instant) { loader.classList.add('hidden'); loader.classList.remove('opacity-0'); } 
-            else { loader.classList.add('opacity-0'); setTimeout(() => loader.classList.add('hidden'), 500); }
+            loader.classList.add('opacity-0'); setTimeout(() => loader.classList.add('hidden'), 500);
         }
 
-        // ================= INISIALISASI DATA & FETCH API =================
+        function showPage(id) { 
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active')); 
+            document.getElementById('page-'+id).classList.add('page-active'); 
+            window.scrollTo(0,0); setTimeout(aktifkanAnimasiScroll, 50); 
+        }
+
+        // ================= FETCH API CLOUD =================
         window.onload = () => {
             initIconDropdown(); 
             lockUI("MENYINKRONKAN DATA CLOUD...");
             const startTime = Date.now();
             
             fetch(API_URL)
-                .then(res => { if (!res.ok) throw new Error("Server Error: " + res.status); return res.json(); })
-                .then(data => {
-                    dbData = data; 
-                    renderSeluruhUI(); 
-                })
+                .then(res => { if (!res.ok) throw new Error("Server Error"); return res.json(); })
+                .then(data => { dbData = data; renderSeluruhUI(); })
                 .catch(err => {
                     console.error("Gagal API:", err); 
-                    document.getElementById('loading-text').innerText = "OFFLINE MODE AKTIF";
-                    document.getElementById('loading-text').classList.add('text-yellow-500'); 
-                    zwsToast("Gagal mengambil data dari cloud. Menggunakan struktur bawaan.", "warning");
-                    renderSeluruhUI(); // Tetap render meski gagal agar layar tidak hitam
+                    zwsToast("Menggunakan struktur lokal (API Gagal).", "warning");
+                    renderSeluruhUI(); 
                 })
                 .finally(() => {
-                    // APAPUN YANG TERJADI, PAKSA UI MUNCUL SETELAH LOAD
                     const remaining = Math.max(0, 1000 - (Date.now() - startTime)); 
                     setTimeout(() => {
                         unlockUI();
@@ -349,8 +341,8 @@
                 });
         };
 
+        // Render Data Tanpa Membajak Navigasi Halaman
         function renderSeluruhUI() {
-            // SABUK PENGAMAN ANTI-CRASH (Mencegah Layar Hitam)
             if (!dbData) dbData = {};
             if (!dbData.profile) dbData.profile = {};
             if (!dbData.projects) dbData.projects = [];
@@ -365,14 +357,25 @@
             document.getElementById('btn-download-cv').href = prosesLinkDrive(rawCvLink); 
             document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
 
-            const userStr = localStorage.getItem('zws_user');
-            const user = userStr ? JSON.parse(userStr) : null;
+            renderProjects(currentUserInfo); 
+            renderJourney(currentUserInfo);
+        }
+
+        // ================= USER UI HANDLER =================
+        window.tampilkanUser = function(user) {
+            currentUserInfo = user;
+            document.getElementById('nav-logged-out').classList.add('hidden'); 
+            document.getElementById('nav-logged-in').classList.remove('hidden');
+            document.getElementById('nav-foto').src = user.picture; 
+            document.getElementById('profil-img').src = user.picture;
+            document.getElementById('profil-name').innerText = user.name; 
+            document.getElementById('profil-email').innerText = user.email;
             
-            renderProjects(user); 
-            renderJourney(user);
-            
-            if(user) tampilkanUser(user, false); 
-            if(!document.getElementById('page-profil').classList.contains('page-active')) { showPage('beranda'); }
+            if(user && user.email && ADMIN_ACCOUNTS.includes(user.email)) { 
+                document.getElementById('admin-panel').classList.remove('hidden'); 
+            } else { 
+                document.getElementById('admin-panel').classList.add('hidden'); 
+            }
         }
 
         // ================= CRUD SYSTEM =================
@@ -380,7 +383,7 @@
             renderSeluruhUI(); lockUI("MENGIRIM DATA...");
             fetch(API_URL, { method: 'POST', body: JSON.stringify(dbData) })
             .then(res => res.json()).then(res => { unlockUI(); zwsToast(pesanSukses, "success"); })
-            .catch(err => { unlockUI(true); zwsToast("Gagal mengirim data.", "error"); });
+            .catch(err => { unlockUI(); zwsToast("Gagal mengirim data.", "error"); });
         }
 
         function simpanProfilUtama() { dbData.profile.name = document.getElementById('admin-profile-name').value; dbData.profile.bio = document.getElementById('admin-profile-bio').value; kirimKeServerGAS("Log Identitas diperbarui!"); }
@@ -450,27 +453,16 @@
             aktifkanAnimasiScroll();
         }
 
-        // ================= USER & AUTH MANAGEMENT =================
-        window.tampilkanUser = function(user, isLoginBaru = false) {
-            document.getElementById('nav-logged-out').classList.add('hidden'); document.getElementById('nav-logged-in').classList.remove('hidden');
-            document.getElementById('nav-foto').src = user.picture; document.getElementById('profil-img').src = user.picture;
-            document.getElementById('profil-name').innerText = user.name; document.getElementById('profil-email').innerText = user.email;
-            
-            if(user && user.email && ADMIN_ACCOUNTS.includes(user.email)) { document.getElementById('admin-panel').classList.remove('hidden'); } 
-            else { document.getElementById('admin-panel').classList.add('hidden'); }
-            
-            if(isLoginBaru) showPage('profil');
-        }
-        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active')); document.getElementById('page-'+id).classList.add('page-active'); window.scrollTo(0,0); setTimeout(aktifkanAnimasiScroll, 50); }
-        function setBtnLoading(btn) { if(!btn) return null; const o = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i>'; btn.classList.add('opacity-75', 'cursor-not-allowed'); return o; }
+        function setBtnLoading(btn) { if(!btn) return null; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i>'; btn.classList.add('opacity-75', 'cursor-not-allowed'); }
         
-        // ================= ICON SYSTEM (DIPADATKAN) =================
+        // ================= ICON SYSTEM =================
         const iconList = [{name:"Mainkan",class:"fa-solid fa-play"},{name:"Unduh",class:"fa-solid fa-download"},{name:"GitHub",class:"fa-brands fa-github"},{name:"Website",class:"fa-solid fa-globe"},{name:"Tautan",class:"fa-solid fa-arrow-up-right-from-square"},{name:"Drive",class:"fa-brands fa-google-drive"},{name:"YouTube",class:"fa-brands fa-youtube"},{name:"Aplikasi",class:"fa-solid fa-mobile-screen"}];
         function initIconDropdown() { document.getElementById('icon-dropdown-list').innerHTML = iconList.map(icon => `<div onclick="selectIcon('${icon.class}', '${icon.name}')" class="flex items-center p-3 hover:bg-gray-800 cursor-pointer border-b border-gray-800 last:border-0"><i class="${icon.class} text-starCyan w-6 text-center mr-3 text-lg"></i> <span class="text-sm text-gray-300">${icon.name}</span></div>`).join(''); }
         function toggleDropdown() { document.getElementById('icon-dropdown-list').classList.toggle('hidden'); document.getElementById('icon-search-input').focus(); }
         function filterIcons() { const searchVal = document.getElementById('icon-search-input').value.toLowerCase(); const items = document.getElementById('icon-dropdown-list').children; for(let i = 0; i < items.length; i++) items[i].style.display = items[i].innerText.toLowerCase().includes(searchVal) ? 'flex' : 'none'; }
         function selectIcon(iconClass, iconName) { document.getElementById('p-btn-icon-value').value = iconClass; document.getElementById('icon-search-input').value = iconName; document.getElementById('selected-icon-preview').className = `${iconClass} text-starCyan mr-3 w-5 text-center`; document.getElementById('icon-dropdown-list').classList.add('hidden'); }
         document.addEventListener('click', function(e) { const c = document.getElementById('icon-dropdown-container'); if (c && !c.contains(e.target)) document.getElementById('icon-dropdown-list').classList.add('hidden'); });
+        
         window.zwsToast = function(msg, type = 'info') { const container = document.getElementById('toast-container'); const toast = document.createElement('div'); let bgClass = 'bg-gray-800 border-gray-600 text-white'; let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>'; if (type === 'success') { bgClass = 'bg-emerald-900/95 border border-emerald-500 text-emerald-50'; icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>'; } else if (type === 'error') { bgClass = 'bg-red-900/95 border border-red-500 text-red-50'; icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>'; } else if (type === 'warning') { bgClass = 'bg-yellow-900/95 border border-yellow-500 text-yellow-50'; icon = '<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>'; } toast.className = `flex items-center gap-3 px-5 py-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto backdrop-blur-md ${bgClass}`; toast.innerHTML = `<div class="text-xl">${icon}</div> <span class="text-sm font-medium tracking-wide leading-tight">${msg}</span>`; container.appendChild(toast); setTimeout(() => toast.classList.remove('translate-x-full', 'opacity-0'), 10); setTimeout(() => { toast.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3500); }
         function zwsConfirm(msg, onConfirmCallback) { const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box'); document.getElementById('zws-dialog-msg').innerText = msg; window.tempConfirmCallback = () => { closeZwsDialog(); if(onConfirmCallback) onConfirmCallback(); }; document.getElementById('zws-dialog-buttons').innerHTML = `<button onclick="closeZwsDialog()" class="flex-1 bg-transparent border border-gray-600 text-gray-300 font-bold px-4 py-2.5 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">BATAL</button><button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">YA, LANJUTKAN</button>`; dialog.classList.remove('hidden'); setTimeout(() => { dialog.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10); }
         function closeZwsDialog() { const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box'); dialog.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(() => dialog.classList.add('hidden'), 300); }
@@ -487,72 +479,70 @@
             projectId: "zws-auth",
             storageBucket: "zws-auth.firebasestorage.app",
             messagingSenderId: "21592339559",
-            appId: "1:21592339559:web:95b00074154e6f2f3050c2",
-            measurementId: "G-SVM7V0L2C5"
+            appId: "1:21592339559:web:95b00074154e6f2f3050c2"
         };
         const app = initializeApp(firebaseConfig); 
         const auth = getAuth(app);
 
-        // 1. FOKUS UTAMA: Tangkap Hasil Login Redirect Secara Langsung
+        // 1. TANGKAP HASIL REDIRECT (Berjalan di latar belakang untuk memberi tanda sukses)
         getRedirectResult(auth).then((result) => {
             if (result) {
-                const user = result.user;
-                const userData = { name: user.displayName || "Crew Member", email: user.email || "Tanpa Email", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
-                
-                // Simpan ke memori browser
-                localStorage.setItem('zws_user', JSON.stringify(userData));
-                
-                // Tutup modal, dan PAKSA LOMPAT KE PROFIL SEKARANG JUGA!
+                // Beri tanda ke memori sesi bahwa kita baru saja berhasil login via redirect
+                sessionStorage.setItem('zws_login_success', 'true');
                 window.tutupModalAuth();
-                window.tampilkanUser(userData, true); // true = lompat ke halaman profil
+            }
+        }).catch((error) => { 
+            if(error.code !== 'auth/redirect-cancelled-by-user') {
+                window.zwsToast("Gagal login: " + error.message, "error"); 
+            }
+        });
+
+        // 2. RADAR UTAMA KONTROL UI (Satu-satunya yang mengatur Profil vs Tombol Login)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Ekstrak Data
+                const userData = { 
+                    name: user.displayName || "Crew Member", 
+                    email: user.email || "", 
+                    picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
+                };
                 
-                // Render proyek agar tombol admin langsung muncul jika dia admin
+                // Simpan dan Tampilkan
+                localStorage.setItem('zws_user', JSON.stringify(userData)); 
+                window.tampilkanUser(userData);
+                
+                // Render Ulang Panel Admin jika datanya sudah tersedia dari Cloud
                 if (typeof dbData !== 'undefined' && dbData.projects) { 
                     renderProjects(userData); 
                     renderJourney(userData); 
                 }
-                
-                window.zwsToast(`Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
-            }
-        }).catch((error) => { 
-            window.zwsToast("Gagal login via Redirect: " + error.message, "error"); 
-        });
 
-        // 2. RADAR PENGAMAT (Dengan Anti-Blink Buffer)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Jika login normal terdeteksi
-                const userData = { name: user.displayName || "Crew Member", email: user.email || "Tanpa Email", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
-                localStorage.setItem('zws_user', JSON.stringify(userData)); 
-                window.tampilkanUser(userData, false);
+                // Cek apakah dia baru masuk dari Redirect
+                if(sessionStorage.getItem('zws_login_success') === 'true') {
+                    sessionStorage.removeItem('zws_login_success');
+                    window.showPage('profil'); // Pindah halaman secara sinkron di sini
+                    window.zwsToast(`Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
+                }
             } else {
-                // ANTI-BLINK BUFFER: Tunggu 1.5 detik!
-                // Jangan langsung menendang user ke mode "LOG IN" karena getRedirectResult mungkin sedang membongkar data.
-                setTimeout(() => {
-                    // Cek lagi apakah setelah 1.5 detik datanya masih kosong
-                    if (!localStorage.getItem('zws_user')) {
-                        document.getElementById('nav-logged-out').classList.remove('hidden'); 
-                        document.getElementById('nav-logged-in').classList.add('hidden');
-                        const adminPanel = document.getElementById('admin-panel'); 
-                        if(adminPanel) adminPanel.classList.add('hidden');
-                    }
-                }, 1500);
+                // LOG OUT STATE
+                localStorage.removeItem('zws_user');
+                currentUserInfo = null;
+                document.getElementById('nav-logged-out').classList.remove('hidden'); 
+                document.getElementById('nav-logged-in').classList.add('hidden');
+                
+                const adminPanel = document.getElementById('admin-panel'); 
+                if(adminPanel) adminPanel.classList.add('hidden');
             }
         });
 
-        // 3. FUNGSI LOGOUT GLOBAL YANG BENAR
+        // 3. FUNGSI EKSEKUSI
         window.logout = function() {
             zwsConfirm("Apakah Anda yakin ingin Log Out dari station?", function() {
-                localStorage.removeItem('zws_user'); // Hapus memori browser segera
-                signOut(auth).then(() => { 
-                    location.reload(); 
-                }).catch((error) => { 
-                    zwsToast("Gagal Log Out: " + error.message, "error"); 
-                });
+                localStorage.removeItem('zws_user'); 
+                signOut(auth).then(() => location.reload());
             });
         }
 
-        // 4. FUNGSI EKSEKUSI LOGIN
         window.loginGoogle = function(btn) { lockUI("MENGALIHKAN KE GOOGLE..."); setBtnLoading(btn); const provider = new GoogleAuthProvider(); provider.addScope('profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
         window.loginGitHub = function(btn) { lockUI("MENGALIHKAN KE GITHUB..."); setBtnLoading(btn); const provider = new GithubAuthProvider(); provider.addScope('read:user'); provider.addScope('user:email'); signInWithRedirect(auth, provider); };
         window.loginFacebook = function(btn) { lockUI("MENGALIHKAN KE FACEBOOK..."); setBtnLoading(btn); const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
