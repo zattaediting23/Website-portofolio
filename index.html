@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <script>
@@ -97,7 +97,7 @@
             <div class="flex flex-col gap-2 items-center mb-5 bg-spaceBlack border border-gray-800 p-3 rounded-xl shadow-inner">
                 <div class="text-[10px] text-gray-500 font-bold tracking-widest mb-1"><i class="fa-solid fa-shield-halved mr-1"></i> SECURITY CHECK</div>
                 
-                <div class="transform scale-90">
+                <div class="transform scale-90 min-h-[65px] flex items-center justify-center">
                     <div id="cf-turnstile-widget"></div>
                 </div>
                 
@@ -238,11 +238,10 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
         
         // ================= DAFTAR EMAIL ADMIN MULTI-AKUN =================
-        // Masukkan email Google, GitHub, dan Meta/Facebook kamu di sini!
         const ADMIN_ACCOUNTS = [
-            "zhafranediting23@gmail.com",   // Email Utama (Google)
-            "email_github_kamu@gmail.com",  // Ganti dengan email akun GitHub-mu
-            "email_facebook_kamu@gmail.com" // Ganti dengan email akun Facebook-mu
+            "zhafranediting23@gmail.com",   
+            "email_github_kamu@gmail.com",  
+            "email_facebook_kamu@gmail.com" 
         ];
 
         let modeForm = 'login'; let editIndex = -1; let editJourneyIndex = -1; 
@@ -251,7 +250,7 @@
         // ================= SISTEM KEAMANAN GANDA (TURNSTILE + RECAPTCHA) =================
         let statusTurnstile = false; 
         let statusRecaptcha = false;
-        let turnstileWidgetId = null; // Menyimpan ID widget Turnstile
+        let turnstileWidgetId = null; 
 
         window.turnstileSelesai = function(token) { statusTurnstile = true; cekKunciGanda(); };
         window.recaptchaSelesai = function(token) { statusRecaptcha = true; cekKunciGanda(); };
@@ -272,11 +271,7 @@
             if(btnContainer) btnContainer.classList.add('opacity-50', 'pointer-events-none', 'blur-[1px]');
             
             statusTurnstile = false; statusRecaptcha = false;
-            
-            // Reset Turnstile dan reCAPTCHA secara aman
-            if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
-                turnstile.reset(turnstileWidgetId);
-            }
+            if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) turnstile.reset(turnstileWidgetId);
             if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
         }
 
@@ -284,13 +279,28 @@
             document.getElementById('auth-modal').classList.remove('hidden');
             switchTabAuth(type);
 
-            // Render Turnstile HANYA saat modal terbuka (Solusi Widget Hilang)
+            // Render Turnstile Paksa Saat Modal Dibuka
             if (typeof turnstile !== 'undefined' && turnstileWidgetId === null) {
                 turnstileWidgetId = turnstile.render('#cf-turnstile-widget', {
-                    sitekey: 'KUNCI_TURNSTILE_KAMU_DISINI', // <--- MASUKKAN SITE KEY CLOUDFLARE DI SINI!
+                    sitekey: '0x4AAAAAADhbRHVyHjQV1Umn',
                     theme: 'dark',
                     callback: 'turnstileSelesai'
                 });
+            }
+        }
+
+        function switchTabAuth(type) {
+            modeForm = type;
+            const tLogin = document.getElementById('tab-login'); const tSignup = document.getElementById('tab-signup');
+            const iName = document.getElementById('input-name'); const btn = document.getElementById('btn-submit');
+            if(type === 'login') {
+                tLogin.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
+                tSignup.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+                iName.classList.add('hidden'); iName.removeAttribute('required'); btn.innerText = "MASUK";
+            } else {
+                tSignup.className = "flex-1 py-3 text-sm font-bold text-starCyan border-b-2 border-starCyan";
+                tLogin.className = "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-300";
+                iName.classList.remove('hidden'); iName.setAttribute('required', 'true'); btn.innerText = "BUAT AKUN";
             }
         }
 
@@ -393,7 +403,6 @@
             const user = JSON.parse(localStorage.getItem('zws_user'));
             renderProjects(user); renderJourney(user);
             if(user) tampilkanUser(user, false); 
-            // Jika kita ada di halaman profil jangan ditendang kembali ke beranda saat data di-fetch ulang
             if(!document.getElementById('page-profil').classList.contains('page-active')) { showPage('beranda'); }
         }
 
@@ -431,7 +440,7 @@
 
         function renderProjects(user) {
             const grid = document.getElementById('project-grid'); 
-            // Cek apakah email user masuk ke dalam daftar array ADMIN_ACCOUNTS
+            // PERBAIKAN CRASH: Aman jika user.email null
             const isAdmin = user && user.email && ADMIN_ACCOUNTS.includes(user.email);
 
             if(!dbData.projects || dbData.projects.length === 0) { grid.innerHTML = `<div class="md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl scroll-anim scroll-up"><i class="fa-solid fa-folder-open text-4xl text-gray-700 mb-3"></i><p class="text-gray-500 font-mono text-sm tracking-widest">LAUNCHPAD KOSONG.</p></div>`; } 
@@ -446,7 +455,6 @@
             aktifkanAnimasiScroll();
         }
 
-        // CRUD TIMELINE
         function simpanJourney() {
             const year = document.getElementById('j-year').value; const title = document.getElementById('j-title').value; const desc = document.getElementById('j-desc').value;
             if(!year || !title) return zwsToast("Tahun dan Judul Perjalanan wajib diisi!", "warning");
@@ -465,7 +473,7 @@
         }
         function renderJourney(user) {
             const timeline = document.getElementById('journey-timeline'); 
-            // Cek apakah email user masuk ke dalam daftar array ADMIN_ACCOUNTS
+            // PERBAIKAN CRASH: Aman jika user.email null
             const isAdmin = user && user.email && ADMIN_ACCOUNTS.includes(user.email);
             
             if(!dbData.journey || dbData.journey.length === 0) { timeline.innerHTML = '<p class="text-gray-500 font-mono text-sm ml-6 scroll-anim scroll-right">Belum ada jejak perjalanan.</p>'; return; }
@@ -482,13 +490,12 @@
             document.getElementById('nav-foto').src = user.picture; document.getElementById('profil-img').src = user.picture;
             document.getElementById('profil-name').innerText = user.name; document.getElementById('profil-email').innerText = user.email;
             
-            // Cek apakah email user masuk ke dalam daftar array ADMIN_ACCOUNTS
+            // PERBAIKAN CRASH: Cek aman
             if(user && user.email && ADMIN_ACCOUNTS.includes(user.email)) {
-                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden'); 
             } else {
                 document.getElementById('admin-panel').classList.add('hidden');
-            } 
-            else document.getElementById('admin-panel').classList.add('hidden');
+            }
             
             if(isLoginBaru) showPage('profil');
         }
@@ -512,71 +519,34 @@
         const app = initializeApp(firebaseConfig); 
         const auth = getAuth(app);
 
-        // ===== 1. RADAR OTOMATIS FIREBASE (PENJAGA STATUS LOGIN) =====
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                const userData = { 
-                    name: user.displayName || "Crew Member", 
-                    email: user.email || "Tanpa Email", 
-                    picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
-                };
+                const userData = { name: user.displayName || "Crew Member", email: user.email || "Tanpa Email", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
                 localStorage.setItem('zws_user', JSON.stringify(userData)); 
-                
-                // Set UI ke profil dan render data jika ada (agar tombol Edit Admin muncul)
                 window.tampilkanUser(userData, false);
-                if (typeof dbData !== 'undefined' && dbData.projects) {
-                    renderProjects(userData); 
-                    renderJourney(userData);
-                }
-                
-                // Lompat ke profil JIKA ada sinyal dari getRedirectResult bahwa dia baru saja sukses login
-                if(sessionStorage.getItem('zws_baru_login') === 'true') {
-                    sessionStorage.removeItem('zws_baru_login'); // Hapus memori agar tidak lompat terus
-                    window.showPage('profil');
-                    window.zwsToast(`Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
-                }
-                
+                if (typeof dbData !== 'undefined' && dbData.projects) { renderProjects(userData); renderJourney(userData); }
+                if(sessionStorage.getItem('zws_baru_login') === 'true') { sessionStorage.removeItem('zws_baru_login'); window.showPage('profil'); window.zwsToast(`Selamat datang, ${userData.name}!`, "success"); }
             } else {
-                // Jika tidak ada yang login, barulah tombol Log In dimunculkan!
                 localStorage.removeItem('zws_user');
-                document.getElementById('nav-logged-out').classList.remove('hidden');
-                document.getElementById('nav-logged-in').classList.add('hidden');
-                const adminPanel = document.getElementById('admin-panel');
-                if(adminPanel) adminPanel.classList.add('hidden');
+                document.getElementById('nav-logged-out').classList.remove('hidden'); document.getElementById('nav-logged-in').classList.add('hidden');
+                const adminPanel = document.getElementById('admin-panel'); if(adminPanel) adminPanel.classList.add('hidden');
             }
         });
 
-        // ===== 2. PENANGKAP HASIL REDIRECT =====
         getRedirectResult(auth).then((result) => {
-            if (result) {
-                // Tandai di memori bahwa user baru saja berhasil diredirect (agar dilompatkan ke Profil oleh onAuthStateChanged)
-                sessionStorage.setItem('zws_baru_login', 'true');
-                window.tutupModalAuth();
-            }
-        }).catch((error) => { 
-            window.zwsToast("Gagal login via Redirect: " + error.message, "error"); 
-        });
+            if (result) { sessionStorage.setItem('zws_baru_login', 'true'); window.tutupModalAuth(); }
+        }).catch((error) => { window.zwsToast("Gagal login via Redirect: " + error.message, "error"); });
 
-        // ===== 3. PERBAIKAN FUNGSI LOGOUT GLOBAL =====
         window.logout = function() {
-            zwsConfirm("Apakah Anda yakin ingin memutus koneksi dan Log Out dari station?", function() {
-                signOut(auth).then(() => {
-                    localStorage.removeItem('zws_user');
-                    location.reload(); 
-                }).catch((error) => {
-                    zwsToast("Gagal Log Out: " + error.message, "error");
-                });
+            zwsConfirm("Apakah Anda yakin ingin Log Out?", function() {
+                signOut(auth).then(() => { localStorage.removeItem('zws_user'); location.reload(); }).catch((error) => { zwsToast("Gagal Log Out: " + error.message, "error"); });
             });
         }
 
-        // ===== 4. FUNGSI EKSEKUSI LOGIN =====
         window.loginGoogle = function(btn) { lockUI("MENGALIHKAN KE GOOGLE..."); setBtnLoading(btn); const provider = new GoogleAuthProvider(); provider.addScope('profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
         window.loginGitHub = function(btn) { lockUI("MENGALIHKAN KE GITHUB..."); setBtnLoading(btn); const provider = new GithubAuthProvider(); provider.addScope('read:user'); provider.addScope('user:email'); signInWithRedirect(auth, provider); };
         window.loginFacebook = function(btn) { lockUI("MENGALIHKAN KE FACEBOOK..."); setBtnLoading(btn); const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
-        window.loginInstagram = function(btn) {
-            window.zwsToast("Membuka gerbang Meta. Gunakan akun Instagram yang tertaut di halaman selanjutnya.", "info");
-            setTimeout(() => { lockUI("MENGALIHKAN KE META..."); setBtnLoading(btn); const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); signInWithRedirect(auth, provider); }, 2000);
-        };
+        window.loginInstagram = function(btn) { window.zwsToast("Membuka gerbang Meta. Gunakan akun Instagram yang tertaut.", "info"); setTimeout(() => { lockUI("MENGALIHKAN KE META..."); setBtnLoading(btn); const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); signInWithRedirect(auth, provider); }, 2000); };
     </script>
 </body>
 </html>
