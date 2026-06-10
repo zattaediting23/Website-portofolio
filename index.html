@@ -473,7 +473,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
         import { getAuth, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-        const firebaseConfig = { /* (Isi sesuai config milikmu) */ };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDXiY33kAumrMp4kMM_6J-LsWuGCtPM6hY",
+            authDomain: "zws-auth.firebaseapp.com",
+            projectId: "zws-auth",
+            storageBucket: "zws-auth.firebasestorage.app",
+            messagingSenderId: "21592339559",
+            appId: "1:21592339559:web:95b00074154e6f2f3050c2" };
         const app = initializeApp(firebaseConfig); 
         const auth = getAuth(app);
 
