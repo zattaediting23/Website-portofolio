@@ -21,7 +21,8 @@
         }
     </script>
     <style>
-        body { background-color: #020204; color: #e2e8f0; background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px); background-size: 550px 550px, 350px 350px; background-position: 0 0, 40px 60px; }
+        body { background-col
+            or: #020204; color: #e2e8f0; background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px); background-size: 550px 550px, 350px 350px; background-position: 0 0, 40px 60px; }
         .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .page { display: none; }
         .page-active { display: block; }
@@ -492,30 +493,66 @@
         const app = initializeApp(firebaseConfig); 
         const auth = getAuth(app);
 
+        // 1. FOKUS UTAMA: Tangkap Hasil Login Redirect Secara Langsung
+        getRedirectResult(auth).then((result) => {
+            if (result) {
+                const user = result.user;
+                const userData = { name: user.displayName || "Crew Member", email: user.email || "Tanpa Email", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
+                
+                // Simpan ke memori browser
+                localStorage.setItem('zws_user', JSON.stringify(userData));
+                
+                // Tutup modal, dan PAKSA LOMPAT KE PROFIL SEKARANG JUGA!
+                window.tutupModalAuth();
+                window.tampilkanUser(userData, true); // true = lompat ke halaman profil
+                
+                // Render proyek agar tombol admin langsung muncul jika dia admin
+                if (typeof dbData !== 'undefined' && dbData.projects) { 
+                    renderProjects(userData); 
+                    renderJourney(userData); 
+                }
+                
+                window.zwsToast(`Sistem Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
+            }
+        }).catch((error) => { 
+            window.zwsToast("Gagal login via Redirect: " + error.message, "error"); 
+        });
+
+        // 2. RADAR PENGAMAT (Dengan Anti-Blink Buffer)
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                // Jika login normal terdeteksi
                 const userData = { name: user.displayName || "Crew Member", email: user.email || "Tanpa Email", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
                 localStorage.setItem('zws_user', JSON.stringify(userData)); 
                 window.tampilkanUser(userData, false);
-                if (typeof dbData !== 'undefined' && dbData.projects) { renderProjects(userData); renderJourney(userData); }
-                if(sessionStorage.getItem('zws_baru_login') === 'true') { sessionStorage.removeItem('zws_baru_login'); window.showPage('profil'); window.zwsToast(`Selamat datang, ${userData.name}!`, "success"); }
             } else {
-                localStorage.removeItem('zws_user');
-                document.getElementById('nav-logged-out').classList.remove('hidden'); document.getElementById('nav-logged-in').classList.add('hidden');
-                const adminPanel = document.getElementById('admin-panel'); if(adminPanel) adminPanel.classList.add('hidden');
+                // ANTI-BLINK BUFFER: Tunggu 1.5 detik!
+                // Jangan langsung menendang user ke mode "LOG IN" karena getRedirectResult mungkin sedang membongkar data.
+                setTimeout(() => {
+                    // Cek lagi apakah setelah 1.5 detik datanya masih kosong
+                    if (!localStorage.getItem('zws_user')) {
+                        document.getElementById('nav-logged-out').classList.remove('hidden'); 
+                        document.getElementById('nav-logged-in').classList.add('hidden');
+                        const adminPanel = document.getElementById('admin-panel'); 
+                        if(adminPanel) adminPanel.classList.add('hidden');
+                    }
+                }, 1500);
             }
         });
 
-        getRedirectResult(auth).then((result) => {
-            if (result) { sessionStorage.setItem('zws_baru_login', 'true'); window.tutupModalAuth(); }
-        }).catch((error) => { window.zwsToast("Gagal login via Redirect: " + error.message, "error"); });
-
+        // 3. FUNGSI LOGOUT GLOBAL YANG BENAR
         window.logout = function() {
-            zwsConfirm("Apakah Anda yakin ingin Log Out?", function() {
-                signOut(auth).then(() => { localStorage.removeItem('zws_user'); location.reload(); }).catch((error) => { zwsToast("Gagal Log Out: " + error.message, "error"); });
+            zwsConfirm("Apakah Anda yakin ingin Log Out dari station?", function() {
+                localStorage.removeItem('zws_user'); // Hapus memori browser segera
+                signOut(auth).then(() => { 
+                    location.reload(); 
+                }).catch((error) => { 
+                    zwsToast("Gagal Log Out: " + error.message, "error"); 
+                });
             });
         }
 
+        // 4. FUNGSI EKSEKUSI LOGIN
         window.loginGoogle = function(btn) { lockUI("MENGALIHKAN KE GOOGLE..."); setBtnLoading(btn); const provider = new GoogleAuthProvider(); provider.addScope('profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
         window.loginGitHub = function(btn) { lockUI("MENGALIHKAN KE GITHUB..."); setBtnLoading(btn); const provider = new GithubAuthProvider(); provider.addScope('read:user'); provider.addScope('user:email'); signInWithRedirect(auth, provider); };
         window.loginFacebook = function(btn) { lockUI("MENGALIHKAN KE FACEBOOK..."); setBtnLoading(btn); const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); signInWithRedirect(auth, provider); };
