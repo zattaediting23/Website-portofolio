@@ -321,23 +321,18 @@
         // ================= FETCH API CLOUD =================
         window.onload = () => {
             initIconDropdown(); 
-            lockUI("MENYINKRONKAN DATA CLOUD...");
-            const startTime = Date.now();
-            
+            // Jangan lockUI terlalu lama, biarkan UI muncul duluan
             fetch(API_URL)
-                .then(res => { if (!res.ok) throw new Error("Server Error"); return res.json(); })
-                .then(data => { dbData = data; renderSeluruhUI(); })
-                .catch(err => {
-                    console.error("Gagal API:", err); 
-                    zwsToast("Menggunakan struktur lokal (API Gagal).", "warning");
-                    renderSeluruhUI(); 
+                .then(res => { if (!res.ok) throw new Error("API Blocked"); return res.json(); })
+                .then(data => { dbData = data; })
+                .catch(err => { 
+                    console.warn("API Error, menggunakan data kosong:", err);
+                    dbData = { profile: {name: "Guest", bio: "Gagal memuat data cloud."}, projects: [], journey: [] };
                 })
                 .finally(() => {
-                    const remaining = Math.max(0, 1000 - (Date.now() - startTime)); 
-                    setTimeout(() => {
-                        unlockUI();
-                        document.querySelectorAll('.scroll-anim').forEach(el => el.classList.add('show'));
-                    }, remaining);
+                    renderSeluruhUI();
+                    document.getElementById('loading-screen').classList.add('hidden');
+                    aktifkanAnimasiScroll();
                 });
         };
 
