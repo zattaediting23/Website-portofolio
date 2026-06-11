@@ -35,12 +35,17 @@
         .scroll-right { transform: translateX(30px); }
         .scroll-scale { transform: scale(0.95); }
         .scroll-anim.show { opacity: 1; transform: translate(0) scale(1); }
+        /* Efek Radar Tech Stack Berjalan */
+        .marquee-box { overflow: hidden; white-space: nowrap; width: 100%; position: relative; mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
+        .marquee-content { display: inline-block; animation: marqueeScroll 20s linear infinite; }
+        .marquee-content:hover { animation-play-state: paused; }
+        @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
     </style>
 </head>
 
 <body class="bg-[#020204] text-[#e2e8f0] font-sans min-h-screen relative overflow-x-hidden">
 
-    <div id="toast-container" class="fixed top-6 right-6 z-[300] flex flex-col gap-3 pointer-events-none"></div>
+    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 md:top-6 md:right-6 md:bottom-auto md:left-auto md:translate-x-0 z-[300] flex flex-col gap-3 pointer-events-none w-max max-w-[90vw] transition-all"></div>
 
     <div id="zws-dialog" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-300">
         <div class="glass p-8 rounded-2xl w-full max-w-sm border-t-4 border-t-red-500 text-center transform scale-95 transition-transform duration-300 shadow-[0_0_40px_rgba(239,68,68,0.2)]" id="zws-dialog-box">
@@ -117,6 +122,25 @@
         </div>
     </div>
 
+    <div id="download-modal" class="hidden fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex justify-center items-center p-4 transition-opacity duration-300 opacity-0">
+        <div class="glass p-8 rounded-2xl w-full max-w-sm relative text-center border-t-4 border-t-starCyan transform scale-95 transition-transform duration-300" id="download-modal-box">
+            <button onclick="tutupGerbangDownload()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <i class="fa-solid fa-shield-halved text-4xl text-starCyan mb-4"></i>
+            <h3 class="text-white font-bold text-lg tracking-widest font-mono mb-2">SECURITY CLEARANCE</h3>
+            <p class="text-gray-400 text-sm mb-6">Memverifikasi koneksi aman sebelum mengunduh transmisi data...</p>
+            
+            <div class="flex justify-center min-h-[65px] w-full bg-spaceBlack border border-gray-800 p-2 rounded-xl">
+                <div id="cf-download-widget"></div>
+            </div>
+            
+            <div id="download-btn-container" class="mt-6 hidden">
+                <a href="#" id="final-download-link" target="_blank" onclick="tutupGerbangDownload()" class="inline-block w-full bg-starCyan text-black font-bold py-3 rounded hover:bg-white transition-colors tracking-widest shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+                    <i class="fa-solid fa-cloud-arrow-down mr-2"></i> UNDUH SEKARANG
+                </a>
+            </div>
+        </div>
+    </div>
+
     <main class="pt-32 pb-20 px-6 max-w-5xl mx-auto">
         
         <div id="page-beranda" class="page page-active space-y-20">
@@ -124,7 +148,30 @@
                 <div class="inline-block relative mb-8 scroll-anim scroll-scale"><i class="fa-solid fa-user-astronaut text-7xl text-starCyan opacity-90 animate-bounce"></i></div>
                 <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms;">Loading...</h1>
                 <p class="text-starCyan font-mono tracking-widest mb-10 scroll-anim scroll-up" style="transition-delay: 200ms;">Admin Staff & Web Developer</p>
-                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;"><i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV</a>
+                <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 active:scale-95 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;"><i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV</a>
+                <div class="mt-20 animate-bounce scroll-anim scroll-up" style="transition-delay: 500ms;">
+                    <i class="fa-solid fa-chevron-down text-gray-500 text-2xl opacity-50"></i>
+                </div>
+            </section>
+
+            <section class="pt-10 pb-4">
+                <h2 class="text-xs font-bold text-gray-500 mb-8 text-center tracking-widest uppercase scroll-anim scroll-scale"><i class="fa-solid fa-microchip mr-2"></i> Tech Arsenal</h2>
+                <div class="marquee-box opacity-70 hover:opacity-100 transition-opacity duration-500 scroll-anim scroll-up">
+                    <div class="marquee-content flex gap-12 md:gap-20 items-center">
+                        <i class="fa-brands fa-react text-5xl hover:text-[#61dafb] transition-colors cursor-pointer" title="React"></i>
+                        <i class="fa-brands fa-node-js text-5xl hover:text-[#339933] transition-colors cursor-pointer" title="Node.js"></i>
+                        <i class="fa-solid fa-database text-4xl hover:text-[#336791] transition-colors cursor-pointer" title="PostgreSQL"></i>
+                        <i class="fa-brands fa-js text-5xl hover:text-[#f7df1e] transition-colors cursor-pointer" title="JavaScript"></i>
+                        <i class="fa-brands fa-css3-alt text-5xl hover:text-[#264de4] transition-colors cursor-pointer" title="Tailwind CSS"></i>
+                        <i class="fa-brands fa-python text-5xl hover:text-[#3776ab] transition-colors cursor-pointer" title="Python / AI"></i>
+                        <i class="fa-brands fa-react text-5xl hover:text-[#61dafb] transition-colors cursor-pointer" title="React"></i>
+                        <i class="fa-brands fa-node-js text-5xl hover:text-[#339933] transition-colors cursor-pointer" title="Node.js"></i>
+                        <i class="fa-solid fa-database text-4xl hover:text-[#336791] transition-colors cursor-pointer" title="PostgreSQL"></i>
+                        <i class="fa-brands fa-js text-5xl hover:text-[#f7df1e] transition-colors cursor-pointer" title="JavaScript"></i>
+                        <i class="fa-brands fa-css3-alt text-5xl hover:text-[#264de4] transition-colors cursor-pointer" title="Tailwind CSS"></i>
+                        <i class="fa-brands fa-python text-5xl hover:text-[#3776ab] transition-colors cursor-pointer" title="Python / AI"></i>
+                    </div>
+                </div>
             </section>
 
             <section class="border-t border-gray-800 pt-10">
@@ -224,6 +271,16 @@
             </div>
         </div>
     </main>
+
+    <footer class="border-t border-gray-800 mt-20 pt-10 pb-8 text-center glass relative z-10 w-full">
+        <div class="flex justify-center gap-8 mb-6">
+            <a href="https://github.com/akun-githubmu" target="_blank" class="text-gray-400 hover:text-white hover:-translate-y-1 hover:scale-110 transition-all duration-300"><i class="fa-brands fa-github text-3xl"></i></a>
+            <a href="https://instagram.com/akun-igmu" target="_blank" class="text-gray-400 hover:text-pink-500 hover:-translate-y-1 hover:scale-110 transition-all duration-300"><i class="fa-brands fa-instagram text-3xl"></i></a>
+            <a href="mailto:zhafranediting23@gmail.com" class="text-gray-400 hover:text-starCyan hover:-translate-y-1 hover:scale-110 transition-all duration-300"><i class="fa-solid fa-envelope text-3xl"></i></a>
+        </div>
+        <p class="text-gray-500 text-[10px] font-mono tracking-widest uppercase">&copy; 2026 ZATTA WEB STUDIO. ALL RIGHTS RESERVED.</p>
+        <p class="text-gray-700 text-[9px] font-mono mt-1">Secured by Cloudflare & Firebase</p>
+    </footer>
 
     <script>
         // ================= PENGATURAN ADMIN =================
@@ -349,7 +406,8 @@
             document.getElementById('admin-profile-bio').value = dbData.profile.bio || "";
             
             const rawCvLink = dbData.cv || '#'; 
-            document.getElementById('btn-download-cv').href = prosesLinkDrive(rawCvLink); 
+            const processedCvLink = prosesLinkDrive(rawCvLink);
+            document.getElementById('btn-download-cv').setAttribute('onclick', `bukaGerbangDownload('${processedCvLink}', event)`); 
             document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
 
             renderProjects(currentUserInfo); 
@@ -415,7 +473,7 @@
                     let processedLink = (p.link && p.link.includes('drive.google.com')) ? prosesLinkDrive(p.link) : p.link;
                     let actionAttr = `href="${processedLink}"`; if ((p.btnText || '').toLowerCase().includes('download')) actionAttr += ` download target="_blank"`; else actionAttr += ` target="_blank"`;
                     const adminActions = isAdmin ? `<div class="flex gap-2 border-t border-gray-700 pt-3 mt-4"><button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-2 rounded hover:bg-yellow-500 hover:text-black transition-colors"><i class="fa-solid fa-pen-to-square mr-1"></i> EDIT</button><button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-2 rounded hover:bg-red-500 hover:text-white transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button></div>` : '';
-                    return `<div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up" style="transition-delay: ${(index % 3) * 100}ms;"><h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3><p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p><a ${actionAttr} class="inline-block bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-2 rounded hover:bg-starCyan hover:text-black transition-colors uppercase tracking-wider"><i class="${p.btnIcon || 'fa-solid fa-play'} mr-2"></i> ${p.btnText || 'LIVE DEMO'}</a>${adminActions}</div>`;
+                    return `<div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up" style="transition-delay: ${(index % 3) * 100}ms;"><h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3><p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p><button onclick="bukaGerbangDownload('${processedLink}', event)" class="w-full bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-3 rounded hover:bg-starCyan hover:text-black transition-colors uppercase tracking-wider"><i class="${p.btnIcon || 'fa-solid fa-play'} mr-2"></i> ${p.btnText || 'LIVE DEMO'}</button>${adminActions}</div>`;
                 }).join('');
             }
             aktifkanAnimasiScroll();
@@ -461,7 +519,58 @@
         window.zwsToast = function(msg, type = 'info') { const container = document.getElementById('toast-container'); const toast = document.createElement('div'); let bgClass = 'bg-gray-800 border-gray-600 text-white'; let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>'; if (type === 'success') { bgClass = 'bg-emerald-900/95 border border-emerald-500 text-emerald-50'; icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>'; } else if (type === 'error') { bgClass = 'bg-red-900/95 border border-red-500 text-red-50'; icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>'; } else if (type === 'warning') { bgClass = 'bg-yellow-900/95 border border-yellow-500 text-yellow-50'; icon = '<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>'; } toast.className = `flex items-center gap-3 px-5 py-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto backdrop-blur-md ${bgClass}`; toast.innerHTML = `<div class="text-xl">${icon}</div> <span class="text-sm font-medium tracking-wide leading-tight">${msg}</span>`; container.appendChild(toast); setTimeout(() => toast.classList.remove('translate-x-full', 'opacity-0'), 10); setTimeout(() => { toast.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3500); }
         function zwsConfirm(msg, onConfirmCallback) { const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box'); document.getElementById('zws-dialog-msg').innerText = msg; window.tempConfirmCallback = () => { closeZwsDialog(); if(onConfirmCallback) onConfirmCallback(); }; document.getElementById('zws-dialog-buttons').innerHTML = `<button onclick="closeZwsDialog()" class="flex-1 bg-transparent border border-gray-600 text-gray-300 font-bold px-4 py-2.5 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">BATAL</button><button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">YA, LANJUTKAN</button>`; dialog.classList.remove('hidden'); setTimeout(() => { dialog.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10); }
         function closeZwsDialog() { const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box'); dialog.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(() => dialog.classList.add('hidden'), 300); }
+        // ================= SISTEM DOWNLOAD SECURITY GATE =================
+        let downloadWidgetId = null;
+
+        window.bukaGerbangDownload = function(url, event) {
+            if(event) event.preventDefault(); // Cegah link langsung terbuka
+            if(!url || url === '#') { window.zwsToast("Tautan transmisi tidak ditemukan.", "error"); return; }
+            
+            const modal = document.getElementById('download-modal');
+            const box = document.getElementById('download-modal-box');
+            const btnContainer = document.getElementById('download-btn-container');
+            const finalLink = document.getElementById('final-download-link');
+            
+            finalLink.href = url; // Simpan URL ke tombol final
+            btnContainer.classList.add('hidden'); // Sembunyikan tombol final dulu
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+
+            // Render Cloudflare Turnstile khusus Download
+            if (typeof turnstile !== 'undefined') {
+                if (downloadWidgetId === null) {
+                    downloadWidgetId = turnstile.render('#cf-download-widget', {
+                        sitekey: 'KUNCI_TURNSTILE_KAMU_DISINI', // <--- GANTI DENGAN SITE KEY CLOUDFLARE-MU
+                        theme: 'dark',
+                        callback: function(token) {
+                            // Jika lolos dari bot, munculkan tombol unduh!
+                            document.getElementById('download-btn-container').classList.remove('hidden');
+                            window.zwsToast("Koneksi Aman. Izin Mengunduh Diberikan.", "success");
+                        }
+                    });
+                } else {
+                    turnstile.reset(downloadWidgetId);
+                }
+            }
+        };
+
+        window.tutupGerbangDownload = function() {
+            const modal = document.getElementById('download-modal');
+            const box = document.getElementById('download-modal-box');
+            modal.classList.add('opacity-0'); box.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            if (typeof turnstile !== 'undefined' && downloadWidgetId !== null) { try { turnstile.reset(downloadWidgetId); } catch(e){} }
+        };
         function prosesLinkDrive(url) { if (!url || url === '#') return '#'; const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/); if (m && m[1]) return `https://drive.google.com/uc?export=download&id=${m[1]}`; return url; }
+
+        // ================= PENINGKATAN UX: KLIK LUAR UNTUK TUTUP MODAL =================
+        document.getElementById('auth-modal').addEventListener('click', function(e) {
+            if(e.target === this) window.tutupModalAuth();
+        });
+        document.getElementById('download-modal')?.addEventListener('click', function(e) {
+            if(e.target === this) window.tutupGerbangDownload();
+        });
     </script>
 
     <script type="module">
