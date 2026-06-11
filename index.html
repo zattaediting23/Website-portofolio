@@ -181,12 +181,12 @@
                 <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms;">M. Zhafran .MA</h1>
                 <p class="text-starCyan font-mono tracking-widest mb-10 scroll-anim scroll-up" style="transition-delay: 200ms;">Admin Staff & Web Developer</p>
                 <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 active:scale-95 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;"><i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV</a>
-                <div class="mt-20 animate-bounce scroll-anim scroll-up" style="transition-delay: 500ms;">
-                    <i class="fa-solid fa-chevron-down text-gray-500 text-2xl opacity-50"></i>
-                </div>
+                <a href="#tech-arsenal" class="inline-block mt-20 animate-bounce scroll-anim scroll-up cursor-pointer group" style="transition-delay: 500ms;">
+                    <i class="fa-solid fa-chevron-down text-gray-500 text-2xl opacity-50 group-hover:opacity-100 group-hover:text-starCyan transition-all duration-300"></i>
+                </a>
             </section>
 
-            <section class="pt-10 pb-4">
+            <section id="tech-arsenal" class="pt-10 pb-4">
                 <h2 class="text-xs font-bold text-gray-500 mb-8 text-center tracking-widest uppercase scroll-anim scroll-scale"><i class="fa-solid fa-microchip mr-2"></i> Tech Arsenal</h2>
                 <div class="marquee-box opacity-70 hover:opacity-100 transition-opacity duration-500 scroll-anim scroll-up">
                     <div class="marquee-content flex gap-12 md:gap-20 items-center">
@@ -681,16 +681,16 @@
                 dbData.analytics.splice(index, 1); updateKartuAnalitik(); kirimKeServerGAS("Log spesifik dihapus!", true);
             });
         }
-
+        
         // ================= RENDER UI ANALITIK =================
         function updateKartuAnalitik() {
             if (!dbData.analytics) return;
             
-            // Logika IP Unik (Hanya menghitung Alamat IP yang berbeda)
+            // Logika IP Unik
             const arrayIPUnik = [...new Set(dbData.analytics.map(v => v.ip))];
             const uniqueIPCount = arrayIPUnik.length;
             
-            // Hitung total kunjungan berdasarkan Perangkat
+            // Hitungan Perangkat
             const totalMobile = dbData.analytics.filter(v => v.device === 'Mobile').length;
             const totalTablet = dbData.analytics.filter(v => v.device === 'Tablet').length;
             const totalDesktop = dbData.analytics.filter(v => v.device === 'Desktop').length;
@@ -700,7 +700,7 @@
             const elTablet = document.getElementById('stat-tablet');
             const elDesktop = document.getElementById('stat-desktop');
 
-            if(elTotal) elTotal.innerText = uniqueIPCount; // Ditampilkan Angka Unik
+            if(elTotal) elTotal.innerText = uniqueIPCount; 
             if(elMobile) elMobile.innerText = totalMobile;
             if(elTablet) elTablet.innerText = totalTablet;
             if(elDesktop) elDesktop.innerText = totalDesktop;
@@ -711,13 +711,39 @@
                     container.innerHTML = '<p class="text-xs text-gray-500 text-center py-6 font-mono">Belum ada transmisi terdeteksi.</p>';
                 } else {
                     const reversedLogs = [...dbData.analytics].reverse();
+                    
+                    // --- MESIN WAKTU WIB (Waktu Indonesia Barat) ---
+                    const optTgl = { timeZone: 'Asia/Jakarta', day: '2-digit', month: '2-digit', year: 'numeric' };
+                    const tglHariIni = new Intl.DateTimeFormat('id-ID', optTgl).format(new Date());
+                    
+                    const tglKemarinObj = new Date();
+                    tglKemarinObj.setDate(tglKemarinObj.getDate() - 1);
+                    const tglKemarin = new Intl.DateTimeFormat('id-ID', optTgl).format(tglKemarinObj);
+
                     container.innerHTML = reversedLogs.map((log, reversedIndex) => {
-                        // Kembalikan Index agar saat dihapus, yang dihapus benar di array aslinya
+                        // Jaga agar ID hapus tidak salah sasaran
                         const originalIndex = dbData.analytics.length - 1 - reversedIndex;
-                        
                         const dateObj = new Date(log.time);
-                        const timeStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
                         
+                        // 1. Dapatkan Tanggal Log dalam format WIB
+                        const tglLog = new Intl.DateTimeFormat('id-ID', optTgl).format(dateObj);
+                        
+                        // 2. Logika "Hari Ini" atau "Kemarin"
+                        let labelTgl = "";
+                        if (tglLog === tglHariIni) {
+                            labelTgl = "Hari ini";
+                        } else if (tglLog === tglKemarin) {
+                            labelTgl = "Kemarin";
+                        } else {
+                            // Jika lebih dari kemarin, tampilkan tanggal (Contoh: 12 Jun 2026)
+                            labelTgl = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric' }).format(dateObj);
+                        }
+
+                        // 3. Dapatkan Jam dalam format WIB
+                        let jamLog = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false }).format(dateObj);
+                        jamLog = jamLog.replace('.', ':'); // Standarisasi format jam
+
+                        // Ikon Perangkat
                         let icon = '<i class="fa-solid fa-desktop text-blue-500 text-sm"></i>';
                         if(log.device === 'Mobile') icon = '<i class="fa-solid fa-mobile-screen-button text-pink-500 text-lg"></i>';
                         if(log.device === 'Tablet') icon = '<i class="fa-solid fa-tablet-screen-button text-purple-500 text-lg"></i>';
@@ -738,10 +764,11 @@
                                     <p class="text-[10px] text-gray-500 truncate w-40 md:w-56"><i class="fa-solid fa-location-dot mr-1 text-gray-600"></i> ${locText}</p>
                                 </div>
                             </div>
-                            <div class="flex flex-col items-end gap-2">
-                                <button onclick="hapusSatuLog(${originalIndex})" class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-white transition-all bg-red-900/30 px-2 py-1 rounded"><i class="fa-solid fa-trash-can"></i></button>
-                                <div class="text-[10px] text-gray-500 font-mono text-right whitespace-nowrap ml-2">
-                                    ${timeStr.replace(', ', '<br>')}
+                            <div class="flex flex-col items-end gap-1.5">
+                                <button onclick="hapusSatuLog(${originalIndex})" class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-white transition-all bg-red-900/30 px-2 py-1 rounded"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                <div class="text-right whitespace-nowrap ml-2">
+                                    <div class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">${labelTgl}</div>
+                                    <div class="text-[9px] text-starCyan font-mono mt-0.5">${jamLog} WIB</div>
                                 </div>
                             </div>
                         </div>`;
