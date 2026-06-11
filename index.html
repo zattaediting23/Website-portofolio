@@ -285,6 +285,7 @@
     <script>
         // ================= PENGATURAN ADMIN =================
         const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
+        const radarChannel = new BroadcastChannel('zws_matrix_sync');
         const ADMIN_ACCOUNTS = [
             "zhafranediting23@gmail.com",   
             "email_github_kamu@gmail.com",  
@@ -382,39 +383,28 @@
         }
 
         // ================= SISTEM RADAR KONEKSI INTERNET (KILL SWITCH) =================
-        const offlineScreen = document.getElementById('offline-screen');
-
-        // ================= SISTEM RADAR KONEKSI INTERNET =================
         function cekStatusSinyal() {
-            // Gunakan optional chaining (?.) agar TIDAK CRASH jika HTML-nya tidak sengaja terhapus/belum dimuat
-            const offlineScreen = document.getElementById('offline-screen');
-            if (!offlineScreen) return; // Berhenti dengan aman jika elemen tidak ditemukan
+            const offlineScreenEl = document.getElementById('offline-screen');
+            if (!offlineScreenEl) return; 
 
             if (navigator.onLine) {
-                offlineScreen.classList.add('hidden');
+                offlineScreenEl.classList.add('hidden');
                 if(document.getElementById('hero-name')?.innerText === "Loading...") {
                     window.dispatchEvent(new Event('load')); 
                 }
             } else {
-                offlineScreen.classList.remove('hidden');
+                offlineScreenEl.classList.remove('hidden');
                 if(typeof window.tutupModalAuth === 'function') window.tutupModalAuth();
                 if(typeof window.tutupGerbangDownload === 'function') window.tutupGerbangDownload();
             }
         }
 
-        // Tunggu sampai HTML digambar semua baru jalankan sensor
+        // Tunggu sampai HTML digambar semua baru jalankan sensor (Mencegah Layar Blank)
         document.addEventListener('DOMContentLoaded', () => {
             cekStatusSinyal();
             window.addEventListener('online', cekStatusSinyal);
             window.addEventListener('offline', cekStatusSinyal);
         });
-
-        // 1. Cek secara instan saat halaman pertama kali dibuka
-        cekStatusSinyal();
-
-        // 2. Pasang pendengar (listener) yang bereaksi secara Real-Time!
-        window.addEventListener('online', cekStatusSinyal);
-        window.addEventListener('offline', cekStatusSinyal);
 
         // ================= KEMBALIKAN FUNGSI PENGATUR UI (ANTI-BLANK) =================
         window.tampilkanUser = function(user) {
