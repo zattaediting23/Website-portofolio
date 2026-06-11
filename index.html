@@ -11,6 +11,9 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -244,6 +247,7 @@
                                 <div class="bg-black/50 border border-gray-700 rounded-xl overflow-hidden">
                                     <div class="bg-gray-800/80 px-4 py-2 flex justify-between items-center border-b border-gray-700">
                                         <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase"><i class="fa-solid fa-list-ol mr-1"></i> Log Transmisi IP</span>
+                                        <button onclick="hapusSeluruhLogIP()" class="text-[10px] bg-red-900/50 text-red-500 hover:bg-red-500 hover:text-white border border-red-800/50 px-2 py-1 rounded transition-colors font-bold tracking-widest"><i class="fa-solid fa-trash mr-1"></i> BERSIHKAN</button>
                                     </div>
                                     <div class="max-h-48 overflow-y-auto custom-scroll p-0" id="ip-log-container">
                                         <p class="text-xs text-gray-500 text-center py-6 font-mono">Memindai log transmisi...</p>
@@ -563,6 +567,7 @@
         }
 
         // ================= MESIN ANALITIK & RADAR IP (VERSI TANGGUH) =================
+        // ================= MESIN ANALITIK & RADAR IP (GEOJS - ANTI UNKNOWN) =================
         function rekamJejakPengunjung() {
             if (!dbData.analytics) dbData.analytics = [];
 
@@ -575,16 +580,21 @@
                 return; 
             }
 
-            // Gunakan API yang lebih stabil dan jarang kena block CORS
-            fetch('https://ipapi.co/json/')
-                .then(res => res.json())
+            // MENGGUNAKAN GEOJS: Tahan banting, anti-adblock, no strict rate-limit
+            fetch('https://get.geojs.io/v1/ip/geo.json')
+                .then(res => {
+                    if(!res.ok) throw new Error("API GeoJS Terblokir");
+                    return res.json();
+                })
                 .then(data => {
                     const ipUser = data.ip;
-                    if (!ipUser) throw new Error("IP tidak terdeteksi");
+                    if (!ipUser) throw new Error("IP kosong");
 
-                    // Ambil nama ISP (org) dan Kota/Negara
-                    const ispName = data.org || "Unknown ISP";
-                    const locationName = (data.city && data.country_name) ? `${data.city}, ${data.country_name}` : (data.country_name || "Unknown Location");
+                    // Mapping data dari GeoJS
+                    const ispName = data.organization_name || "Unknown ISP";
+                    let locationName = "Unknown Location";
+                    if (data.city && data.country) locationName = `${data.city}, ${data.country}`;
+                    else if (data.country) locationName = data.country;
 
                     const ipSudahAda = dbData.analytics.find(v => v.ip === ipUser && v.device === deviceType);
                     
@@ -596,6 +606,7 @@
                             location: locationName,
                             time: new Date().toISOString() 
                         });
+                        console.log("RADAR: IP Tersimpan ->", ipUser, ispName);
                         kirimKeServerGAS("Log Pengunjung Disimpan", true); 
                     }
                     
@@ -603,8 +614,8 @@
                     updateKartuAnalitik();
                 })
                 .catch(e => {
-                    console.log("Radar lokasi terhalang. Menggunakan radar sekunder...");
-                    // FALLBACK DARURAT JIKA KENA ADBLOCKER
+                    console.error("RADAR ERROR: ", e.message);
+                    // Fallback Darurat murni jika GeoJS mati (Sangat jarang terjadi)
                     fetch('https://api.ipify.org?format=json')
                         .then(r => r.json())
                         .then(d => {
@@ -616,8 +627,17 @@
                             }
                             sessionStorage.setItem(sessionKey, 'true');
                             updateKartuAnalitik();
-                        });
+                        }).catch(err => console.error("Koneksi Radar Terputus Total"));
                 });
+        }
+
+        // FUNGSI PEMBERSIH LOG IP
+        function hapusSeluruhLogIP() {
+            window.zwsConfirm("PERINGATAN: Bersihkan seluruh log transmisi IP dari server?", function() {
+                dbData.analytics = []; // Kosongkan array analitik
+                updateKartuAnalitik(); // Kosongkan tabel di layar
+                kirimKeServerGAS("Log Transmisi IP Berhasil Dihapus!"); 
+            });
         }
 
         function updateKartuAnalitik() {
@@ -635,7 +655,6 @@
             if(elMobile) elMobile.innerText = totalMobile;
             if(elDesktop) elDesktop.innerText = totalDesktop;
 
-            // RENDER DAFTAR LOG IP
             const container = document.getElementById('ip-log-container');
             if(container) {
                 if(totalIP === 0) {
@@ -647,7 +666,6 @@
                         const timeStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
                         const icon = log.device === 'Mobile' ? '<i class="fa-solid fa-mobile-screen-button text-pink-500 text-lg"></i>' : '<i class="fa-solid fa-desktop text-blue-500 text-sm"></i>';
                         
-                        // Fallback untuk data lama yang belum punya atribut isp/location
                         const ispText = log.isp || "Privat / Unknown";
                         const locText = log.location || "Lokasi Tidak Diketahui";
 
