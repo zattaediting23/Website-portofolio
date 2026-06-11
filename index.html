@@ -487,43 +487,38 @@
             }
         };
         
-        // ================= INISIALISASI DATA SUPER CEPAT (ANTI-BLANK) =================
-        // Eksekusi detik ke-0 saat HTML terbaca, TANPA menunggu script lain selesai loading!
+        // ================= INISIALISASI DATA SUPER CEPAT (ANTI-BLANK & ANTI-OVERWRITE) =================
         document.addEventListener('DOMContentLoaded', () => {
             initIconDropdown(); 
             
-            // 1. Cek isi kepala (Local Storage) dulu
             try {
                 const cache = localStorage.getItem('zws_cloud_cache');
                 if (cache) dbData = JSON.parse(cache);
             } catch(e) {}
 
-            // 2. RENDER INSTAN KE LAYAR! (Tidak ada lagi delay)
             renderSeluruhUI();
-            rekamJejakPengunjung();
+            
+            // JANGAN panggil rekamJejakPengunjung() di sini! Bahaya overwrite.
 
-            // 3. Jalankan intelijen latar belakang (Ambil data segar dari Google)
             const freshUrl = API_URL + "?v=" + Date.now();
             fetch(freshUrl)
                 .then(res => { if (!res.ok) throw new Error("Server Error"); return res.json(); })
                 .then(dataTerbaru => { 
-                    const dataLama = JSON.stringify(dbData);
-                    const dataBaru = JSON.stringify(dataTerbaru);
+                    // SELALU gunakan data terbaru dari cloud sebagai sumber kebenaran utama
+                    dbData = dataTerbaru; 
+                    localStorage.setItem('zws_cloud_cache', JSON.stringify(dbData));
+                    renderSeluruhUI(); 
                     
-                    // Kalau ada beda data antara memori dan cloud, perbarui layar senyap-senyap
-                    if (dataLama !== dataBaru) {
-                        dbData = dataTerbaru; 
-                        localStorage.setItem('zws_cloud_cache', JSON.stringify(dbData));
-                        renderSeluruhUI();
-                        rekamJejakPengunjung();
-                    }
+                    // RADAR HANYA BOLEH MENYALA SETELAH DATA CLOUD SUDAH AMAN DI TANGAN!
+                    rekamJejakPengunjung(); 
                 })
-                .catch(err => console.warn("Sinyal Cloud terhambat, menggunakan data lokal."))
+                .catch(err => {
+                    console.warn("Sinyal Cloud terhambat, menggunakan data lokal.");
+                    // Jika gagal fetch, baru boleh nyalakan radar pakai data memori
+                    rekamJejakPengunjung(); 
+                })
                 .finally(() => {
-                    // Paksa nyalakan semua animasi
                     document.querySelectorAll('.scroll-anim').forEach(el => el.classList.add('show'));
-                    
-                    // Matikan layar loading utama jika masih nyangkut
                     const loader = document.getElementById('loading-screen');
                     if(loader) { 
                         loader.classList.add('opacity-0'); 
@@ -567,44 +562,33 @@
             updateKartuAnalitik(); // Trigger update data statistik IP & List IP
         }
 
-        // ================= MESIN ANALITIK & RADAR IP =================
+        // ================= MESIN ANALITIK & RADAR IP (VERSI TANGGUH) =================
         function rekamJejakPengunjung() {
             if (!dbData.analytics) dbData.analytics = [];
 
-            // Sensor untuk mendeteksi Perangkat (HP atau PC)
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const deviceType = isMobile ? 'Mobile' : 'Desktop';
-            
-            // Kunci memori dipisah berdasarkan device, agar 1 IP bisa dicatat 2 kali jika devicenya berbeda!
             const sessionKey = 'zws_tracked_' + deviceType;
 
-            // Jika session ini sudah dicatat untuk perangkat ini, lewati agar tidak membuang kuota API
             if(sessionStorage.getItem(sessionKey)) {
                 updateKartuAnalitik(); 
                 return; 
             }
 
-            // Panggil API Geolocation yang bisa membaca ISP dan Alamat
-            fetch('https://ipwho.is/')
+            // Gunakan API yang lebih stabil dan jarang kena block CORS
+            fetch('https://ipapi.co/json/')
                 .then(res => res.json())
                 .then(data => {
-                    let ipUser = data.ip;
-                    let ispName = "Unknown ISP";
-                    let locationName = "Unknown Location";
+                    const ipUser = data.ip;
+                    if (!ipUser) throw new Error("IP tidak terdeteksi");
 
-                    // Jika API berhasil melacak
-                    if (data.success) {
-                        ispName = data.connection ? data.connection.isp : "Unknown ISP";
-                        locationName = data.city ? `${data.city}, ${data.country}` : data.country;
-                    }
+                    // Ambil nama ISP (org) dan Kota/Negara
+                    const ispName = data.org || "Unknown ISP";
+                    const locationName = (data.city && data.country_name) ? `${data.city}, ${data.country_name}` : (data.country_name || "Unknown Location");
 
-                    if (!ipUser) return;
-
-                    // Cek apakah kombinasi (IP + Perangkat) ini sudah ada di database
                     const ipSudahAda = dbData.analytics.find(v => v.ip === ipUser && v.device === deviceType);
                     
                     if(!ipSudahAda) {
-                        // Jika belum ada, masukkan ke database secara SENYAP
                         dbData.analytics.push({ 
                             ip: ipUser, 
                             device: deviceType, 
@@ -612,23 +596,23 @@
                             location: locationName,
                             time: new Date().toISOString() 
                         });
-                        kirimKeServerGAS("Analytics Updated", true); 
+                        kirimKeServerGAS("Log Pengunjung Disimpan", true); 
                     }
                     
                     sessionStorage.setItem(sessionKey, 'true');
                     updateKartuAnalitik();
                 })
                 .catch(e => {
-                    // FALLBACK DARURAT: Jika API utama terblokir, gunakan API dasar tanpa lokasi
+                    console.log("Radar lokasi terhalang. Menggunakan radar sekunder...");
+                    // FALLBACK DARURAT JIKA KENA ADBLOCKER
                     fetch('https://api.ipify.org?format=json')
-                        .then(res => res.json())
-                        .then(data => {
-                            const ipUser = data.ip;
-                            if(!ipUser) return;
-                            const ipSudahAda = dbData.analytics.find(v => v.ip === ipUser && v.device === deviceType);
-                            if(!ipSudahAda) {
-                                dbData.analytics.push({ ip: ipUser, device: deviceType, isp: "Privat/Tidak Terlacak", location: "Sinyal Tersembunyi", time: new Date().toISOString() });
-                                kirimKeServerGAS("Analytics Updated", true); 
+                        .then(r => r.json())
+                        .then(d => {
+                            const ipUsr = d.ip;
+                            if(!ipUsr) return;
+                            if(!dbData.analytics.find(v => v.ip === ipUsr && v.device === deviceType)) {
+                                dbData.analytics.push({ ip: ipUsr, device: deviceType, isp: "Privat/Tidak Terlacak", location: "Lokasi Tersembunyi", time: new Date().toISOString() });
+                                kirimKeServerGAS("Log Pengunjung Disimpan (Mode Privat)", true); 
                             }
                             sessionStorage.setItem(sessionKey, 'true');
                             updateKartuAnalitik();
