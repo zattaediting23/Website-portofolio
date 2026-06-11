@@ -375,21 +375,32 @@
             window.scrollTo(0,0); setTimeout(aktifkanAnimasiScroll, 50); 
         }
 
-        // ================= FETCH API CLOUD =================
+        // ================= FETCH API CLOUD (DENGAN PENGHANCUR CACHE) =================
         window.onload = () => {
             initIconDropdown(); 
-            // Jangan lockUI terlalu lama, biarkan UI muncul duluan
-            fetch(API_URL)
-                .then(res => { if (!res.ok) throw new Error("API Blocked"); return res.json(); })
-                .then(data => { dbData = data; })
-                .catch(err => { 
-                    console.warn("API Error, menggunakan data kosong:", err);
-                    dbData = { profile: {name: "Guest", bio: "Gagal memuat data cloud."}, projects: [], journey: [] };
+            lockUI("MENYINKRONKAN DATA CLOUD...");
+            const startTime = Date.now();
+            
+            // CACHE BUSTER: Menambahkan timestamp agar Google TIDAK memberikan data basi
+            const freshUrl = API_URL + "?v=" + Date.now();
+            
+            fetch(freshUrl)
+                .then(res => { if (!res.ok) throw new Error("Server Error"); return res.json(); })
+                .then(data => { 
+                    dbData = data; 
+                    renderSeluruhUI(); // UI langsung digambar ulang dengan data paling baru
+                })
+                .catch(err => {
+                    console.error("Gagal API:", err); 
+                    zwsToast("Menggunakan struktur lokal (API Gagal).", "warning");
+                    renderSeluruhUI(); 
                 })
                 .finally(() => {
-                    renderSeluruhUI();
-                    document.getElementById('loading-screen').classList.add('hidden');
-                    aktifkanAnimasiScroll();
+                    const remaining = Math.max(0, 1000 - (Date.now() - startTime)); 
+                    setTimeout(() => {
+                        unlockUI();
+                        document.querySelectorAll('.scroll-anim').forEach(el => el.classList.add('show'));
+                    }, remaining);
                 });
         };
 
@@ -432,11 +443,23 @@
         }
 
         // ================= CRUD SYSTEM =================
+        // ================= CRUD SYSTEM =================
         function kirimKeServerGAS(pesanSukses) {
-            renderSeluruhUI(); lockUI("MENGIRIM DATA...");
+            // Render UI secara INSTAN agar perubahan langsung terlihat di layar
+            renderSeluruhUI(); 
+            
+            lockUI("MENGIRIM DATA KE CLOUD...");
+            // POST request aman dari cache, jadi kita gunakan API_URL biasa
             fetch(API_URL, { method: 'POST', body: JSON.stringify(dbData) })
-            .then(res => res.json()).then(res => { unlockUI(); zwsToast(pesanSukses, "success"); })
-            .catch(err => { unlockUI(); zwsToast("Gagal mengirim data.", "error"); });
+            .then(res => res.json())
+            .then(res => { 
+                unlockUI(); 
+                zwsToast(pesanSukses, "success"); 
+            })
+            .catch(err => { 
+                unlockUI(); 
+                zwsToast("Gagal mengirim data. Pastikan koneksi stabil.", "error"); 
+            });
         }
 
         function simpanProfilUtama() { dbData.profile.name = document.getElementById('admin-profile-name').value; dbData.profile.bio = document.getElementById('admin-profile-bio').value; kirimKeServerGAS("Log Identitas diperbarui!"); }
