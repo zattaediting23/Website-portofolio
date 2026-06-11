@@ -45,6 +45,21 @@
 
 <body class="bg-[#020204] text-[#e2e8f0] font-sans min-h-screen relative overflow-x-hidden">
 
+    <div id="offline-screen" class="hidden fixed inset-0 z-[9999] bg-[#020204] flex flex-col justify-center items-center p-6 text-center">
+        <div class="relative mb-8">
+            <i class="fa-solid fa-wifi text-7xl text-red-600 opacity-20 absolute top-0 left-0 animate-ping"></i>
+            <i class="fa-solid fa-wifi text-7xl text-red-500 relative z-10"></i>
+            <div class="absolute bottom-0 right-0 bg-[#020204] rounded-full w-8 h-8 flex items-center justify-center translate-x-2 translate-y-2">
+                <i class="fa-solid fa-xmark text-white text-xl"></i>
+            </div>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-widest font-mono">SINYAL TERPUTUS</h2>
+        <p class="text-gray-400 text-sm md:text-base max-w-md leading-relaxed mb-10">Koneksi internet Anda ke Galactic Station terputus. Sistem ini memerlukan jaringan aktif untuk menjaga integritas data.</p>
+        <div class="flex items-center gap-3 text-red-400 font-mono text-xs tracking-widest animate-pulse">
+            <div class="w-2 h-2 bg-red-500 rounded-full"></div> MENUNGGU KONEKSI ULANG...
+        </div>
+    </div>
+
     <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 md:top-6 md:right-6 md:bottom-auto md:left-auto md:translate-x-0 z-[300] flex flex-col gap-3 pointer-events-none w-max max-w-[90vw] transition-all"></div>
 
     <div id="zws-dialog" class="hidden fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-300">
@@ -205,15 +220,24 @@
                         <span class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase flex items-center gap-1" id="admin-panel-badge"><i class="fa-solid fa-user-shield"></i> Admin Command Center</span>
                         
                         <div class="space-y-6">
-                            <div class="border-b border-gray-800 pb-6 mt-2">
-                                <label class="text-xs text-starCyan font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-id-badge text-lg"></i> KELOLA IDENTITAS UTAMA</label>
-                                <div class="space-y-3">
-                                    <input type="text" id="admin-profile-name" placeholder="Ubah Nama Utama..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
-                                    <textarea id="admin-profile-bio" placeholder="Ubah Isi Transmission Bio..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-24 focus:border-starCyan outline-none"></textarea>
-                                    <button onclick="simpanProfilUtama()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold p-2.5 rounded hover:from-cyan-400 hover:to-blue-500 text-xs transition-all tracking-wider"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>PERBARUI DATA PROFIL</button>
+                            <div class="grid grid-cols-3 gap-3 border-b border-gray-800 pb-6 mt-2">
+                                <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
+                                    <i class="fa-solid fa-users-viewfinder text-2xl text-starCyan mb-2"></i>
+                                    <h4 class="text-white font-black text-xl" id="stat-total">0</h4>
+                                    <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Total IP Unik</p>
+                                </div>
+                                <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
+                                    <i class="fa-solid fa-mobile-screen-button text-2xl text-pink-500 mb-2"></i>
+                                    <h4 class="text-white font-black text-xl" id="stat-mobile">0</h4>
+                                    <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Dari HP</p>
+                                </div>
+                                <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
+                                    <i class="fa-solid fa-desktop text-2xl text-blue-500 mb-2"></i>
+                                    <h4 class="text-white font-black text-xl" id="stat-desktop">0</h4>
+                                    <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Dari PC</p>
                                 </div>
                             </div>
-
+                            
                             <div class="border-b border-gray-800 pb-6">
                                 <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK CV (GOOGLE DRIVE / DIRECT LINK)</label>
                                 <div class="flex gap-2">
@@ -334,12 +358,17 @@
             switchTabAuth(type);
 
             try {
-                if (typeof turnstile !== 'undefined' && turnstileWidgetId === null) {
-                    turnstileWidgetId = turnstile.render('#cf-turnstile-widget', {
-                        sitekey: '0x4AAAAAADhbRHVyHjQV1Umn',
-                        theme: 'dark',
-                        callback: window.turnstileSelesai
-                    });
+                if (typeof turnstile !== 'undefined') {
+                    if (turnstileWidgetId === null) {
+                        turnstileWidgetId = turnstile.render('#cf-turnstile-widget', {
+                            sitekey: '0x4AAAAAADhbRHVyHjQV1Umn', // Ganti dengan Site Key asli saat rilis
+                            theme: 'dark',
+                            callback: window.turnstileSelesai
+                        });
+                    } else {
+                        // RESET TURNSTILE JIKA SUDAH PERNAH DIBUKA
+                        turnstile.reset(turnstileWidgetId);
+                    }
                 }
             } catch (error) { console.error("Turnstile Error:", error); }
         }
@@ -458,6 +487,7 @@
 
             // 2. RENDER INSTAN KE LAYAR! (Tidak ada lagi delay)
             renderSeluruhUI();
+            rekamJejakPengunjung();
 
             // 3. Jalankan intelijen latar belakang (Ambil data segar dari Google)
             const freshUrl = API_URL + "?v=" + Date.now();
@@ -471,7 +501,8 @@
                     if (dataLama !== dataBaru) {
                         dbData = dataTerbaru; 
                         localStorage.setItem('zws_cloud_cache', JSON.stringify(dbData));
-                        renderSeluruhUI(); 
+                        renderSeluruhUI();
+                        rekamJejakPengunjung();
                     }
                 })
                 .catch(err => console.warn("Sinyal Cloud terhambat, menggunakan data lokal."))
@@ -515,6 +546,57 @@
             renderJourney(currentUserInfo);
         }
 
+        // ================= MESIN ANALITIK & RADAR IP =================
+        function rekamJejakPengunjung() {
+            // Cek apakah database analitik sudah ada
+            if (!dbData.analytics) dbData.analytics = [];
+
+            // Gunakan sessionStorage agar tidak merekam/mengecek API IP berulang kali di satu sesi
+            if(sessionStorage.getItem('zws_tracked')) {
+                updateKartuAnalitik(); // Tetap update angka di panel admin
+                return; 
+            }
+
+            // Panggil API untuk melihat IP Pengunjung
+            fetch('https://api.ipify.org?format=json')
+                .then(res => res.json())
+                .then(data => {
+                    const ipUser = data.ip;
+                    // Sensor untuk mendeteksi apakah ini HP atau PC
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    const deviceType = isMobile ? 'Mobile' : 'Desktop';
+
+                    // Cek apakah IP ini sudah ada di database kita
+                    const ipSudahAda = dbData.analytics.find(visitor => visitor.ip === ipUser);
+                    
+                    if(!ipSudahAda) {
+                        // Jika IP baru, masukkan ke database dan kirim secara SENYAP ke Google Cloud
+                        dbData.analytics.push({ ip: ipUser, device: deviceType, time: new Date().toISOString() });
+                        kirimKeServerGAS("Analytics Updated", true); // true = isSilent
+                    }
+                    
+                    sessionStorage.setItem('zws_tracked', 'true');
+                    updateKartuAnalitik();
+                })
+                .catch(e => console.log("Radar IP terhalang pelindung privasi."));
+        }
+
+        function updateKartuAnalitik() {
+            if (!dbData.analytics) return;
+            
+            const totalIP = dbData.analytics.length;
+            const totalMobile = dbData.analytics.filter(v => v.device === 'Mobile').length;
+            const totalDesktop = dbData.analytics.filter(v => v.device === 'Desktop').length;
+
+            const elTotal = document.getElementById('stat-total');
+            const elMobile = document.getElementById('stat-mobile');
+            const elDesktop = document.getElementById('stat-desktop');
+
+            if(elTotal) elTotal.innerText = totalIP;
+            if(elMobile) elMobile.innerText = totalMobile;
+            if(elDesktop) elDesktop.innerText = totalDesktop;
+        }
+
         // ================= USER UI HANDLER =================
         window.tampilkanUser = function(user) {
             currentUserInfo = user;
@@ -534,22 +616,29 @@
 
         // ================= CRUD SYSTEM =================
         // ================= CRUD SYSTEM =================
-        function kirimKeServerGAS(pesanSukses) {
-            // Backup ke cache lokal agar layar langsung berubah instan!
+        function kirimKeServerGAS(pesanSukses, isSilent = false) {
             localStorage.setItem('zws_cloud_cache', JSON.stringify(dbData));
-            renderSeluruhUI(); 
             
-            lockUI("MENGIRIM DATA KE CLOUD...");
+            // Jika bukan mode senyap (Admin yang edit), munculkan loading
+            if(!isSilent) {
+                renderSeluruhUI(); 
+                lockUI("MENGIRIM DATA KE CLOUD...");
+            }
+            
             fetch(API_URL, { method: 'POST', body: JSON.stringify(dbData) })
             .then(res => res.json())
             .then(res => { 
-                unlockUI(); 
-                zwsToast(pesanSukses, "success"); 
+                if(!isSilent) {
+                    unlockUI(); 
+                    zwsToast(pesanSukses, "success"); 
+                }
                 if(typeof radarChannel !== 'undefined') radarChannel.postMessage({ action: 'sync_data' });
             })
             .catch(err => { 
-                unlockUI(); 
-                zwsToast("Gagal mengirim data. Pastikan koneksi stabil.", "error"); 
+                if(!isSilent) {
+                    unlockUI(); 
+                    zwsToast("Gagal mengirim data. Pastikan koneksi stabil.", "error"); 
+                }
             });
         }
 
@@ -834,13 +923,11 @@
             signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
         };
         
-        window.loginInstagram = function(btn) { 
-            window.zwsToast("Membuka gerbang Meta. Gunakan akun Instagram yang tertaut.", "info"); 
-            setTimeout(() => { 
-                window.setBtnLoading(btn); 
-                const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); 
-                signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
-            }, 2000); 
+        window.loginInstagram = function(btn) {
+            window.zwsToast("Membuka gerbang Meta...", "info"); 
+            window.setBtnLoading(btn); 
+            const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); 
+            signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
         };
 
         // 3. FUNGSI LOGOUT
