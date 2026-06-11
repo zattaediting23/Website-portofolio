@@ -1056,10 +1056,19 @@
         const app = initializeApp(firebaseConfig); 
         const auth = getAuth(app);
 
-        // 1. RADAR UTAMA (Menjaga status UI saat halaman di-refresh manual)
-        // 1. RADAR UTAMA & SATPAM HALAMAN
+        // ================= SISTEM ROUTING INSTAN (ANTI-FLASH) =================
+        // Menangkap URL detik ke-0 sebelum Firebase loading, agar layar tidak berkedip ke Beranda
+        const currentPathUtama = window.location.pathname;
+        if (currentPathUtama.includes('/profile')) {
+            document.getElementById('page-beranda').classList.remove('page-active');
+            document.getElementById('page-profil').classList.add('page-active');
+        }
+
+        // ================= RADAR UTAMA & SATPAM HALAMAN =================
+        let isInitialLoad = true; // Kunci agar halaman tidak me-reset diri sendiri saat Firebase refresh token
+
         onAuthStateChanged(auth, (user) => {
-            // Eksekusi data user ke UI
+            // 1. Eksekusi data user ke UI
             if (user) {
                 const userData = { name: user.displayName || "Crew Member", email: user.email || "", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
                 localStorage.setItem('zws_user', JSON.stringify(userData)); 
@@ -1072,27 +1081,28 @@
                 if(document.getElementById('admin-panel')) document.getElementById('admin-panel').classList.add('hidden');
             }
 
-            // === SISTEM ROUTING & PEMBLOKIR AKSES ===
-            const currentPath = window.location.pathname;
-            
-            if (currentPath.includes('/profile')) {
-                if (!user) {
-                    // JIKA BELUM LOGIN: Tendang ke beranda, ubah URL ke '/', dan buka modal login
-                    window.history.replaceState({ page: 'beranda' }, "", "/");
-                    showPage('beranda', true);
-                    
-                    // Beri jeda sedikit agar halaman beranda termuat dulu sebelum modal terbuka
-                    setTimeout(() => {
-                        window.zwsToast("Akses Ditolak. Silakan identifikasi diri Anda.", "error");
-                        bukaModalAuth('login');
-                    }, 500);
+            // 2. SISTEM PEMBLOKIR AKSES (Hanya dieksekusi 1 kali saat halaman pertama dimuat)
+            if (isInitialLoad) {
+                const currentPath = window.location.pathname;
+                
+                if (currentPath.includes('/profile')) {
+                    if (!user) {
+                        // JIKA BELUM LOGIN: Tendang ke beranda secara mulus
+                        window.history.replaceState({ page: 'beranda' }, "", "/");
+                        showPage('beranda', true);
+                        
+                        setTimeout(() => {
+                            window.zwsToast("Akses Ditolak. Silakan identifikasi diri Anda.", "error");
+                            bukaModalAuth('login');
+                        }, 500);
+                    }
+                    // Jika sudah login, abaikan saja karena "Routing Instan" di atas sudah membuka halamannya
                 } else {
-                    // JIKA SUDAH LOGIN: Persilakan masuk
-                    showPage('profil', true);
+                    // Pastikan di beranda
+                    if(currentPath !== '/') window.history.replaceState({ page: 'beranda' }, "", "/");
                 }
-            } else {
-                // Default ke halaman beranda
-                showPage('beranda', true);
+                
+                isInitialLoad = false; // Gembok dikunci! Radar tidak akan mengganggu routing lagi.
             }
         });
 
