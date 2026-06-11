@@ -384,23 +384,30 @@
         // ================= SISTEM RADAR KONEKSI INTERNET (KILL SWITCH) =================
         const offlineScreen = document.getElementById('offline-screen');
 
+        // ================= SISTEM RADAR KONEKSI INTERNET =================
         function cekStatusSinyal() {
+            // Gunakan optional chaining (?.) agar TIDAK CRASH jika HTML-nya tidak sengaja terhapus/belum dimuat
+            const offlineScreen = document.getElementById('offline-screen');
+            if (!offlineScreen) return; // Berhenti dengan aman jika elemen tidak ditemukan
+
             if (navigator.onLine) {
-                // Internet Terhubung: Buka kunci layar
                 offlineScreen.classList.add('hidden');
-                
-                // Jika web sedang memuat API saat internet kembali, render ulang
-                if(document.getElementById('hero-name').innerText === "Loading...") {
+                if(document.getElementById('hero-name')?.innerText === "Loading...") {
                     window.dispatchEvent(new Event('load')); 
                 }
             } else {
-                // Internet Terputus: Tutup semua modal dan kunci layar!
                 offlineScreen.classList.remove('hidden');
                 if(typeof window.tutupModalAuth === 'function') window.tutupModalAuth();
                 if(typeof window.tutupGerbangDownload === 'function') window.tutupGerbangDownload();
-                if(typeof window.closeZwsDialog === 'function') window.closeZwsDialog();
             }
         }
+
+        // Tunggu sampai HTML digambar semua baru jalankan sensor
+        document.addEventListener('DOMContentLoaded', () => {
+            cekStatusSinyal();
+            window.addEventListener('online', cekStatusSinyal);
+            window.addEventListener('offline', cekStatusSinyal);
+        });
 
         // 1. Cek secara instan saat halaman pertama kali dibuka
         cekStatusSinyal();
@@ -409,7 +416,45 @@
         window.addEventListener('online', cekStatusSinyal);
         window.addEventListener('offline', cekStatusSinyal);
 
-        // ================= FETCH API CLOUD (DENGAN PENGHANCUR CACHE) =================
+        // ================= KEMBALIKAN FUNGSI PENGATUR UI (ANTI-BLANK) =================
+        window.tampilkanUser = function(user) {
+            currentUserInfo = user;
+            const navLoggedOut = document.getElementById('nav-logged-out');
+            const navLoggedIn = document.getElementById('nav-logged-in');
+            const adminPanel = document.getElementById('admin-panel');
+
+            if (user) {
+                // User terdeteksi -> Munculkan Profil
+                if (navLoggedOut) navLoggedOut.classList.add('hidden');
+                if (navLoggedIn) navLoggedIn.classList.remove('hidden');
+                
+                // Update elemen gambar dan nama dengan aman
+                const fotoEl = document.getElementById('nav-foto');
+                if (fotoEl) fotoEl.src = user.picture || user.photoURL || `https://ui-avatars.com/api/?name=${user.name}&background=1f2937&color=22d3ee`;
+                
+                const profilImg = document.getElementById('profil-img');
+                if (profilImg) profilImg.src = user.picture || user.photoURL || `https://ui-avatars.com/api/?name=${user.name}&background=1f2937&color=22d3ee`;
+                
+                const nameEl = document.getElementById('profil-name');
+                if (nameEl) nameEl.innerText = user.name || user.displayName || "Crew Member";
+                
+                const emailEl = document.getElementById('profil-email');
+                if (emailEl) emailEl.innerText = user.email || "";
+
+                // Cek akses Admin
+                if(user.email && typeof ADMIN_ACCOUNTS !== 'undefined' && ADMIN_ACCOUNTS.includes(user.email)) {
+                    if (adminPanel) adminPanel.classList.remove('hidden');
+                } else {
+                    if (adminPanel) adminPanel.classList.add('hidden');
+                }
+            } else {
+                // User tidak ada -> Munculkan tombol Login
+                if (navLoggedOut) navLoggedOut.classList.remove('hidden');
+                if (navLoggedIn) navLoggedIn.classList.add('hidden');
+                if (adminPanel) adminPanel.classList.add('hidden');
+            }
+        };
+        
         // ================= INISIALISASI DATA SUPER CEPAT (ANTI-BLANK) =================
         // Eksekusi detik ke-0 saat HTML terbaca, TANPA menunggu script lain selesai loading!
         document.addEventListener('DOMContentLoaded', () => {
