@@ -146,7 +146,7 @@
         <div id="page-beranda" class="page page-active space-y-20">
             <section class="text-center">
                 <div class="inline-block relative mb-8 scroll-anim scroll-scale"><i class="fa-solid fa-user-astronaut text-7xl text-starCyan opacity-90 animate-bounce"></i></div>
-                <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms;">Loading...</h1>
+                <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms;">M. Zhafran .MA</h1>
                 <p class="text-starCyan font-mono tracking-widest mb-10 scroll-anim scroll-up" style="transition-delay: 200ms;">Admin Staff & Web Developer</p>
                 <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 active:scale-95 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;"><i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV</a>
                 <div class="mt-20 animate-bounce scroll-anim scroll-up" style="transition-delay: 500ms;">
@@ -410,39 +410,48 @@
         window.addEventListener('offline', cekStatusSinyal);
 
         // ================= FETCH API CLOUD (DENGAN PENGHANCUR CACHE) =================
-        window.onload = () => {
+        // ================= INISIALISASI DATA SUPER CEPAT (ANTI-BLANK) =================
+        // Eksekusi detik ke-0 saat HTML terbaca, TANPA menunggu script lain selesai loading!
+        document.addEventListener('DOMContentLoaded', () => {
             initIconDropdown(); 
             
-            // 1. RENDER INSTAN: Munculkan data dari memori lokal (Anti-Hilang / Anti-Loading lama)
+            // 1. Cek isi kepala (Local Storage) dulu
+            try {
+                const cache = localStorage.getItem('zws_cloud_cache');
+                if (cache) dbData = JSON.parse(cache);
+            } catch(e) {}
+
+            // 2. RENDER INSTAN KE LAYAR! (Tidak ada lagi delay)
             renderSeluruhUI();
-            
-            // 2. FETCH LATAR BELAKANG: Diam-diam cek Google tanpa mengganggu layar
+
+            // 3. Jalankan intelijen latar belakang (Ambil data segar dari Google)
             const freshUrl = API_URL + "?v=" + Date.now();
             fetch(freshUrl)
                 .then(res => { if (!res.ok) throw new Error("Server Error"); return res.json(); })
                 .then(dataTerbaru => { 
-                    const dataLamaString = JSON.stringify(dbData);
-                    const dataBaruString = JSON.stringify(dataTerbaru);
+                    const dataLama = JSON.stringify(dbData);
+                    const dataBaru = JSON.stringify(dataTerbaru);
                     
-                    // Jika ada data baru dari cloud, update layar dan simpan ke memori
-                    if (dataLamaString !== dataBaruString) {
+                    // Kalau ada beda data antara memori dan cloud, perbarui layar senyap-senyap
+                    if (dataLama !== dataBaru) {
                         dbData = dataTerbaru; 
                         localStorage.setItem('zws_cloud_cache', JSON.stringify(dbData));
                         renderSeluruhUI(); 
                     }
                 })
-                .catch(err => console.warn("API Tertunda. Menggunakan data memori lokal."))
+                .catch(err => console.warn("Sinyal Cloud terhambat, menggunakan data lokal."))
                 .finally(() => {
-                    // Paksa semua animasi muncul
+                    // Paksa nyalakan semua animasi
                     document.querySelectorAll('.scroll-anim').forEach(el => el.classList.add('show'));
-                    // Sembunyikan layar loading utama (jika tadinya nyangkut)
+                    
+                    // Matikan layar loading utama jika masih nyangkut
                     const loader = document.getElementById('loading-screen');
-                    if(loader) {
+                    if(loader) { 
                         loader.classList.add('opacity-0'); 
-                        setTimeout(() => loader.classList.add('hidden'), 500);
+                        setTimeout(() => loader.classList.add('hidden'), 500); 
                     }
                 });
-        };
+        });
 
         // Render Data Tanpa Membajak Navigasi Halaman
         function renderSeluruhUI() {
