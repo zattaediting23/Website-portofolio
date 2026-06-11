@@ -12,7 +12,6 @@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
 
     <script>
         tailwind.config = {
@@ -224,9 +223,18 @@
                         
                         <div class="space-y-6">
                             <div class="border-b border-gray-800 pb-6 mt-2">
+                                <label class="text-xs text-starCyan font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-id-badge text-lg"></i> KELOLA IDENTITAS UTAMA</label>
+                                <div class="space-y-3">
+                                    <input type="text" id="admin-profile-name" placeholder="Ubah Nama Utama..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
+                                    <textarea id="admin-profile-bio" placeholder="Ubah Isi Transmission Bio..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-24 focus:border-starCyan outline-none"></textarea>
+                                    <button onclick="simpanProfilUtama()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold p-2.5 rounded hover:from-cyan-400 hover:to-blue-500 text-xs transition-all tracking-wider"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>PERBARUI DATA PROFIL</button>
+                                </div>
+                            </div>
+
+                            <div class="border-b border-gray-800 pb-6 mt-2">
                                 <label class="text-xs text-starCyan font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-satellite-dish text-lg"></i> RADAR ANALITIK PENGUNJUNG</label>
                                 
-                                <div class="grid grid-cols-3 gap-3 mb-4">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                                     <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
                                         <i class="fa-solid fa-users-viewfinder text-xl text-starCyan mb-1"></i>
                                         <h4 class="text-white font-black text-lg" id="stat-total">0</h4>
@@ -238,6 +246,11 @@
                                         <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Via HP</p>
                                     </div>
                                     <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
+                                        <i class="fa-solid fa-tablet-screen-button text-xl text-purple-500 mb-1"></i>
+                                        <h4 class="text-white font-black text-lg" id="stat-tablet">0</h4>
+                                        <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Via Tablet</p>
+                                    </div>
+                                    <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
                                         <i class="fa-solid fa-desktop text-xl text-blue-500 mb-1"></i>
                                         <h4 class="text-white font-black text-lg" id="stat-desktop">0</h4>
                                         <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Via PC</p>
@@ -246,15 +259,16 @@
 
                                 <div class="bg-black/50 border border-gray-700 rounded-xl overflow-hidden">
                                     <div class="bg-gray-800/80 px-4 py-2 flex justify-between items-center border-b border-gray-700">
-                                        <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase"><i class="fa-solid fa-list-ol mr-1"></i> Log Transmisi IP</span>
-                                        <button onclick="hapusSeluruhLogIP()" class="text-[10px] bg-red-900/50 text-red-500 hover:bg-red-500 hover:text-white border border-red-800/50 px-2 py-1 rounded transition-colors font-bold tracking-widest"><i class="fa-solid fa-trash mr-1"></i> BERSIHKAN</button>
+                                        <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase"><i class="fa-solid fa-list-ol mr-1"></i> Log Transmisi</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="toggleConsole()" class="text-[10px] bg-blue-900/50 text-blue-400 hover:bg-blue-500 hover:text-white border border-blue-800/50 px-2 py-1 rounded transition-colors font-bold tracking-widest"><i class="fa-solid fa-terminal mr-1"></i> CONSOLE</button>
+                                            <button onclick="hapusSeluruhLogIP()" class="text-[10px] bg-red-900/50 text-red-500 hover:bg-red-500 hover:text-white border border-red-800/50 px-2 py-1 rounded transition-colors font-bold tracking-widest"><i class="fa-solid fa-trash-can mr-1"></i> BERSIHKAN</button>
+                                        </div>
                                     </div>
-                                    <div class="max-h-48 overflow-y-auto custom-scroll p-0" id="ip-log-container">
-                                        <p class="text-xs text-gray-500 text-center py-6 font-mono">Memindai log transmisi...</p>
-                                    </div>
+                                    <div class="max-h-60 overflow-y-auto custom-scroll p-0" id="ip-log-container"></div>
                                 </div>
                             </div>
-                            
+
                             <div class="border-b border-gray-800 pb-6">
                                 <label class="text-xs text-gray-400 font-bold mb-1 block"><i class="fa-brands fa-google-drive mr-1"></i> LINK CV (GOOGLE DRIVE / DIRECT LINK)</label>
                                 <div class="flex gap-2">
@@ -262,51 +276,6 @@
                                     <button onclick="simpanCVKeDatabase()" class="bg-starCyan text-black px-4 font-bold rounded hover:bg-white text-sm transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
                                 </div>
                             </div>
-
-                            <div class="border-b border-gray-800 pb-6">
-                                <label class="text-xs text-starCyan font-bold mb-2 flex items-center gap-2" id="label-form-proyek"><i class="fa-solid fa-plus text-lg"></i> TAMBAH PROYEK BARU</label>
-                                <div class="space-y-3">
-                                    <input type="text" id="p-title" placeholder="Nama Proyek (Contoh: Sistem Absense)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
-                                    <input type="text" id="p-link" placeholder="Tautan URL / Link Download (Contoh: https://...)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
-                                    <textarea id="p-desc" placeholder="Deskripsi Singkat Proyek..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-starCyan outline-none"></textarea>
-                                    
-                                    <div class="flex flex-col md:flex-row gap-3">
-                                        <div class="w-full md:w-1/2">
-                                            <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-font"></i> Teks Tombol Aksi</label>
-                                            <input type="text" id="p-btn-text" placeholder="Cth: DOWNLOAD MOD / GITHUB" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-starCyan outline-none">
-                                        </div>
-                                        <div class="w-full md:w-1/2 relative" id="icon-dropdown-container">
-                                            <label class="text-xs text-gray-500 mb-1 block"><i class="fa-solid fa-icons"></i> Ikon Tombol</label>
-                                            <input type="hidden" id="p-btn-icon-value" value="">
-                                            <div class="flex items-center w-full bg-black p-3 rounded border border-gray-700 focus-within:border-starCyan relative cursor-pointer" onclick="toggleDropdown()">
-                                                <i id="selected-icon-preview" class="fa-solid fa-play text-gray-500 mr-3 w-5 text-center"></i>
-                                                <input type="text" id="icon-search-input" placeholder="Cari ikon..." class="bg-transparent text-sm text-white outline-none w-full cursor-text" onkeyup="filterIcons()">
-                                                <i class="fa-solid fa-chevron-down text-gray-500 ml-2 text-xs"></i>
-                                            </div>
-                                            <div id="icon-dropdown-list" class="hidden absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded shadow-2xl max-h-48 overflow-y-auto custom-scroll"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex gap-2 pt-2">
-                                        <button onclick="simpanProyek()" id="btn-simpan-proyek" class="flex-1 bg-blue-600 text-white font-bold p-3 rounded hover:bg-blue-700 text-sm transition-colors"><i class="fa-solid fa-rocket mr-2"></i>TAMBAH PROYEK</button>
-                                        <button onclick="batalEdit()" id="btn-batal-edit" class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors"><i class="fa-solid fa-xmark mr-2"></i>BATAL</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="text-xs text-nebulaPurple font-bold mb-2 flex items-center gap-2" id="label-form-journey"><i class="fa-solid fa-timeline text-lg"></i> TAMBAH JEJAK PERJALANAN</label>
-                                <div class="space-y-3">
-                                    <input type="text" id="j-year" placeholder="Tahun (Contoh: 2023 - 2026)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-nebulaPurple outline-none">
-                                    <input type="text" id="j-title" placeholder="Judul (Contoh: Membangun ZWS)" class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-nebulaPurple outline-none">
-                                    <textarea id="j-desc" placeholder="Ceritakan detail perjalanan ini..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white h-20 focus:border-nebulaPurple outline-none"></textarea>
-                                    <div class="flex gap-2 pt-2">
-                                        <button onclick="simpanJourney()" id="btn-simpan-journey" class="flex-1 bg-nebulaPurple text-white font-bold p-3 rounded hover:bg-purple-700 text-sm transition-colors"><i class="fa-solid fa-plus mr-2"></i>TAMBAH JEJAK</button>
-                                        <button onclick="batalEditJourney()" id="btn-batal-journey" class="hidden bg-gray-700 text-white font-bold p-3 rounded hover:bg-gray-600 text-sm transition-colors"><i class="fa-solid fa-xmark mr-2"></i>BATAL</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -566,111 +535,137 @@
             updateKartuAnalitik(); // Trigger update data statistik IP & List IP
         }
 
-        // ================= MESIN ANALITIK & RADAR IP (VERSI TANGGUH) =================
         // ================= MESIN ANALITIK & RADAR IP (GEOJS - ANTI UNKNOWN) =================
+        // ================= MESIN DETEKSI PERANGKAT =================
+        function getDeviceType() {
+            const ua = navigator.userAgent;
+            if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'Tablet';
+            if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) return 'Mobile';
+            return 'Desktop';
+        }
+
+        // ================= MESIN ANALITIK & RADAR LOKASI LENGKAP =================
         function rekamJejakPengunjung() {
             if (!dbData.analytics) dbData.analytics = [];
 
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            const deviceType = isMobile ? 'Mobile' : 'Desktop';
-            const sessionKey = 'zws_tracked_' + deviceType;
+            const deviceType = getDeviceType();
+            const sessionKey = 'zws_session_active'; 
 
+            // Jangan rekam berulang kalau cuma refresh tab. Tapi kalau buka tab baru / besoknya, bakal direkam lagi!
             if(sessionStorage.getItem(sessionKey)) {
                 updateKartuAnalitik(); 
                 return; 
             }
 
-            // MENGGUNAKAN GEOJS: Tahan banting, anti-adblock, no strict rate-limit
             fetch('https://get.geojs.io/v1/ip/geo.json')
-                .then(res => {
-                    if(!res.ok) throw new Error("API GeoJS Terblokir");
-                    return res.json();
-                })
+                .then(res => { if(!res.ok) throw new Error("API Terblokir"); return res.json(); })
                 .then(data => {
                     const ipUser = data.ip;
                     if (!ipUser) throw new Error("IP kosong");
 
-                    // Mapping data dari GeoJS
                     const ispName = data.organization_name || "Unknown ISP";
-                    let locationName = "Unknown Location";
-                    if (data.city && data.country) locationName = `${data.city}, ${data.country}`;
-                    else if (data.country) locationName = data.country;
+                    // Gabungkan Kota, Provinsi(Region), dan Negara (contoh: "Bandung, West Java, Indonesia")
+                    const locationName = [data.city, data.region, data.country].filter(Boolean).join(', ') || "Unknown Location";
 
-                    const ipSudahAda = dbData.analytics.find(v => v.ip === ipUser && v.device === deviceType);
+                    // CATAT LOG BARU SETIAP KALI MASUK SESI (Tanpa memblokir IP yang sama)
+                    dbData.analytics.push({ 
+                        ip: ipUser, 
+                        device: deviceType, 
+                        isp: ispName,
+                        location: locationName,
+                        time: new Date().toISOString() 
+                    });
                     
-                    if(!ipSudahAda) {
-                        dbData.analytics.push({ 
-                            ip: ipUser, 
-                            device: deviceType, 
-                            isp: ispName,
-                            location: locationName,
-                            time: new Date().toISOString() 
-                        });
-                        console.log("RADAR: IP Tersimpan ->", ipUser, ispName);
-                        kirimKeServerGAS("Log Pengunjung Disimpan", true); 
-                    }
-                    
+                    kirimKeServerGAS("Transmisi Kunjungan Baru Terekam", true); 
                     sessionStorage.setItem(sessionKey, 'true');
                     updateKartuAnalitik();
                 })
                 .catch(e => {
-                    console.error("RADAR ERROR: ", e.message);
-                    // Fallback Darurat murni jika GeoJS mati (Sangat jarang terjadi)
+                    // Fallback Darurat jika kena Adblocker Strict
                     fetch('https://api.ipify.org?format=json')
                         .then(r => r.json())
                         .then(d => {
-                            const ipUsr = d.ip;
-                            if(!ipUsr) return;
-                            if(!dbData.analytics.find(v => v.ip === ipUsr && v.device === deviceType)) {
-                                dbData.analytics.push({ ip: ipUsr, device: deviceType, isp: "Privat/Tidak Terlacak", location: "Lokasi Tersembunyi", time: new Date().toISOString() });
-                                kirimKeServerGAS("Log Pengunjung Disimpan (Mode Privat)", true); 
-                            }
+                            if(!d.ip) return;
+                            dbData.analytics.push({ ip: d.ip, device: deviceType, isp: "Privat/Tidak Terlacak", location: "Sinyal Tersembunyi", time: new Date().toISOString() });
+                            kirimKeServerGAS("Transmisi Privat Terekam", true); 
                             sessionStorage.setItem(sessionKey, 'true');
                             updateKartuAnalitik();
-                        }).catch(err => console.error("Koneksi Radar Terputus Total"));
+                        }).catch(err => console.log("Radar ditolak"));
                 });
         }
 
-        // FUNGSI PEMBERSIH LOG IP
+        // ================= KONTROL CONSOLE IN-WEB =================
+        let isConsoleActive = false;
+        function toggleConsole() {
+            if (typeof eruda === 'undefined') {
+                window.zwsToast("Memanggil modul Console. Harap tunggu...", "info");
+                const script = document.createElement('script');
+                script.src = "https://cdn.jsdelivr.net/npm/eruda";
+                script.onload = () => { eruda.init(); isConsoleActive = true; eruda.show(); };
+                document.head.appendChild(script);
+            } else {
+                if (isConsoleActive) { eruda.hide(); isConsoleActive = false; }
+                else { eruda.show(); isConsoleActive = true; }
+            }
+        }
+
+        // ================= KONTROL PENGHAPUS LOG =================
         function hapusSeluruhLogIP() {
             window.zwsConfirm("PERINGATAN: Bersihkan seluruh log transmisi IP dari server?", function() {
-                dbData.analytics = []; // Kosongkan array analitik
-                updateKartuAnalitik(); // Kosongkan tabel di layar
-                kirimKeServerGAS("Log Transmisi IP Berhasil Dihapus!"); 
+                dbData.analytics = []; updateKartuAnalitik(); kirimKeServerGAS("Seluruh Log Transmisi Dihapus!", true); 
+            });
+        }
+        function hapusSatuLog(index) {
+            window.zwsConfirm("Hapus log transmisi ini secara spesifik?", function() {
+                dbData.analytics.splice(index, 1); updateKartuAnalitik(); kirimKeServerGAS("Log spesifik dihapus!", true);
             });
         }
 
+        // ================= RENDER UI ANALITIK =================
         function updateKartuAnalitik() {
             if (!dbData.analytics) return;
             
-            const totalIP = dbData.analytics.length;
+            // Logika IP Unik (Hanya menghitung Alamat IP yang berbeda)
+            const arrayIPUnik = [...new Set(dbData.analytics.map(v => v.ip))];
+            const uniqueIPCount = arrayIPUnik.length;
+            
+            // Hitung total kunjungan berdasarkan Perangkat
             const totalMobile = dbData.analytics.filter(v => v.device === 'Mobile').length;
+            const totalTablet = dbData.analytics.filter(v => v.device === 'Tablet').length;
             const totalDesktop = dbData.analytics.filter(v => v.device === 'Desktop').length;
 
             const elTotal = document.getElementById('stat-total');
             const elMobile = document.getElementById('stat-mobile');
+            const elTablet = document.getElementById('stat-tablet');
             const elDesktop = document.getElementById('stat-desktop');
 
-            if(elTotal) elTotal.innerText = totalIP;
+            if(elTotal) elTotal.innerText = uniqueIPCount; // Ditampilkan Angka Unik
             if(elMobile) elMobile.innerText = totalMobile;
+            if(elTablet) elTablet.innerText = totalTablet;
             if(elDesktop) elDesktop.innerText = totalDesktop;
 
             const container = document.getElementById('ip-log-container');
             if(container) {
-                if(totalIP === 0) {
+                if(dbData.analytics.length === 0) {
                     container.innerHTML = '<p class="text-xs text-gray-500 text-center py-6 font-mono">Belum ada transmisi terdeteksi.</p>';
                 } else {
                     const reversedLogs = [...dbData.analytics].reverse();
-                    container.innerHTML = reversedLogs.map((log) => {
+                    container.innerHTML = reversedLogs.map((log, reversedIndex) => {
+                        // Kembalikan Index agar saat dihapus, yang dihapus benar di array aslinya
+                        const originalIndex = dbData.analytics.length - 1 - reversedIndex;
+                        
                         const dateObj = new Date(log.time);
                         const timeStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
-                        const icon = log.device === 'Mobile' ? '<i class="fa-solid fa-mobile-screen-button text-pink-500 text-lg"></i>' : '<i class="fa-solid fa-desktop text-blue-500 text-sm"></i>';
+                        
+                        let icon = '<i class="fa-solid fa-desktop text-blue-500 text-sm"></i>';
+                        if(log.device === 'Mobile') icon = '<i class="fa-solid fa-mobile-screen-button text-pink-500 text-lg"></i>';
+                        if(log.device === 'Tablet') icon = '<i class="fa-solid fa-tablet-screen-button text-purple-500 text-lg"></i>';
                         
                         const ispText = log.isp || "Privat / Unknown";
                         const locText = log.location || "Lokasi Tidak Diketahui";
 
                         return `
-                        <div class="flex justify-between items-center p-3 border-b border-gray-800/50 last:border-0 hover:bg-gray-800/30 transition-colors">
+                        <div class="flex justify-between items-center p-3 border-b border-gray-800/50 last:border-0 hover:bg-gray-800/30 transition-colors group">
                             <div class="flex items-center gap-3">
                                 <div class="bg-gray-900 min-w-[36px] h-9 flex justify-center items-center rounded-lg border border-gray-700 shadow-inner">${icon}</div>
                                 <div>
@@ -682,8 +677,11 @@
                                     <p class="text-[10px] text-gray-500 truncate w-40 md:w-56"><i class="fa-solid fa-location-dot mr-1 text-gray-600"></i> ${locText}</p>
                                 </div>
                             </div>
-                            <div class="text-[10px] text-gray-500 font-mono text-right whitespace-nowrap ml-2">
-                                ${timeStr.replace(', ', '<br>')}
+                            <div class="flex flex-col items-end gap-2">
+                                <button onclick="hapusSatuLog(${originalIndex})" class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-white transition-all bg-red-900/30 px-2 py-1 rounded"><i class="fa-solid fa-trash-can"></i></button>
+                                <div class="text-[10px] text-gray-500 font-mono text-right whitespace-nowrap ml-2">
+                                    ${timeStr.replace(', ', '<br>')}
+                                </div>
                             </div>
                         </div>`;
                     }).join('');
