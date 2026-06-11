@@ -569,37 +569,71 @@
 
         // ================= MESIN ANALITIK & RADAR IP =================
         function rekamJejakPengunjung() {
-            // Cek apakah database analitik sudah ada
             if (!dbData.analytics) dbData.analytics = [];
 
-            // Gunakan sessionStorage agar tidak merekam/mengecek API IP berulang kali di satu sesi
-            if(sessionStorage.getItem('zws_tracked')) {
-                updateKartuAnalitik(); // Tetap update angka di panel admin
+            // Sensor untuk mendeteksi Perangkat (HP atau PC)
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const deviceType = isMobile ? 'Mobile' : 'Desktop';
+            
+            // Kunci memori dipisah berdasarkan device, agar 1 IP bisa dicatat 2 kali jika devicenya berbeda!
+            const sessionKey = 'zws_tracked_' + deviceType;
+
+            // Jika session ini sudah dicatat untuk perangkat ini, lewati agar tidak membuang kuota API
+            if(sessionStorage.getItem(sessionKey)) {
+                updateKartuAnalitik(); 
                 return; 
             }
 
-            // Panggil API untuk melihat IP Pengunjung
-            fetch('https://api.ipify.org?format=json')
+            // Panggil API Geolocation yang bisa membaca ISP dan Alamat
+            fetch('https://ipwho.is/')
                 .then(res => res.json())
                 .then(data => {
-                    const ipUser = data.ip;
-                    // Sensor untuk mendeteksi apakah ini HP atau PC
-                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                    const deviceType = isMobile ? 'Mobile' : 'Desktop';
+                    let ipUser = data.ip;
+                    let ispName = "Unknown ISP";
+                    let locationName = "Unknown Location";
 
-                    // Cek apakah IP ini sudah ada di database kita
-                    const ipSudahAda = dbData.analytics.find(visitor => visitor.ip === ipUser);
+                    // Jika API berhasil melacak
+                    if (data.success) {
+                        ispName = data.connection ? data.connection.isp : "Unknown ISP";
+                        locationName = data.city ? `${data.city}, ${data.country}` : data.country;
+                    }
+
+                    if (!ipUser) return;
+
+                    // Cek apakah kombinasi (IP + Perangkat) ini sudah ada di database
+                    const ipSudahAda = dbData.analytics.find(v => v.ip === ipUser && v.device === deviceType);
                     
                     if(!ipSudahAda) {
-                        // Jika IP baru, masukkan ke database dan kirim secara SENYAP ke Google Cloud
-                        dbData.analytics.push({ ip: ipUser, device: deviceType, time: new Date().toISOString() });
-                        kirimKeServerGAS("Analytics Updated", true); // true = isSilent
+                        // Jika belum ada, masukkan ke database secara SENYAP
+                        dbData.analytics.push({ 
+                            ip: ipUser, 
+                            device: deviceType, 
+                            isp: ispName,
+                            location: locationName,
+                            time: new Date().toISOString() 
+                        });
+                        kirimKeServerGAS("Analytics Updated", true); 
                     }
                     
-                    sessionStorage.setItem('zws_tracked', 'true');
+                    sessionStorage.setItem(sessionKey, 'true');
                     updateKartuAnalitik();
                 })
-                .catch(e => console.log("Radar IP terhalang pelindung privasi."));
+                .catch(e => {
+                    // FALLBACK DARURAT: Jika API utama terblokir, gunakan API dasar tanpa lokasi
+                    fetch('https://api.ipify.org?format=json')
+                        .then(res => res.json())
+                        .then(data => {
+                            const ipUser = data.ip;
+                            if(!ipUser) return;
+                            const ipSudahAda = dbData.analytics.find(v => v.ip === ipUser && v.device === deviceType);
+                            if(!ipSudahAda) {
+                                dbData.analytics.push({ ip: ipUser, device: deviceType, isp: "Privat/Tidak Terlacak", location: "Sinyal Tersembunyi", time: new Date().toISOString() });
+                                kirimKeServerGAS("Analytics Updated", true); 
+                            }
+                            sessionStorage.setItem(sessionKey, 'true');
+                            updateKartuAnalitik();
+                        });
+                });
         }
 
         function updateKartuAnalitik() {
@@ -623,24 +657,30 @@
                 if(totalIP === 0) {
                     container.innerHTML = '<p class="text-xs text-gray-500 text-center py-6 font-mono">Belum ada transmisi terdeteksi.</p>';
                 } else {
-                    // Balik susunan data (reverse) agar IP pengunjung paling baru muncul di urutan paling atas
                     const reversedLogs = [...dbData.analytics].reverse();
                     container.innerHTML = reversedLogs.map((log) => {
                         const dateObj = new Date(log.time);
-                        // Format waktu lokal Indonesia
                         const timeStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
                         const icon = log.device === 'Mobile' ? '<i class="fa-solid fa-mobile-screen-button text-pink-500 text-lg"></i>' : '<i class="fa-solid fa-desktop text-blue-500 text-sm"></i>';
                         
+                        // Fallback untuk data lama yang belum punya atribut isp/location
+                        const ispText = log.isp || "Privat / Unknown";
+                        const locText = log.location || "Lokasi Tidak Diketahui";
+
                         return `
                         <div class="flex justify-between items-center p-3 border-b border-gray-800/50 last:border-0 hover:bg-gray-800/30 transition-colors">
                             <div class="flex items-center gap-3">
-                                <div class="bg-gray-900 w-8 h-8 flex justify-center items-center rounded-lg border border-gray-700 shadow-inner">${icon}</div>
+                                <div class="bg-gray-900 min-w-[36px] h-9 flex justify-center items-center rounded-lg border border-gray-700 shadow-inner">${icon}</div>
                                 <div>
-                                    <p class="text-sm font-bold text-white font-mono tracking-wide">${log.ip}</p>
-                                    <p class="text-[9px] text-starCyan uppercase tracking-widest">${log.device}</p>
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-sm font-bold text-white font-mono tracking-wide">${log.ip}</p>
+                                        <span class="text-[8px] bg-gray-800 px-1.5 py-0.5 rounded text-starCyan border border-gray-700 uppercase tracking-widest">${log.device}</span>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400 mt-1 truncate w-40 md:w-56"><i class="fa-solid fa-server mr-1 text-gray-500"></i> ${ispText}</p>
+                                    <p class="text-[10px] text-gray-500 truncate w-40 md:w-56"><i class="fa-solid fa-location-dot mr-1 text-gray-600"></i> ${locText}</p>
                                 </div>
                             </div>
-                            <div class="text-[10px] text-gray-500 font-mono text-right">
+                            <div class="text-[10px] text-gray-500 font-mono text-right whitespace-nowrap ml-2">
                                 ${timeStr.replace(', ', '<br>')}
                             </div>
                         </div>`;
