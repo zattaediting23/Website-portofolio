@@ -94,7 +94,7 @@
     </div>
 
     <nav class="fixed w-full z-50 glass px-6 py-4 flex justify-between items-center">
-        <a href="#" onclick="showPage('beranda')" class="text-2xl font-black text-white tracking-widest flex items-center gap-2 hover:text-starCyan transition-colors">
+        <a href="#" class="text-2xl font-black text-white tracking-widest flex items-center gap-2 hover:text-starCyan transition-colors">
             <i class="fa-solid fa-satellite-dish text-starCyan"></i> ZWS.
         </a>
         
@@ -181,7 +181,7 @@
                 <h1 id="hero-name" class="text-5xl md:text-7xl font-extrabold text-white mb-4 scroll-anim scroll-up" style="transition-delay: 100ms;">M. Zhafran .MA</h1>
                 <p class="text-starCyan font-mono tracking-widest mb-10 scroll-anim scroll-up" style="transition-delay: 200ms;">Admin Staff & Web Developer</p>
                 <a id="btn-download-cv" href="#" class="inline-block bg-blue-600 border border-blue-500 text-white px-8 py-3 rounded hover:bg-blue-700 active:scale-95 font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.5)] scroll-anim scroll-up" style="transition-delay: 300ms;"><i class="fa-solid fa-file-pdf mr-2"></i> DOWNLOAD CV</a>
-                <a href="#tech-arsenal" class="inline-block mt-20 animate-bounce scroll-anim scroll-up cursor-pointer group" style="transition-delay: 500ms;">
+                <a href="#tech-arsenal" class="block mx-auto mt-20 w-max animate-bounce scroll-anim scroll-up cursor-pointer group" style="transition-delay: 500ms;">
                     <i class="fa-solid fa-chevron-down text-gray-500 text-2xl opacity-50 group-hover:opacity-100 group-hover:text-starCyan transition-all duration-300"></i>
                 </a>
             </section>
@@ -375,6 +375,7 @@
         }
 
         window.tutupModalAuth = function() { 
+            toggleBodyScroll(false);
             document.getElementById('auth-modal').classList.add('hidden'); 
             const btnContainer = document.getElementById('auth-buttons-container');
             if(btnContainer) btnContainer.classList.add('opacity-50', 'pointer-events-none', 'blur-[1px]');
@@ -385,6 +386,7 @@
         }
 
         function bukaModalAuth(type) {
+            toggleBodyScroll(true);
             document.getElementById('auth-modal').classList.remove('hidden');
             switchTabAuth(type);
 
@@ -426,29 +428,52 @@
 
         function aktifkanAnimasiScroll() { document.querySelectorAll('.scroll-anim:not(.show)').forEach(el => scrollObserver.observe(el)); }
 
+        function toggleBodyScroll(isLocked) {
+            if(isLocked) document.body.classList.add('overflow-hidden', 'pointer-events-none');
+            else document.body.classList.remove('overflow-hidden', 'pointer-events-none');
+            
+            // Kecualikan modal dari pointer-events-none agar tetap bisa di-klik
+            document.querySelectorAll('#auth-modal, #zws-dialog, #download-modal').forEach(el => {
+                el.style.pointerEvents = isLocked ? 'auto' : '';
+            });
+        }
+        
         function lockUI(pesan) {
+            toggleBodyScroll(true); // Kunci layar
             const loader = document.getElementById('loading-screen');
             document.getElementById('loading-text').innerText = pesan; document.getElementById('loading-text').classList.remove('text-red-500');
             loader.classList.remove('hidden'); setTimeout(() => loader.classList.remove('opacity-0'), 10);
         }
         function unlockUI() {
+            toggleBodyScroll(false); // Buka kunci
             const loader = document.getElementById('loading-screen');
             loader.classList.add('opacity-0'); setTimeout(() => loader.classList.add('hidden'), 500);
         }
 
-        function showPage(id) { 
-            // 1. Gulir ke atas dengan mulus sebelum halaman berganti
+        function showPage(id, skipHistory = false) { 
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            // 2. Beri jeda 150ms agar mata tidak kaget saat halaman ditukar
             setTimeout(() => {
                 document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active')); 
                 document.getElementById('page-'+id).classList.add('page-active'); 
-                
-                // 3. Panggil ulang radar animasi untuk elemen di halaman baru
                 setTimeout(aktifkanAnimasiScroll, 50); 
             }, 150);
+
+            // Ubah URL di atas browser tanpa me-refresh halaman
+            if (!skipHistory) {
+                const newUrl = id === 'beranda' ? '/' : '/profile';
+                window.history.pushState({ page: id }, "", newUrl);
+            }
         }
+
+        // Tangkap event jika pengunjung menekan tombol "Back" atau "Forward" di browser
+        window.addEventListener('popstate', (e) => {
+            if(e.state && e.state.page) showPage(e.state.page, true);
+            else {
+                if(window.location.pathname.includes('profile')) showPage('profil', true);
+                else showPage('beranda', true);
+            }
+        });
 
         // ================= SISTEM RADAR KONEKSI INTERNET (KILL SWITCH) =================
         function cekStatusSinyal() {
@@ -924,8 +949,8 @@
         document.addEventListener('click', function(e) { const c = document.getElementById('icon-dropdown-container'); if (c && !c.contains(e.target)) document.getElementById('icon-dropdown-list').classList.add('hidden'); });
         
         window.zwsToast = function(msg, type = 'info') { const container = document.getElementById('toast-container'); const toast = document.createElement('div'); let bgClass = 'bg-gray-800 border-gray-600 text-white'; let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>'; if (type === 'success') { bgClass = 'bg-emerald-900/95 border border-emerald-500 text-emerald-50'; icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>'; } else if (type === 'error') { bgClass = 'bg-red-900/95 border border-red-500 text-red-50'; icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>'; } else if (type === 'warning') { bgClass = 'bg-yellow-900/95 border border-yellow-500 text-yellow-50'; icon = '<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>'; } toast.className = `flex items-center gap-3 px-5 py-4 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto backdrop-blur-md ${bgClass}`; toast.innerHTML = `<div class="text-xl">${icon}</div> <span class="text-sm font-medium tracking-wide leading-tight">${msg}</span>`; container.appendChild(toast); setTimeout(() => toast.classList.remove('translate-x-full', 'opacity-0'), 10); setTimeout(() => { toast.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3500); }
-        function zwsConfirm(msg, onConfirmCallback) { const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box'); document.getElementById('zws-dialog-msg').innerText = msg; window.tempConfirmCallback = () => { closeZwsDialog(); if(onConfirmCallback) onConfirmCallback(); }; document.getElementById('zws-dialog-buttons').innerHTML = `<button onclick="closeZwsDialog()" class="flex-1 bg-transparent border border-gray-600 text-gray-300 font-bold px-4 py-2.5 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">BATAL</button><button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">YA, LANJUTKAN</button>`; dialog.classList.remove('hidden'); setTimeout(() => { dialog.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10); }
-        function closeZwsDialog() { const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box'); dialog.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(() => dialog.classList.add('hidden'), 300); }
+        function zwsConfirm(msg, onConfirmCallback) { toggleBodyScroll(true); const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box'); document.getElementById('zws-dialog-msg').innerText = msg; window.tempConfirmCallback = () => { closeZwsDialog(); if(onConfirmCallback) onConfirmCallback(); }; document.getElementById('zws-dialog-buttons').innerHTML = `<button onclick="closeZwsDialog()" class="flex-1 bg-transparent border border-gray-600 text-gray-300 font-bold px-4 py-2.5 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">BATAL</button><button onclick="window.tempConfirmCallback()" class="flex-1 bg-red-600 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">YA, LANJUTKAN</button>`; dialog.classList.remove('hidden'); setTimeout(() => { dialog.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10); }
+        function closeZwsDialog() { toggleBodyScroll(false); const dialog = document.getElementById('zws-dialog'); const box = document.getElementById('zws-dialog-box'); dialog.classList.add('opacity-0'); box.classList.add('scale-95'); setTimeout(() => dialog.classList.add('hidden'), 300); }
         // ================= SISTEM DOWNLOAD SECURITY GATE =================
         let downloadWidgetId = null;
 
@@ -1032,28 +1057,42 @@
         const auth = getAuth(app);
 
         // 1. RADAR UTAMA (Menjaga status UI saat halaman di-refresh manual)
+        // 1. RADAR UTAMA & SATPAM HALAMAN
         onAuthStateChanged(auth, (user) => {
+            // Eksekusi data user ke UI
             if (user) {
-                const userData = { 
-                    name: user.displayName || "Crew Member", 
-                    email: user.email || "", 
-                    picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
-                };
+                const userData = { name: user.displayName || "Crew Member", email: user.email || "", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
                 localStorage.setItem('zws_user', JSON.stringify(userData)); 
                 window.tampilkanUser(userData);
-                
-                // Render proyek agar tombol Admin muncul jika dia Admin
-                if (typeof dbData !== 'undefined' && dbData.projects) { 
-                    renderProjects(userData); renderJourney(userData); 
-                }
+                if (typeof dbData !== 'undefined' && dbData.projects) { renderProjects(userData); renderJourney(userData); }
             } else {
-                // Bersihkan UI jika benar-benar Log Out
-                localStorage.removeItem('zws_user');
-                currentUserInfo = null;
+                localStorage.removeItem('zws_user'); currentUserInfo = null;
                 document.getElementById('nav-logged-out').classList.remove('hidden'); 
                 document.getElementById('nav-logged-in').classList.add('hidden');
-                const adminPanel = document.getElementById('admin-panel'); 
-                if(adminPanel) adminPanel.classList.add('hidden');
+                if(document.getElementById('admin-panel')) document.getElementById('admin-panel').classList.add('hidden');
+            }
+
+            // === SISTEM ROUTING & PEMBLOKIR AKSES ===
+            const currentPath = window.location.pathname;
+            
+            if (currentPath.includes('/profile')) {
+                if (!user) {
+                    // JIKA BELUM LOGIN: Tendang ke beranda, ubah URL ke '/', dan buka modal login
+                    window.history.replaceState({ page: 'beranda' }, "", "/");
+                    showPage('beranda', true);
+                    
+                    // Beri jeda sedikit agar halaman beranda termuat dulu sebelum modal terbuka
+                    setTimeout(() => {
+                        window.zwsToast("Akses Ditolak. Silakan identifikasi diri Anda.", "error");
+                        bukaModalAuth('login');
+                    }, 500);
+                } else {
+                    // JIKA SUDAH LOGIN: Persilakan masuk
+                    showPage('profil', true);
+                }
+            } else {
+                // Default ke halaman beranda
+                showPage('beranda', true);
             }
         });
 
