@@ -375,6 +375,34 @@
             window.scrollTo(0,0); setTimeout(aktifkanAnimasiScroll, 50); 
         }
 
+        // ================= SISTEM RADAR KONEKSI INTERNET (KILL SWITCH) =================
+        const offlineScreen = document.getElementById('offline-screen');
+
+        function cekStatusSinyal() {
+            if (navigator.onLine) {
+                // Internet Terhubung: Buka kunci layar
+                offlineScreen.classList.add('hidden');
+                
+                // Jika web sedang memuat API saat internet kembali, render ulang
+                if(document.getElementById('hero-name').innerText === "Loading...") {
+                    window.dispatchEvent(new Event('load')); 
+                }
+            } else {
+                // Internet Terputus: Tutup semua modal dan kunci layar!
+                offlineScreen.classList.remove('hidden');
+                if(typeof window.tutupModalAuth === 'function') window.tutupModalAuth();
+                if(typeof window.tutupGerbangDownload === 'function') window.tutupGerbangDownload();
+                if(typeof window.closeZwsDialog === 'function') window.closeZwsDialog();
+            }
+        }
+
+        // 1. Cek secara instan saat halaman pertama kali dibuka
+        cekStatusSinyal();
+
+        // 2. Pasang pendengar (listener) yang bereaksi secara Real-Time!
+        window.addEventListener('online', cekStatusSinyal);
+        window.addEventListener('offline', cekStatusSinyal);
+
         // ================= FETCH API CLOUD (DENGAN PENGHANCUR CACHE) =================
         window.onload = () => {
             initIconDropdown(); 
@@ -622,6 +650,33 @@
         document.getElementById('download-modal')?.addEventListener('click', function(e) {
             if(e.target === this) window.tutupGerbangDownload();
         });
+
+        // ================= GLOBAL AUTO-SYNC (RADAR PENGECEK LATAR BELAKANG) =================
+        // Menjalankan patroli setiap 30 detik (30000 milidetik)
+        setInterval(() => {
+            // Hanya mengecek jika internet menyala DAN layar sedang dilihat oleh user
+            // Ini mencegah pemborosan kuota dan baterai jika tab-nya disembunyikan
+            if (navigator.onLine && document.visibilityState === 'visible') {
+                
+                fetch(API_URL + "?v=" + Date.now())
+                    .then(res => res.json())
+                    .then(dataTerbaru => {
+                        // Membandingkan data di layar saat ini dengan data terbaru dari cloud
+                        const dataLamaString = JSON.stringify(dbData);
+                        const dataBaruString = JSON.stringify(dataTerbaru);
+                        
+                        // JIKA ADA PERUBAHAN (Beda 1 huruf pun akan terdeteksi)
+                        if (dataLamaString !== dataBaruString) {
+                            dbData = dataTerbaru; // Update memori
+                            renderSeluruhUI();    // Gambar ulang layar secara senyap
+                            
+                            // (Opsional) Beritahu pengunjung bahwa ada update
+                            window.zwsToast("Data sistem baru saja diperbarui secara otomatis.", "info");
+                        }
+                    })
+                    .catch(e => console.log("Patroli auto-sync terhalang badai sinyal."));
+            }
+        }, 30000);
     </script>
 
     <script type="module">
