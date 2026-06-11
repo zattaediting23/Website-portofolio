@@ -471,9 +471,29 @@
             else {
                 grid.innerHTML = dbData.projects.map((p, index) => {
                     let processedLink = (p.link && p.link.includes('drive.google.com')) ? prosesLinkDrive(p.link) : p.link;
-                    let actionAttr = `href="${processedLink}"`; if ((p.btnText || '').toLowerCase().includes('download')) actionAttr += ` download target="_blank"`; else actionAttr += ` target="_blank"`;
                     const adminActions = isAdmin ? `<div class="flex gap-2 border-t border-gray-700 pt-3 mt-4"><button onclick="editProyek(${index})" class="flex-1 bg-yellow-500/20 text-yellow-500 text-xs font-bold py-2 rounded hover:bg-yellow-500 hover:text-black transition-colors"><i class="fa-solid fa-pen-to-square mr-1"></i> EDIT</button><button onclick="hapusProyek(${index})" class="flex-1 bg-red-500/20 text-red-500 text-xs font-bold py-2 rounded hover:bg-red-500 hover:text-white transition-colors"><i class="fa-solid fa-trash mr-1"></i> HAPUS</button></div>` : '';
-                    return `<div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up" style="transition-delay: ${(index % 3) * 100}ms;"><h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3><p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p><button onclick="bukaGerbangDownload('${processedLink}', event)" class="w-full bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-3 rounded hover:bg-starCyan hover:text-black transition-colors uppercase tracking-wider"><i class="${p.btnIcon || 'fa-solid fa-play'} mr-2"></i> ${p.btnText || 'LIVE DEMO'}</button>${adminActions}</div>`;
+                    
+                    // ================= LOGIKA PENDETEKSI TOMBOL =================
+                    // Cek apakah teks tombol mengandung kata "download" atau "unduh"
+                    const teksTombol = (p.btnText || '').toLowerCase();
+                    const isDownload = teksTombol.includes('download') || teksTombol.includes('unduh') || (p.btnIcon || '').includes('download');
+                    
+                    let actionElement = '';
+                    if (isDownload) {
+                        // JIKA DOWNLOAD: Gunakan Button yang memanggil Gerbang Keamanan Modal
+                        actionElement = `<button onclick="bukaGerbangDownload('${processedLink}', event)" class="w-full bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-3 rounded hover:bg-starCyan hover:text-black transition-colors uppercase tracking-wider mt-auto active:scale-95"><i class="${p.btnIcon || 'fa-solid fa-download'} mr-2"></i> ${p.btnText || 'DOWNLOAD'}</button>`;
+                    } else {
+                        // JIKA BUKAN DOWNLOAD: Gunakan Tag <a> biasa yang langsung menuju link tujuan
+                        actionElement = `<a href="${processedLink}" target="_blank" class="inline-block w-full bg-voidGray border border-gray-700 text-center text-white text-xs font-bold py-3 rounded hover:bg-starCyan hover:text-black transition-colors uppercase tracking-wider mt-auto active:scale-95"><i class="${p.btnIcon || 'fa-solid fa-play'} mr-2"></i> ${p.btnText || 'LIVE DEMO'}</a>`;
+                    }
+                    // ============================================================
+
+                    return `<div class="glass p-6 rounded-xl hover:border-starCyan transition-all group flex flex-col h-full relative scroll-anim scroll-up" style="transition-delay: ${(index % 3) * 100}ms;">
+                        <h3 class="font-bold text-white text-xl mb-3 group-hover:text-starCyan">${p.title}</h3>
+                        <p class="text-sm text-gray-400 mb-6 flex-grow">${p.desc}</p>
+                        ${actionElement}
+                        ${adminActions}
+                    </div>`;
                 }).join('');
             }
             aktifkanAnimasiScroll();
@@ -534,27 +554,35 @@
             finalLink.href = url; // Simpan URL ke tombol final
             btnContainer.classList.add('hidden'); // Sembunyikan tombol final dulu
             
+            // 1. Munculkan modal ke layar (Hapus display:none)
             modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
-
-            // Render Cloudflare Turnstile khusus Download
-            if (typeof turnstile !== 'undefined') {
-                if (downloadWidgetId === null) {
+            
+            // 2. Beri jeda 50ms agar animasi berjalan dan kotak terlihat oleh sistem
+            setTimeout(() => { 
+                modal.classList.remove('opacity-0'); 
+                box.classList.remove('scale-95'); 
+                
+                // 3. Render Turnstile SETELAH kotak terlihat (Mencegah Layar Hitam/Blank)
+                if (typeof turnstile !== 'undefined') {
+                    // Bersihkan sisa widget lama jika ada
+                    if(downloadWidgetId !== null) {
+                        turnstile.remove(downloadWidgetId);
+                        downloadWidgetId = null;
+                    }
+                    
+                    // Render ulang
                     downloadWidgetId = turnstile.render('#cf-download-widget', {
-                        sitekey: 'KUNCI_TURNSTILE_KAMU_DISINI', // <--- GANTI DENGAN SITE KEY CLOUDFLARE-MU
+                        sitekey: '0x4AAAAAADhbRHVyHjQV1Umn', // <--- WAJIB GANTI DENGAN KUNCI ASLIMU!
                         theme: 'dark',
                         callback: function(token) {
-                            // Jika lolos dari bot, munculkan tombol unduh!
                             document.getElementById('download-btn-container').classList.remove('hidden');
                             window.zwsToast("Koneksi Aman. Izin Mengunduh Diberikan.", "success");
                         }
                     });
-                } else {
-                    turnstile.reset(downloadWidgetId);
                 }
-            }
+            }, 50);
         };
-
+        
         window.tutupGerbangDownload = function() {
             const modal = document.getElementById('download-modal');
             const box = document.getElementById('download-modal-box');
