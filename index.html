@@ -292,7 +292,13 @@
         ];
 
         let modeForm = 'login'; let editIndex = -1; let editJourneyIndex = -1; 
+        // ================= INISIALISASI DATA (OFFLINE-FIRST CACHE) =================
         let dbData = { profile: {}, cv: "#", projects: [], journey: [] };
+        try {
+            // Coba ingat data terakhir sebelum nunggu Google
+            const cache = localStorage.getItem('zws_cloud_cache');
+            if (cache) dbData = JSON.parse(cache);
+        } catch(e) {}
         let currentUserInfo = null; // Menyimpan data user yang login
 
         // ================= SISTEM KEAMANAN GANDA =================
@@ -406,29 +412,35 @@
         // ================= FETCH API CLOUD (DENGAN PENGHANCUR CACHE) =================
         window.onload = () => {
             initIconDropdown(); 
-            lockUI("MENYINKRONKAN DATA CLOUD...");
-            const startTime = Date.now();
             
-            // CACHE BUSTER: Menambahkan timestamp agar Google TIDAK memberikan data basi
+            // 1. RENDER INSTAN: Munculkan data dari memori lokal (Anti-Hilang / Anti-Loading lama)
+            renderSeluruhUI();
+            
+            // 2. FETCH LATAR BELAKANG: Diam-diam cek Google tanpa mengganggu layar
             const freshUrl = API_URL + "?v=" + Date.now();
-            
             fetch(freshUrl)
                 .then(res => { if (!res.ok) throw new Error("Server Error"); return res.json(); })
-                .then(data => { 
-                    dbData = data; 
-                    renderSeluruhUI(); // UI langsung digambar ulang dengan data paling baru
+                .then(dataTerbaru => { 
+                    const dataLamaString = JSON.stringify(dbData);
+                    const dataBaruString = JSON.stringify(dataTerbaru);
+                    
+                    // Jika ada data baru dari cloud, update layar dan simpan ke memori
+                    if (dataLamaString !== dataBaruString) {
+                        dbData = dataTerbaru; 
+                        localStorage.setItem('zws_cloud_cache', JSON.stringify(dbData));
+                        renderSeluruhUI(); 
+                    }
                 })
-                .catch(err => {
-                    console.error("Gagal API:", err); 
-                    zwsToast("Menggunakan struktur lokal (API Gagal).", "warning");
-                    renderSeluruhUI(); 
-                })
+                .catch(err => console.warn("API Tertunda. Menggunakan data memori lokal."))
                 .finally(() => {
-                    const remaining = Math.max(0, 1000 - (Date.now() - startTime)); 
-                    setTimeout(() => {
-                        unlockUI();
-                        document.querySelectorAll('.scroll-anim').forEach(el => el.classList.add('show'));
-                    }, remaining);
+                    // Paksa semua animasi muncul
+                    document.querySelectorAll('.scroll-anim').forEach(el => el.classList.add('show'));
+                    // Sembunyikan layar loading utama (jika tadinya nyangkut)
+                    const loader = document.getElementById('loading-screen');
+                    if(loader) {
+                        loader.classList.add('opacity-0'); 
+                        setTimeout(() => loader.classList.add('hidden'), 500);
+                    }
                 });
         };
 
@@ -441,13 +453,19 @@
 
             document.getElementById('hero-name').innerText = dbData.profile.name || "M. Zhafran .MA";
             document.getElementById('profil-bio').innerText = dbData.profile.bio || "Bio kosong.";
-            document.getElementById('admin-profile-name').value = dbData.profile.name || "";
-            document.getElementById('admin-profile-bio').value = dbData.profile.bio || "";
+            
+            // PROTEKSI ANTI-GHOSTING: Jangan timpa kotak input jika admin sedang mengetik
+            const activeElem = document.activeElement;
+            const nameInput = document.getElementById('admin-profile-name');
+            const bioInput = document.getElementById('admin-profile-bio');
+            const cvInput = document.getElementById('admin-cv-link');
+            
+            if (activeElem !== nameInput) nameInput.value = dbData.profile.name || "";
+            if (activeElem !== bioInput) bioInput.value = dbData.profile.bio || "";
             
             const rawCvLink = dbData.cv || '#'; 
-            const processedCvLink = prosesLinkDrive(rawCvLink);
-            document.getElementById('btn-download-cv').setAttribute('onclick', `bukaGerbangDownload('${processedCvLink}', event)`); 
-            document.getElementById('admin-cv-link').value = rawCvLink === '#' ? '' : rawCvLink;
+            document.getElementById('btn-download-cv').setAttribute('onclick', `bukaGerbangDownload('${prosesLinkDrive(rawCvLink)}', event)`);
+            if (activeElem !== cvInput) cvInput.value = rawCvLink === '#' ? '' : rawCvLink;
 
             renderProjects(currentUserInfo); 
             renderJourney(currentUserInfo);
@@ -473,16 +491,17 @@
         // ================= CRUD SYSTEM =================
         // ================= CRUD SYSTEM =================
         function kirimKeServerGAS(pesanSukses) {
-            // Render UI secara INSTAN agar perubahan langsung terlihat di layar
+            // Backup ke cache lokal agar layar langsung berubah instan!
+            localStorage.setItem('zws_cloud_cache', JSON.stringify(dbData));
             renderSeluruhUI(); 
             
             lockUI("MENGIRIM DATA KE CLOUD...");
-            // POST request aman dari cache, jadi kita gunakan API_URL biasa
             fetch(API_URL, { method: 'POST', body: JSON.stringify(dbData) })
             .then(res => res.json())
             .then(res => { 
                 unlockUI(); 
                 zwsToast(pesanSukses, "success"); 
+                if(typeof radarChannel !== 'undefined') radarChannel.postMessage({ action: 'sync_data' });
             })
             .catch(err => { 
                 unlockUI(); 
