@@ -220,21 +220,34 @@
                         <span class="absolute -top-3 left-4 bg-spaceBlack px-2 text-blue-500 font-mono text-xs font-bold uppercase flex items-center gap-1" id="admin-panel-badge"><i class="fa-solid fa-user-shield"></i> Admin Command Center</span>
                         
                         <div class="space-y-6">
-                            <div class="grid grid-cols-3 gap-3 border-b border-gray-800 pb-6 mt-2">
-                                <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
-                                    <i class="fa-solid fa-users-viewfinder text-2xl text-starCyan mb-2"></i>
-                                    <h4 class="text-white font-black text-xl" id="stat-total">0</h4>
-                                    <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Total IP Unik</p>
+                            <div class="border-b border-gray-800 pb-6 mt-2">
+                                <label class="text-xs text-starCyan font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-satellite-dish text-lg"></i> RADAR ANALITIK PENGUNJUNG</label>
+                                
+                                <div class="grid grid-cols-3 gap-3 mb-4">
+                                    <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
+                                        <i class="fa-solid fa-users-viewfinder text-xl text-starCyan mb-1"></i>
+                                        <h4 class="text-white font-black text-lg" id="stat-total">0</h4>
+                                        <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">IP Unik</p>
+                                    </div>
+                                    <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
+                                        <i class="fa-solid fa-mobile-screen-button text-xl text-pink-500 mb-1"></i>
+                                        <h4 class="text-white font-black text-lg" id="stat-mobile">0</h4>
+                                        <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Via HP</p>
+                                    </div>
+                                    <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
+                                        <i class="fa-solid fa-desktop text-xl text-blue-500 mb-1"></i>
+                                        <h4 class="text-white font-black text-lg" id="stat-desktop">0</h4>
+                                        <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Via PC</p>
+                                    </div>
                                 </div>
-                                <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
-                                    <i class="fa-solid fa-mobile-screen-button text-2xl text-pink-500 mb-2"></i>
-                                    <h4 class="text-white font-black text-xl" id="stat-mobile">0</h4>
-                                    <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Dari HP</p>
-                                </div>
-                                <div class="bg-black/50 border border-gray-700 p-4 rounded-xl text-center">
-                                    <i class="fa-solid fa-desktop text-2xl text-blue-500 mb-2"></i>
-                                    <h4 class="text-white font-black text-xl" id="stat-desktop">0</h4>
-                                    <p class="text-[9px] text-gray-500 font-mono tracking-widest uppercase">Dari PC</p>
+
+                                <div class="bg-black/50 border border-gray-700 rounded-xl overflow-hidden">
+                                    <div class="bg-gray-800/80 px-4 py-2 flex justify-between items-center border-b border-gray-700">
+                                        <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase"><i class="fa-solid fa-list-ol mr-1"></i> Log Transmisi IP</span>
+                                    </div>
+                                    <div class="max-h-48 overflow-y-auto custom-scroll p-0" id="ip-log-container">
+                                        <p class="text-xs text-gray-500 text-center py-6 font-mono">Memindai log transmisi...</p>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -525,25 +538,33 @@
             if (!dbData.profile) dbData.profile = {};
             if (!dbData.projects) dbData.projects = [];
             if (!dbData.journey) dbData.journey = [];
+            if (!dbData.analytics) dbData.analytics = []; // Pastikan array analitik ada
 
             document.getElementById('hero-name').innerText = dbData.profile.name || "M. Zhafran .MA";
             document.getElementById('profil-bio').innerText = dbData.profile.bio || "Bio kosong.";
             
-            // PROTEKSI ANTI-GHOSTING: Jangan timpa kotak input jika admin sedang mengetik
+            // PROTEKSI ANTI-GHOSTING INPUT
             const activeElem = document.activeElement;
             const nameInput = document.getElementById('admin-profile-name');
             const bioInput = document.getElementById('admin-profile-bio');
             const cvInput = document.getElementById('admin-cv-link');
             
-            if (activeElem !== nameInput) nameInput.value = dbData.profile.name || "";
-            if (activeElem !== bioInput) bioInput.value = dbData.profile.bio || "";
+            if (activeElem !== nameInput && nameInput) nameInput.value = dbData.profile.name || "";
+            if (activeElem !== bioInput && bioInput) bioInput.value = dbData.profile.bio || "";
             
+            // FIX BUG CV: Gunakan Direct Function Assignment agar link apa pun tidak error
             const rawCvLink = dbData.cv || '#'; 
-            document.getElementById('btn-download-cv').setAttribute('onclick', `bukaGerbangDownload('${prosesLinkDrive(rawCvLink)}', event)`);
-            if (activeElem !== cvInput) cvInput.value = rawCvLink === '#' ? '' : rawCvLink;
+            const btnCv = document.getElementById('btn-download-cv');
+            if (btnCv) {
+                btnCv.onclick = function(event) {
+                    bukaGerbangDownload(prosesLinkDrive(rawCvLink), event);
+                };
+            }
+            if (activeElem !== cvInput && cvInput) cvInput.value = rawCvLink === '#' ? '' : rawCvLink;
 
             renderProjects(currentUserInfo); 
             renderJourney(currentUserInfo);
+            updateKartuAnalitik(); // Trigger update data statistik IP & List IP
         }
 
         // ================= MESIN ANALITIK & RADAR IP =================
@@ -595,6 +616,37 @@
             if(elTotal) elTotal.innerText = totalIP;
             if(elMobile) elMobile.innerText = totalMobile;
             if(elDesktop) elDesktop.innerText = totalDesktop;
+
+            // RENDER DAFTAR LOG IP
+            const container = document.getElementById('ip-log-container');
+            if(container) {
+                if(totalIP === 0) {
+                    container.innerHTML = '<p class="text-xs text-gray-500 text-center py-6 font-mono">Belum ada transmisi terdeteksi.</p>';
+                } else {
+                    // Balik susunan data (reverse) agar IP pengunjung paling baru muncul di urutan paling atas
+                    const reversedLogs = [...dbData.analytics].reverse();
+                    container.innerHTML = reversedLogs.map((log) => {
+                        const dateObj = new Date(log.time);
+                        // Format waktu lokal Indonesia
+                        const timeStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+                        const icon = log.device === 'Mobile' ? '<i class="fa-solid fa-mobile-screen-button text-pink-500 text-lg"></i>' : '<i class="fa-solid fa-desktop text-blue-500 text-sm"></i>';
+                        
+                        return `
+                        <div class="flex justify-between items-center p-3 border-b border-gray-800/50 last:border-0 hover:bg-gray-800/30 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-gray-900 w-8 h-8 flex justify-center items-center rounded-lg border border-gray-700 shadow-inner">${icon}</div>
+                                <div>
+                                    <p class="text-sm font-bold text-white font-mono tracking-wide">${log.ip}</p>
+                                    <p class="text-[9px] text-starCyan uppercase tracking-widest">${log.device}</p>
+                                </div>
+                            </div>
+                            <div class="text-[10px] text-gray-500 font-mono text-right">
+                                ${timeStr.replace(', ', '<br>')}
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+            }
         }
 
         // ================= USER UI HANDLER =================
