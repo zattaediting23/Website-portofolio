@@ -1057,18 +1057,16 @@
         const auth = getAuth(app);
 
         // ================= SISTEM ROUTING INSTAN (ANTI-FLASH) =================
-        // Menangkap URL detik ke-0 sebelum Firebase loading, agar layar tidak berkedip ke Beranda
         const currentPathUtama = window.location.pathname;
-        if (currentPathUtama.includes('/profile')) {
+        if (currentPathUtama.includes('profile')) {
             document.getElementById('page-beranda').classList.remove('page-active');
             document.getElementById('page-profil').classList.add('page-active');
         }
 
         // ================= RADAR UTAMA & SATPAM HALAMAN =================
-        let isInitialLoad = true; // Kunci agar halaman tidak me-reset diri sendiri saat Firebase refresh token
+        let isInitialLoad = true; 
 
         onAuthStateChanged(auth, (user) => {
-            // 1. Eksekusi data user ke UI
             if (user) {
                 const userData = { name: user.displayName || "Crew Member", email: user.email || "", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
                 localStorage.setItem('zws_user', JSON.stringify(userData)); 
@@ -1081,6 +1079,32 @@
                 if(document.getElementById('admin-panel')) document.getElementById('admin-panel').classList.add('hidden');
             }
 
+            // === SISTEM KONTROL NAVIGASI MUTLAK ===
+            if (isInitialLoad) {
+                const currentPath = window.location.pathname;
+                
+                if (currentPath.includes('profile')) {
+                    if (!user) {
+                        // JIKA BELUM LOGIN: Tendang ke beranda & Munculkan Modal
+                        window.history.replaceState({ page: 'beranda' }, "", "/");
+                        showPage('beranda', true); // Paksa ke beranda
+                        
+                        setTimeout(() => {
+                            window.zwsToast("Akses Ditolak. Harap login terlebih dahulu.", "error");
+                            bukaModalAuth('login');
+                        }, 500);
+                    } else {
+                        // JIKA SUDAH LOGIN: Kunci gembok! Paksa diam di halaman profil!
+                        showPage('profil', true);
+                    }
+                } else {
+                    // Jika di luar profil, pastikan ada di beranda
+                    if(currentPath !== '/') window.history.replaceState({ page: 'beranda' }, "", "/");
+                }
+                
+                isInitialLoad = false; // Gembok dikunci agar tidak me-reset lagi
+            }
+        });
             // 2. SISTEM PEMBLOKIR AKSES (Hanya dieksekusi 1 kali saat halaman pertama dimuat)
             if (isInitialLoad) {
                 const currentPath = window.location.pathname;
