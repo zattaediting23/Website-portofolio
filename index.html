@@ -466,7 +466,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        // Kita kembali menggunakan signInWithPopup
+        import { getAuth, signInWithPopup, onAuthStateChanged, signOut, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDXiY33kAumrMp4kMM_6J-LsWuGCtPM6hY",
@@ -479,94 +480,100 @@
         const app = initializeApp(firebaseConfig); 
         const auth = getAuth(app);
 
-        // 1. RADAR OTOMATIS: Pengatur UI (Panggil ini kapanpun status berubah)
-        function updateUIMenu(user) {
-            const navLoggedOut = document.getElementById('nav-logged-out');
-            const navLoggedIn = document.getElementById('nav-logged-in');
-            const adminPanel = document.getElementById('admin-panel');
-
-            if (user) {
-                // User sedang login
-                navLoggedOut.classList.add('hidden');
-                navLoggedIn.classList.remove('hidden');
-                document.getElementById('nav-foto').src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee`;
-                document.getElementById('profil-img').src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee`;
-                document.getElementById('profil-name').innerText = user.displayName || "Crew Member";
-                document.getElementById('profil-email').innerText = user.email || "Tanpa Email";
-                
-                // Cek Admin
-                if(ADMIN_ACCOUNTS.includes(user.email)) adminPanel?.classList.remove('hidden');
-                else adminPanel?.classList.add('hidden');
-            } else {
-                // User sedang log out
-                navLoggedOut.classList.remove('hidden');
-                navLoggedIn.classList.add('hidden');
-                adminPanel?.classList.add('hidden');
-            }
-        }
-
-        // 2. DETEKTOR PERUBAHAN OTENTIKASI
+        // 1. RADAR UTAMA (Menjaga status UI saat halaman di-refresh manual)
         onAuthStateChanged(auth, (user) => {
-            const navLoggedOut = document.getElementById('nav-logged-out');
-            const navLoggedIn = document.getElementById('nav-logged-in');
-            const adminPanel = document.getElementById('admin-panel');
-
             if (user) {
-                // User terdeteksi: Tampilkan Profil, Sembunyikan Login
-                navLoggedOut.classList.add('hidden');
-                navLoggedIn.classList.remove('hidden');
+                const userData = { 
+                    name: user.displayName || "Crew Member", 
+                    email: user.email || "", 
+                    picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
+                };
+                localStorage.setItem('zws_user', JSON.stringify(userData)); 
+                window.tampilkanUser(userData);
                 
-                // Update foto & data profil
-                document.getElementById('nav-foto').src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`;
-                document.getElementById('profil-img').src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`;
-                document.getElementById('profil-name').innerText = user.displayName || "Crew Member";
-                document.getElementById('profil-email').innerText = user.email || "";
-
-                // Cek Admin (Tambahkan proteksi keamanan agar tidak crash jika email null)
-                if(user.email && ADMIN_ACCOUNTS.includes(user.email)) {
-                    adminPanel?.classList.remove('hidden');
-                } else {
-                    adminPanel?.classList.add('hidden');
+                // Render proyek agar tombol Admin muncul jika dia Admin
+                if (typeof dbData !== 'undefined' && dbData.projects) { 
+                    renderProjects(userData); renderJourney(userData); 
                 }
             } else {
-                // User Log out: Tampilkan Login, Sembunyikan Profil
-                navLoggedOut.classList.remove('hidden');
-                navLoggedIn.classList.add('hidden');
-                adminPanel?.classList.add('hidden');
-            }
-            // Panggil render data agar card admin muncul saat status berubah
-            if (typeof dbData !== 'undefined') {
-                renderProjects(user);
-                renderJourney(user);
+                // Bersihkan UI jika benar-benar Log Out
+                localStorage.removeItem('zws_user');
+                currentUserInfo = null;
+                document.getElementById('nav-logged-out').classList.remove('hidden'); 
+                document.getElementById('nav-logged-in').classList.add('hidden');
+                const adminPanel = document.getElementById('admin-panel'); 
+                if(adminPanel) adminPanel.classList.add('hidden');
             }
         });
 
-        // 3. PENANGKAP HASIL REDIRECT
-        getRedirectResult(auth).then((result) => {
-            if (result) {
-                window.tutupModalAuth();
-                window.showPage('profil');
-                window.zwsToast("Login Berhasil!", "success");
+        // 2. FUNGSI EKSEKUSI LOGIN (Merespons LANGSUNG setelah popup ditutup)
+        function prosesLoginSukses(result) {
+            window.tutupModalAuth(); // Tutup modal login
+            const user = result.user;
+            const userData = { 
+                name: user.displayName || "Crew Member", 
+                email: user.email || "", 
+                picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
+            };
+            
+            // Simpan data & Ubah UI Navbar
+            localStorage.setItem('zws_user', JSON.stringify(userData));
+            window.tampilkanUser(userData);
+            
+            // Render ulang hak akses Admin
+            if (typeof dbData !== 'undefined' && dbData.projects) { 
+                renderProjects(userData); renderJourney(userData); 
             }
-        }).catch((e) => console.error(e));
+            
+            // LOMPAT KE HALAMAN PROFIL SEKETIKA!
+            window.showPage('profil'); 
+            window.zwsToast(`Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
+        }
 
-        // 4. FUNGSI LOGIN & LOGOUT
-        window.logout = () => {
-            zwsConfirm("Yakin ingin Log Out?", () => {
+        function prosesLoginGagal(error) {
+            // Abaikan jika error terjadi karena user sengaja menutup popup (Cancel)
+            if(error.code !== 'auth/popup-closed-by-user') {
+                window.zwsToast("Gagal login: " + error.message, "error");
+            }
+        }
+
+        // TRIGGER TOMBOL LOGIN
+        window.loginGoogle = function(btn) { 
+            window.setBtnLoading(btn); 
+            const provider = new GoogleAuthProvider(); provider.addScope('profile'); provider.addScope('email'); 
+            signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
+        };
+        
+        window.loginGitHub = function(btn) { 
+            window.setBtnLoading(btn); 
+            const provider = new GithubAuthProvider(); provider.addScope('read:user'); provider.addScope('user:email'); 
+            signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
+        };
+        
+        window.loginFacebook = function(btn) { 
+            window.setBtnLoading(btn); 
+            const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); 
+            signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
+        };
+        
+        window.loginInstagram = function(btn) { 
+            window.zwsToast("Membuka gerbang Meta. Gunakan akun Instagram yang tertaut.", "info"); 
+            setTimeout(() => { 
+                window.setBtnLoading(btn); 
+                const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); 
+                signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
+            }, 2000); 
+        };
+
+        // 3. FUNGSI LOGOUT
+        window.logout = function() {
+            window.zwsConfirm("Apakah Anda yakin ingin Log Out dari station?", function() {
                 signOut(auth).then(() => {
                     localStorage.removeItem('zws_user');
-                    window.location.reload();
+                    window.location.reload(); // Refresh halaman agar bersih sempurna
                 });
             });
         }
-
-        window.loginGoogle = () => signInWithRedirect(auth, new GoogleAuthProvider());
-        window.loginGitHub = () => signInWithRedirect(auth, new GithubAuthProvider());
-        window.loginFacebook = () => signInWithRedirect(auth, new FacebookAuthProvider());
-        window.loginInstagram = () => {
-            window.zwsToast("Mengalihkan ke Meta...", "info");
-            signInWithRedirect(auth, new FacebookAuthProvider());
-        };
     </script>
 </body>
 </html>
