@@ -636,7 +636,6 @@
             updateKartuAnalitik(); // Trigger update data statistik IP & List IP
         }
 
-        // ================= MESIN ANALITIK & RADAR IP (GEOJS - ANTI UNKNOWN) =================
         // ================= MESIN DETEKSI PERANGKAT =================
         function getDeviceType() {
             const ua = navigator.userAgent;
@@ -645,7 +644,6 @@
             return 'Desktop';
         }
 
-        // ================= MESIN ANALITIK & RADAR LOKASI LENGKAP =================
         // ================= MESIN ANALITIK & RADAR LOKASI LENGKAP =================
         function rekamJejakPengunjung() {
             if (!dbData.analytics) dbData.analytics = [];
@@ -1079,56 +1077,75 @@
         const app = initializeApp(firebaseConfig); 
         const auth = getAuth(app);
 
-        // ================= SISTEM ROUTING INSTAN (ANTI-FLASH) =================
-        const currentPathUtama = window.location.pathname;
-        if (currentPathUtama.includes('profile')) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
-            document.getElementById('page-profil').classList.add('page-active');
+        // ================= SISTEM ROUTING & UI INSTAN (0 DETIK) =================
+        // 1. Baca ingatan browser: Apakah Kapten sudah pernah login sebelumnya?
+        const cacheUserRaw = localStorage.getItem('zws_user');
+        let cacheUser = null;
+        try { if(cacheUserRaw) cacheUser = JSON.parse(cacheUserRaw); } catch(e){}
+
+        // 2. Munculkan UI Navbar SECEPAT KILAT tanpa nunggu Firebase
+        if (cacheUser) {
+            window.tampilkanUser(cacheUser);
         } else {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
-            document.getElementById('page-beranda').classList.add('page-active');
+            document.getElementById('nav-logged-out').classList.remove('hidden'); 
+            document.getElementById('nav-logged-in').classList.add('hidden');
         }
 
-        // ================= RADAR UTAMA & SATPAM HALAMAN =================
-        let isInitialLoad = true; 
+        // 3. Eksekusi Halaman SECEPAT KILAT berdasarkan URL
+        const currentPathUtama = window.location.pathname;
+        
+        if (currentPathUtama.includes('/profile')) {
+            if (cacheUser) {
+                // Punya tiket (pernah login)? Langsung buka profil!
+                showPage('profil', true); 
+            } else {
+                // Tidak punya tiket tapi maksa ke profil? Tendang instan ke Beranda!
+                window.history.replaceState({ page: 'beranda' }, "", "/");
+                showPage('beranda', true);
+                setTimeout(() => {
+                    window.zwsToast("Akses Ditolak. Harap login terlebih dahulu.", "error");
+                    bukaModalAuth('login');
+                }, 500);
+            }
+        } else {
+            // Jika buka web biasa (zws.pages.dev/), langsung buka Beranda
+            showPage('beranda', true);
+        }
 
+        // ================= FIREBASE BACKGROUND RADAR =================
+        // Firebase baru bangun beberapa detik kemudian. Biarkan dia bertugas mengecek validitas token di latar belakang.
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                const userData = { name: user.displayName || "Crew Member", email: user.email || "", picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` };
+                // Token Asli Valid. Perbarui data cache secara diam-diam.
+                const userData = { 
+                    name: user.displayName || "Crew Member", 
+                    email: user.email || "", 
+                    picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
+                };
                 localStorage.setItem('zws_user', JSON.stringify(userData)); 
                 window.tampilkanUser(userData);
-                if (typeof dbData !== 'undefined' && dbData.projects) { renderProjects(userData); renderJourney(userData); }
+                
+                // Render proyek/admin panel jika database sudah siap
+                if (typeof dbData !== 'undefined' && dbData.projects) { 
+                    renderProjects(userData); 
+                    renderJourney(userData); 
+                }
             } else {
-                localStorage.removeItem('zws_user'); currentUserInfo = null;
+                // FIREBASE MENDETEKSI TOKEN MATI ATAU USER BENAR-BENAR LOG OUT
+                localStorage.removeItem('zws_user'); 
+                currentUserInfo = null;
+                
                 document.getElementById('nav-logged-out').classList.remove('hidden'); 
                 document.getElementById('nav-logged-in').classList.add('hidden');
-                if(document.getElementById('admin-panel')) document.getElementById('admin-panel').classList.add('hidden');
-            }
+                const adminPnl = document.getElementById('admin-panel');
+                if(adminPnl) adminPnl.classList.add('hidden');
 
-            // === SISTEM KONTROL NAVIGASI MUTLAK ===
-            if (isInitialLoad) {
-                const currentPath = window.location.pathname;
-                
-                if (currentPath.includes('profile')) {
-                    if (!user) {
-                        // JIKA BELUM LOGIN: Tendang ke beranda & Munculkan Modal
-                        window.history.replaceState({ page: 'beranda' }, "", "/");
-                        showPage('beranda', true); // Paksa ke beranda
-                        
-                        setTimeout(() => {
-                            window.zwsToast("Akses Ditolak. Harap login terlebih dahulu.", "error");
-                            bukaModalAuth('login');
-                        }, 500);
-                    } else {
-                        // JIKA SUDAH LOGIN: Kunci gembok! Paksa diam di halaman profil!
-                        showPage('profil', true);
-                    }
-                } else {
-                    // Jika di luar profil, pastikan ada di beranda
-                    if(currentPath !== '/') window.history.replaceState({ page: 'beranda' }, "", "/");
+                // Jika posisinya sedang di profil tapi token ternyata mati, baru tendang keluar!
+                if (window.location.pathname.includes('/profile')) {
+                    window.history.replaceState({ page: 'beranda' }, "", "/");
+                    showPage('beranda', true);
+                    window.zwsToast("Sesi Anda telah berakhir. Silakan login kembali.", "warning");
                 }
-                
-                isInitialLoad = false; // Gembok dikunci agar tidak me-reset lagi
             }
         });
             // 2. SISTEM PEMBLOKIR AKSES (Hanya dieksekusi 1 kali saat halaman pertama dimuat)
