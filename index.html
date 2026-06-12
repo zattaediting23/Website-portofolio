@@ -841,7 +841,6 @@
         }
 
         // ================= CRUD SYSTEM =================
-        // ================= CRUD SYSTEM =================
         function kirimKeServerGAS(pesanSukses, isSilent = false) {
             localStorage.setItem('zws_cloud_cache', JSON.stringify(dbData));
             
@@ -1059,6 +1058,33 @@
                     .catch(e => console.log("Patroli auto-sync terhalang badai sinyal."));
             }
         }, 120000);
+        // ================= KERNEL ROUTER INSTAN (JALAN DI DETIK KE-0) =================
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Baca ingatan browser secepat kilat
+            const cacheUserRaw = localStorage.getItem('zws_user');
+            let cacheUser = null;
+            try { if(cacheUserRaw) cacheUser = JSON.parse(cacheUserRaw); } catch(e){}
+
+            // 2. Jika ada jejak login, langsung gambar tombolnya!
+            if (cacheUser && typeof window.tampilkanUser === 'function') {
+                window.tampilkanUser(cacheUser);
+            }
+
+            // 3. Eksekusi URL tanpa nunggu Firebase!
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('profile')) {
+                if (cacheUser) {
+                    showPage('profil', true); 
+                } else {
+                    // Berani masuk profil tanpa tiket? Tendang ke beranda!
+                    window.history.replaceState({ page: 'beranda' }, "", "/");
+                    showPage('beranda', true);
+                    setTimeout(() => { if(typeof window.zwsToast === 'function') window.zwsToast("Akses Ditolak. Harap login terlebih dahulu.", "error"); }, 500);
+                }
+            } else {
+                showPage('beranda', true);
+            }
+        });
     </script>
 
     <script type="module">
@@ -1076,39 +1102,11 @@
         const app = initializeApp(firebaseConfig); 
         const auth = getAuth(app);
 
-        // ================= SISTEM ROUTING & UI INSTAN (0 DETIK) =================
-        const cacheUserRaw = localStorage.getItem('zws_user');
-        let cacheUser = null;
-        try { if(cacheUserRaw) cacheUser = JSON.parse(cacheUserRaw); } catch(e){}
-
-        // Munculkan UI Instan
-        if (cacheUser) {
-            window.tampilkanUser(cacheUser);
-        } else {
-            document.getElementById('nav-logged-out').classList.remove('hidden'); 
-            document.getElementById('nav-logged-in').classList.add('hidden');
-        }
-
-        // Routing Instan
-        const currentPathUtama = window.location.pathname;
-        if (currentPathUtama.includes('/profile')) {
-            if (cacheUser) {
-                showPage('profil', true); 
-            } else {
-                window.history.replaceState({ page: 'beranda' }, "", "/");
-                showPage('beranda', true);
-                setTimeout(() => {
-                    if(typeof window.zwsToast === 'function') window.zwsToast("Akses Ditolak. Harap login terlebih dahulu.", "error");
-                    if(typeof bukaModalAuth === 'function') bukaModalAuth('login');
-                }, 500);
-            }
-        } else {
-            showPage('beranda', true);
-        }
-
         // ================= FIREBASE BACKGROUND RADAR =================
+        // Tugasnya sekarang HANYA mengecek keaslian sesi di latar belakang (tanpa ganggu routing awal)
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                // Sesi Asli Valid
                 const userData = { 
                     name: user.displayName || "Crew Member", 
                     email: user.email || "", 
@@ -1122,6 +1120,7 @@
                     if(typeof renderJourney === 'function') renderJourney(userData); 
                 }
             } else {
+                // Sesi Mati / Dihapus
                 localStorage.removeItem('zws_user'); 
                 if(typeof currentUserInfo !== 'undefined') currentUserInfo = null;
                 
@@ -1130,10 +1129,11 @@
                 const adminPnl = document.getElementById('admin-panel');
                 if(adminPnl) adminPnl.classList.add('hidden');
 
-                if (window.location.pathname.includes('/profile')) {
+                // Jika terlanjur masuk profil dengan cache palsu/kadaluarsa, TENDANG SEKARANG!
+                if (window.location.pathname.includes('profile')) {
                     window.history.replaceState({ page: 'beranda' }, "", "/");
-                    showPage('beranda', true);
-                    if(typeof window.zwsToast === 'function') window.zwsToast("Sesi Anda telah berakhir. Silakan login kembali.", "warning");
+                    if(typeof showPage === 'function') showPage('beranda', true);
+                    if(typeof window.zwsToast === 'function') window.zwsToast("Sesi kedaluwarsa. Silakan login kembali.", "error");
                 }
             }
         });
@@ -1196,7 +1196,7 @@
                 window.zwsConfirm("Apakah Anda yakin ingin Log Out dari station?", function() {
                     signOut(auth).then(() => {
                         localStorage.removeItem('zws_user');
-                        window.location.href = "/"; // Paksa refresh bersih ke Beranda
+                        window.location.href = "/"; // Refresh penuh paksa ke Beranda
                     });
                 });
             }
