@@ -1058,12 +1058,11 @@
                     })
                     .catch(e => console.log("Patroli auto-sync terhalang badai sinyal."));
             }
-        }, 30000);
+        }, 120000);
     </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-        // Kita kembali menggunakan signInWithPopup
         import { getAuth, signInWithPopup, onAuthStateChanged, signOut, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -1078,12 +1077,11 @@
         const auth = getAuth(app);
 
         // ================= SISTEM ROUTING & UI INSTAN (0 DETIK) =================
-        // 1. Baca ingatan browser: Apakah Kapten sudah pernah login sebelumnya?
         const cacheUserRaw = localStorage.getItem('zws_user');
         let cacheUser = null;
         try { if(cacheUserRaw) cacheUser = JSON.parse(cacheUserRaw); } catch(e){}
 
-        // 2. Munculkan UI Navbar SECEPAT KILAT tanpa nunggu Firebase
+        // Munculkan UI Instan
         if (cacheUser) {
             window.tampilkanUser(cacheUser);
         } else {
@@ -1091,32 +1089,26 @@
             document.getElementById('nav-logged-in').classList.add('hidden');
         }
 
-        // 3. Eksekusi Halaman SECEPAT KILAT berdasarkan URL
+        // Routing Instan
         const currentPathUtama = window.location.pathname;
-        
         if (currentPathUtama.includes('/profile')) {
             if (cacheUser) {
-                // Punya tiket (pernah login)? Langsung buka profil!
                 showPage('profil', true); 
             } else {
-                // Tidak punya tiket tapi maksa ke profil? Tendang instan ke Beranda!
                 window.history.replaceState({ page: 'beranda' }, "", "/");
                 showPage('beranda', true);
                 setTimeout(() => {
-                    window.zwsToast("Akses Ditolak. Harap login terlebih dahulu.", "error");
-                    bukaModalAuth('login');
+                    if(typeof window.zwsToast === 'function') window.zwsToast("Akses Ditolak. Harap login terlebih dahulu.", "error");
+                    if(typeof bukaModalAuth === 'function') bukaModalAuth('login');
                 }, 500);
             }
         } else {
-            // Jika buka web biasa (zws.pages.dev/), langsung buka Beranda
             showPage('beranda', true);
         }
 
         // ================= FIREBASE BACKGROUND RADAR =================
-        // Firebase baru bangun beberapa detik kemudian. Biarkan dia bertugas mengecek validitas token di latar belakang.
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Token Asli Valid. Perbarui data cache secara diam-diam.
                 const userData = { 
                     name: user.displayName || "Crew Member", 
                     email: user.email || "", 
@@ -1125,57 +1117,30 @@
                 localStorage.setItem('zws_user', JSON.stringify(userData)); 
                 window.tampilkanUser(userData);
                 
-                // Render proyek/admin panel jika database sudah siap
                 if (typeof dbData !== 'undefined' && dbData.projects) { 
-                    renderProjects(userData); 
-                    renderJourney(userData); 
+                    if(typeof renderProjects === 'function') renderProjects(userData); 
+                    if(typeof renderJourney === 'function') renderJourney(userData); 
                 }
             } else {
-                // FIREBASE MENDETEKSI TOKEN MATI ATAU USER BENAR-BENAR LOG OUT
                 localStorage.removeItem('zws_user'); 
-                currentUserInfo = null;
+                if(typeof currentUserInfo !== 'undefined') currentUserInfo = null;
                 
                 document.getElementById('nav-logged-out').classList.remove('hidden'); 
                 document.getElementById('nav-logged-in').classList.add('hidden');
                 const adminPnl = document.getElementById('admin-panel');
                 if(adminPnl) adminPnl.classList.add('hidden');
 
-                // Jika posisinya sedang di profil tapi token ternyata mati, baru tendang keluar!
                 if (window.location.pathname.includes('/profile')) {
                     window.history.replaceState({ page: 'beranda' }, "", "/");
                     showPage('beranda', true);
-                    window.zwsToast("Sesi Anda telah berakhir. Silakan login kembali.", "warning");
+                    if(typeof window.zwsToast === 'function') window.zwsToast("Sesi Anda telah berakhir. Silakan login kembali.", "warning");
                 }
-            }
-        });
-            // 2. SISTEM PEMBLOKIR AKSES (Hanya dieksekusi 1 kali saat halaman pertama dimuat)
-            if (isInitialLoad) {
-                const currentPath = window.location.pathname;
-                
-                if (currentPath.includes('/profile')) {
-                    if (!user) {
-                        // JIKA BELUM LOGIN: Tendang ke beranda secara mulus
-                        window.history.replaceState({ page: 'beranda' }, "", "/");
-                        showPage('beranda', true);
-                        
-                        setTimeout(() => {
-                            window.zwsToast("Akses Ditolak. Silakan identifikasi diri Anda.", "error");
-                            bukaModalAuth('login');
-                        }, 500);
-                    }
-                    // Jika sudah login, abaikan saja karena "Routing Instan" di atas sudah membuka halamannya
-                } else {
-                    // Pastikan di beranda
-                    if(currentPath !== '/') window.history.replaceState({ page: 'beranda' }, "", "/");
-                }
-                
-                isInitialLoad = false; // Gembok dikunci! Radar tidak akan mengganggu routing lagi.
             }
         });
 
-        // 2. FUNGSI EKSEKUSI LOGIN (Merespons LANGSUNG setelah popup ditutup)
+        // ================= FUNGSI LOGIN & LOGOUT =================
         function prosesLoginSukses(result) {
-            window.tutupModalAuth(); // Tutup modal login
+            if(typeof window.tutupModalAuth === 'function') window.tutupModalAuth();
             const user = result.user;
             const userData = { 
                 name: user.displayName || "Crew Member", 
@@ -1183,61 +1148,58 @@
                 picture: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=1f2937&color=22d3ee` 
             };
             
-            // Simpan data & Ubah UI Navbar
             localStorage.setItem('zws_user', JSON.stringify(userData));
             window.tampilkanUser(userData);
             
-            // Render ulang hak akses Admin
             if (typeof dbData !== 'undefined' && dbData.projects) { 
-                renderProjects(userData); renderJourney(userData); 
+                if(typeof renderProjects === 'function') renderProjects(userData); 
+                if(typeof renderJourney === 'function') renderJourney(userData); 
             }
             
-            // LOMPAT KE HALAMAN PROFIL SEKETIKA!
-            window.showPage('profil'); 
-            window.zwsToast(`Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
+            if(typeof showPage === 'function') showPage('profil'); 
+            if(typeof window.zwsToast === 'function') window.zwsToast(`Otentikasi Berhasil. Selamat datang, ${userData.name}!`, "success");
         }
 
         function prosesLoginGagal(error) {
-            // Abaikan jika error terjadi karena user sengaja menutup popup (Cancel)
             if(error.code !== 'auth/popup-closed-by-user') {
-                window.zwsToast("Gagal login: " + error.message, "error");
+                if(typeof window.zwsToast === 'function') window.zwsToast("Gagal login: " + error.message, "error");
             }
         }
 
-        // TRIGGER TOMBOL LOGIN
         window.loginGoogle = function(btn) { 
-            window.setBtnLoading(btn); 
+            if(typeof window.setBtnLoading === 'function') window.setBtnLoading(btn); 
             const provider = new GoogleAuthProvider(); provider.addScope('profile'); provider.addScope('email'); 
             signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
         };
         
         window.loginGitHub = function(btn) { 
-            window.setBtnLoading(btn); 
+            if(typeof window.setBtnLoading === 'function') window.setBtnLoading(btn); 
             const provider = new GithubAuthProvider(); provider.addScope('read:user'); provider.addScope('user:email'); 
             signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
         };
         
         window.loginFacebook = function(btn) { 
-            window.setBtnLoading(btn); 
+            if(typeof window.setBtnLoading === 'function') window.setBtnLoading(btn); 
             const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); 
             signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
         };
         
         window.loginInstagram = function(btn) {
-            window.zwsToast("Membuka gerbang Meta...", "info"); 
-            window.setBtnLoading(btn); 
+            if(typeof window.zwsToast === 'function') window.zwsToast("Membuka gerbang Meta...", "info"); 
+            if(typeof window.setBtnLoading === 'function') window.setBtnLoading(btn); 
             const provider = new FacebookAuthProvider(); provider.addScope('public_profile'); provider.addScope('email'); 
             signInWithPopup(auth, provider).then(prosesLoginSukses).catch(prosesLoginGagal); 
         };
 
-        // 3. FUNGSI LOGOUT
         window.logout = function() {
-            window.zwsConfirm("Apakah Anda yakin ingin Log Out dari station?", function() {
-                signOut(auth).then(() => {
-                    localStorage.removeItem('zws_user');
-                    window.location.reload(); // Refresh halaman agar bersih sempurna
+            if(typeof window.zwsConfirm === 'function') {
+                window.zwsConfirm("Apakah Anda yakin ingin Log Out dari station?", function() {
+                    signOut(auth).then(() => {
+                        localStorage.removeItem('zws_user');
+                        window.location.href = "/"; // Paksa refresh bersih ke Beranda
+                    });
                 });
-            });
+            }
         }
     </script>
 </body>
