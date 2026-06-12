@@ -317,6 +317,21 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div id="super-admin-section" class="hidden border-t border-gray-800 pt-6 mt-2">
+                                <label class="text-xs text-yellow-500 font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-crown text-lg"></i> KELOLA KRUN (SUPER ADMIN)</label>
+                                <div class="flex gap-2 mb-3">
+                                    <input type="email" id="new-admin-email" placeholder="Masukkan Email Admin Baru..." class="w-full bg-black p-3 rounded border border-gray-700 text-sm text-white focus:border-yellow-500 outline-none">
+                                    <button onclick="tambahAdmin()" class="bg-yellow-600 text-white px-4 font-bold rounded hover:bg-yellow-700 text-sm transition-colors shadow-[0_0_15px_rgba(202,138,4,0.4)]"><i class="fa-solid fa-user-plus"></i></button>
+                                </div>
+                                <div class="bg-black/50 border border-gray-700 rounded-xl overflow-hidden">
+                                    <div class="bg-gray-800/80 px-4 py-2 border-b border-gray-700">
+                                        <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase"><i class="fa-solid fa-users-gear mr-1"></i> Daftar Administrator</span>
+                                    </div>
+                                    <div class="max-h-40 overflow-y-auto custom-scroll p-0" id="admin-list-container">
+                                        </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
             </div>
@@ -339,13 +354,9 @@
 
     <script>
         // ================= PENGATURAN ADMIN =================
-        const API_URL = "https://script.google.com/macros/s/AKfycbz_Tl2lpfkgBOsf0ksTRRGp7DlS_W3Ar3QayP6egYlF89F4-ULgCwCfXga7Z51p5Zyd9w/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbwTyneeYTnRBIR4G6GpSIcsQWNE-duvhHgUBh-56_J97Ovp1ZC6VsBADenvL2bUKiINLg/exec"; 
         const radarChannel = new BroadcastChannel('zws_matrix_sync');
-        const ADMIN_ACCOUNTS = [
-            "zhafranediting23@gmail.com",   
-            "email_github_kamu@gmail.com",  
-            "email_facebook_kamu@gmail.com" 
-        ];
+        const SUPER_ADMIN = "zhafranediting23@gmail.com";
 
         let modeForm = 'login'; let editIndex = -1; let editJourneyIndex = -1; 
         // ================= INISIALISASI DATA (OFFLINE-FIRST CACHE) =================
@@ -521,45 +532,6 @@
             window.addEventListener('online', cekStatusSinyal);
             window.addEventListener('offline', cekStatusSinyal);
         });
-
-        // ================= KEMBALIKAN FUNGSI PENGATUR UI (ANTI-BLANK) =================
-        window.tampilkanUser = function(user) {
-            currentUserInfo = user;
-            const navLoggedOut = document.getElementById('nav-logged-out');
-            const navLoggedIn = document.getElementById('nav-logged-in');
-            const adminPanel = document.getElementById('admin-panel');
-
-            if (user) {
-                // User terdeteksi -> Munculkan Profil
-                if (navLoggedOut) navLoggedOut.classList.add('hidden');
-                if (navLoggedIn) navLoggedIn.classList.remove('hidden');
-                
-                // Update elemen gambar dan nama dengan aman
-                const fotoEl = document.getElementById('nav-foto');
-                if (fotoEl) fotoEl.src = user.picture || user.photoURL || `https://ui-avatars.com/api/?name=${user.name}&background=1f2937&color=22d3ee`;
-                
-                const profilImg = document.getElementById('profil-img');
-                if (profilImg) profilImg.src = user.picture || user.photoURL || `https://ui-avatars.com/api/?name=${user.name}&background=1f2937&color=22d3ee`;
-                
-                const nameEl = document.getElementById('profil-name');
-                if (nameEl) nameEl.innerText = user.name || user.displayName || "Crew Member";
-                
-                const emailEl = document.getElementById('profil-email');
-                if (emailEl) emailEl.innerText = user.email || "";
-
-                // Cek akses Admin
-                if(user.email && typeof ADMIN_ACCOUNTS !== 'undefined' && ADMIN_ACCOUNTS.includes(user.email)) {
-                    if (adminPanel) adminPanel.classList.remove('hidden');
-                } else {
-                    if (adminPanel) adminPanel.classList.add('hidden');
-                }
-            } else {
-                // User tidak ada -> Munculkan tombol Login
-                if (navLoggedOut) navLoggedOut.classList.remove('hidden');
-                if (navLoggedIn) navLoggedIn.classList.add('hidden');
-                if (adminPanel) adminPanel.classList.add('hidden');
-            }
-        };
         
         // ================= INISIALISASI DATA SUPER CEPAT (ANTI-BLANK & ANTI-OVERWRITE) =================
         document.addEventListener('DOMContentLoaded', () => {
@@ -603,6 +575,7 @@
 
         // Render Data Tanpa Membajak Navigasi Halaman
         function renderSeluruhUI() {
+            if (!dbData.admins) dbData.admins = [];
             if (!dbData) dbData = {};
             if (!dbData.profile) dbData.profile = {};
             if (!dbData.projects) dbData.projects = [];
@@ -634,6 +607,7 @@
             renderProjects(currentUserInfo); 
             renderJourney(currentUserInfo);
             updateKartuAnalitik(); // Trigger update data statistik IP & List IP
+            updateHakAkses();
         }
 
         // ================= MESIN DETEKSI PERANGKAT =================
@@ -823,21 +797,31 @@
             }
         }
 
-        // ================= USER UI HANDLER =================
+        // ================= PENGATUR UI USER GLOBAL =================
         window.tampilkanUser = function(user) {
             currentUserInfo = user;
-            document.getElementById('nav-logged-out').classList.add('hidden'); 
-            document.getElementById('nav-logged-in').classList.remove('hidden');
-            document.getElementById('nav-foto').src = user.picture; 
-            document.getElementById('profil-img').src = user.picture;
-            document.getElementById('profil-name').innerText = user.name; 
-            document.getElementById('profil-email').innerText = user.email;
             
-            if(user && user.email && ADMIN_ACCOUNTS.includes(user.email)) { 
-                document.getElementById('admin-panel').classList.remove('hidden'); 
-            } else { 
-                document.getElementById('admin-panel').classList.add('hidden'); 
-            }
+            // Munculkan kontainer login/logout di navbar
+            const navOut = document.getElementById('nav-logged-out');
+            const navIn = document.getElementById('nav-logged-in');
+            if(navOut) navOut.classList.add('hidden'); 
+            if(navIn) navIn.classList.remove('hidden');
+            
+            // Pasang foto profil secara aman
+            const fotEl1 = document.getElementById('nav-foto');
+            const fotEl2 = document.getElementById('profil-img');
+            const pic = user.picture || `https://ui-avatars.com/api/?name=${user.name}&background=1f2937&color=22d3ee`;
+            if(fotEl1) fotEl1.src = pic; 
+            if(fotEl2) fotEl2.src = pic;
+            
+            // Pasang nama dan email di halaman profil
+            const nmEl = document.getElementById('profil-name');
+            const emEl = document.getElementById('profil-email');
+            if(nmEl) nmEl.innerText = user.name || "Crew Member"; 
+            if(emEl) emEl.innerText = user.email || "";
+            
+            // Jalankan radar pengecek kasta (Admin / Super Admin)
+            if(typeof updateHakAkses === 'function') updateHakAkses();
         }
 
         // ================= CRUD SYSTEM =================
@@ -869,7 +853,105 @@
 
         function simpanProfilUtama() { dbData.profile.name = document.getElementById('admin-profile-name').value; dbData.profile.bio = document.getElementById('admin-profile-bio').value; kirimKeServerGAS("Log Identitas diperbarui!"); }
         function simpanCVKeDatabase() { dbData.cv = document.getElementById('admin-cv-link').value; kirimKeServerGAS("Tautan CV disinkronkan!"); }
+        
+        // ================= SISTEM SUPER ADMIN =================
+        function updateHakAkses() {
+            const userRaw = localStorage.getItem('zws_user');
+            if(!userRaw) return;
+            const user = JSON.parse(userRaw);
+            const adminPnl = document.getElementById('admin-panel');
+            const superPnl = document.getElementById('super-admin-section');
+            
+            if(!adminPnl) return;
 
+            let isAdmin = false;
+            let isSuperAdmin = false;
+
+            // 1. Cek apakah dia Kapten Zhafran (Super Admin)
+            if (user.email === SUPER_ADMIN) {
+                isAdmin = true;
+                isSuperAdmin = true;
+            } 
+            // 2. Cek apakah emailnya terdaftar di database admin
+            else if (dbData.admins && dbData.admins.includes(user.email)) {
+                isAdmin = true;
+            }
+
+            // Tampilkan Panel Berdasarkan Kasta
+            if (isAdmin) {
+                adminPnl.classList.remove('hidden');
+                if (isSuperAdmin) {
+                    if(superPnl) superPnl.classList.remove('hidden');
+                    renderAdminList();
+                } else {
+                    if(superPnl) superPnl.classList.add('hidden');
+                }
+            } else {
+                adminPnl.classList.add('hidden');
+            }
+        }
+
+        function tambahAdmin() {
+            const emailInput = document.getElementById('new-admin-email');
+            const email = emailInput.value.trim().toLowerCase();
+            if(!email) return window.zwsToast("Email tidak boleh kosong!", "warning");
+            if(!email.includes('@')) return window.zwsToast("Format email tidak valid!", "error");
+            
+            if(!dbData.admins) dbData.admins = [];
+            if(dbData.admins.includes(email) || email === SUPER_ADMIN) {
+                return window.zwsToast("Email tersebut sudah memiliki akses!", "warning");
+            }
+            
+            dbData.admins.push(email);
+            emailInput.value = '';
+            renderAdminList();
+            kirimKeServerGAS("Kru Admin baru berhasil diangkat!");
+        }
+
+        function hapusAdmin(email) {
+            window.zwsConfirm(`Cabut akses admin dari ${email}?`, function() {
+                dbData.admins = dbData.admins.filter(a => a !== email);
+                renderAdminList();
+                kirimKeServerGAS(`Akses admin ${email} telah dicabut!`);
+            });
+        }
+
+        function renderAdminList() {
+            const container = document.getElementById('admin-list-container');
+            if(!container) return;
+            
+            // Render takhta Super Admin yang tidak bisa dihapus
+            let html = `
+                <div class="flex justify-between items-center p-3 border-b border-gray-800/50">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-gray-900 w-8 h-8 flex justify-center items-center rounded-lg border border-gray-700 shadow-inner"><i class="fa-solid fa-crown text-yellow-500 text-xs"></i></div>
+                        <div>
+                            <p class="text-sm font-bold text-white">${SUPER_ADMIN}</p>
+                            <p class="text-[9px] text-yellow-500 tracking-widest uppercase font-bold">Kapten / Super Admin</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-gray-500 bg-gray-900 px-2 py-1 rounded border border-gray-800"><i class="fa-solid fa-lock text-gray-600"></i></span>
+                </div>
+            `;
+            
+            // Render kru admin biasa (Bisa dihapus oleh Super Admin)
+            if(dbData.admins && dbData.admins.length > 0) {
+                html += dbData.admins.map(adminEmail => `
+                    <div class="flex justify-between items-center p-3 border-b border-gray-800/50 group">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gray-900 w-8 h-8 flex justify-center items-center rounded-lg border border-gray-700 shadow-inner"><i class="fa-solid fa-user-shield text-starCyan text-xs"></i></div>
+                            <div>
+                                <p class="text-sm font-bold text-white">${adminEmail}</p>
+                                <p class="text-[9px] text-starCyan tracking-widest uppercase font-bold">Admin Staff</p>
+                            </div>
+                        </div>
+                        <button onclick="hapusAdmin('${adminEmail}')" class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-white transition-all bg-red-900/30 px-2 py-1 rounded"><i class="fa-solid fa-user-minus"></i></button>
+                    </div>
+                `).join('');
+            }
+            container.innerHTML = html;
+        }
+        
         function simpanProyek() {
             const title = document.getElementById('p-title').value; const link = document.getElementById('p-link').value;
             const desc = document.getElementById('p-desc').value; const btnText = document.getElementById('p-btn-text').value; const btnIcon = document.getElementById('p-btn-icon-value').value; 
