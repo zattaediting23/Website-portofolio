@@ -450,21 +450,44 @@
             loader.classList.add('opacity-0'); setTimeout(() => loader.classList.add('hidden'), 500);
         }
 
-        function showPage(id, skipHistory = false) { 
+        // ================= NAVIGASI HALAMAN CERDAS (ANTI-HILANG/BLINK) =================
+        function showPage(id, skipHistory = false) {
+            // 1. Gulir ke atas dengan mulus
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            setTimeout(() => {
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active')); 
-                document.getElementById('page-'+id).classList.add('page-active'); 
-                setTimeout(aktifkanAnimasiScroll, 50); 
-            }, 150);
+            // 2. Eksekusi Instan (Tanpa Jeda Waktu yang bikin layar blank)
+            document.querySelectorAll('.page').forEach(p => {
+                // Matikan semua halaman KECUALI halaman tujuan
+                if(p.id !== 'page-'+id) p.classList.remove('page-active');
+            }); 
+            
+            // Nyalakan halaman tujuan HANYA JIKA belum menyala
+            const targetPage = document.getElementById('page-'+id);
+            if(!targetPage.classList.contains('page-active')) {
+                targetPage.classList.add('page-active');
+            }
 
-            // Ubah URL di atas browser tanpa me-refresh halaman
+            // 3. Panggil radar animasi elemen
+            setTimeout(aktifkanAnimasiScroll, 50); 
+
+            // 4. Ubah URL di atas browser dengan aman
             if (!skipHistory) {
                 const newUrl = id === 'beranda' ? '/' : '/profile';
-                window.history.pushState({ page: id }, "", newUrl);
+                // Jangan paksa ubah history jika URL-nya sudah benar (mencegah loop)
+                if(window.location.pathname !== newUrl) {
+                    window.history.pushState({ page: id }, "", newUrl);
+                }
             }
         }
+
+        // Tangkap event saat pengunjung menekan tombol "Back" atau "Forward" di browser
+        window.addEventListener('popstate', (e) => {
+            if(e.state && e.state.page) showPage(e.state.page, true);
+            else {
+                if(window.location.pathname.includes('profile')) showPage('profil', true);
+                else showPage('beranda', true);
+            }
+        });
 
         // Tangkap event jika pengunjung menekan tombol "Back" atau "Forward" di browser
         window.addEventListener('popstate', (e) => {
@@ -1059,8 +1082,11 @@
         // ================= SISTEM ROUTING INSTAN (ANTI-FLASH) =================
         const currentPathUtama = window.location.pathname;
         if (currentPathUtama.includes('profile')) {
-            document.getElementById('page-beranda').classList.remove('page-active');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
             document.getElementById('page-profil').classList.add('page-active');
+        } else {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
+            document.getElementById('page-beranda').classList.add('page-active');
         }
 
         // ================= RADAR UTAMA & SATPAM HALAMAN =================
